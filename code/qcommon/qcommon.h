@@ -233,10 +233,10 @@ extern int demo_protocols[];
 #define	UPDATE_SERVER_NAME	"update.quake3arena.com"
 // override on command line, config files etc.
 #ifndef MASTER_SERVER_NAME
-#define MASTER_SERVER_NAME	"master.urbanterror.net"
+#define MASTER_SERVER_NAME	"master.urbanterror.info"
 #endif
 #ifndef AUTHORIZE_SERVER_NAME
-#define	AUTHORIZE_SERVER_NAME	"authorize.urbanterror.net"
+#define	AUTHORIZE_SERVER_NAME	"authorize.urbanterror.info"
 #endif
 
 #define	PORT_MASTER			27950
