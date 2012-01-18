@@ -1,0 +1,52 @@
+8
+
+dir
+1240
+svn://svn.icculus.org/quake3/trunk/code/tools/lcc/etc
+svn://svn.icculus.org/quake3
+
+
+
+2007-09-15T00:02:50.568147Z
+1181
+tma
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+edf5b092-35ff-0310-97b2-ce42778d08ea
+
+bytecode.c
+file
+
+
+
+
+2007-11-18T18:56:32.580000Z
+7341202ff824dd311205b38e589ab261
+2005-11-01T22:09:15.115998Z
+209
+tma
+
+lcc.c
+file
+
+
+
+
+2007-11-18T18:56:32.596000Z
+876dd1999e4fd708e86e121f528b0cb5
+2007-09-15T00:02:50.568147Z
+1181
+tma
+

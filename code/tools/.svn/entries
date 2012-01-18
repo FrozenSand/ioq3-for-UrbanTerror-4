@@ -1,0 +1,34 @@
+8
+
+dir
+1240
+svn://svn.icculus.org/quake3/trunk/code/tools
+svn://svn.icculus.org/quake3
+
+
+
+2007-11-02T23:36:23.816994Z
+1204
+tma
+has-props
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+edf5b092-35ff-0310-97b2-ce42778d08ea
+
+asm
+dir
+
+lcc
+dir
+
