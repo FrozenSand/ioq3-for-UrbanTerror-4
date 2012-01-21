@@ -1,5 +1,13 @@
 #
-# ioq3 Makefile
+# Quake3 Unix Makefile
+#
+# Nov '98 by Zoid <zoid@idsoftware.com>
+#
+# Loki Hacking by Bernd Kreimeier
+#  and a little more by Ryan C. Gordon.
+#  and a little more by Rafael Barrero
+#  and a little more by the ioq3 cr3w
+#  and a little more by woekele for ioUrbanTerror  :)
 #
 # GNU Make required
 #
@@ -23,11 +31,16 @@ ifeq ($(COMPILE_PLATFORM),mingw32)
   endif
 endif
 
-BUILD_CLIENT     =0
+BUILD_CLIENT     =1
 BUILD_CLIENT_SMP =0
 BUILD_SERVER     =1
 BUILD_GAME_SO    =0
 BUILD_GAME_QVM   =0
+OPTIMIZE         =1
+USE_SDL          =1
+USE_OPENAL       =0
+USE_CURL         =1
+USE_CODEC_VORBIS =0 
 
 ifneq ($(PLATFORM),darwin)
   BUILD_CLIENT_SMP = 0
@@ -758,9 +771,9 @@ ifneq ($(BUILD_SERVER),0)
 endif
 
 ifneq ($(BUILD_CLIENT),0)
-  TARGETS += $(B)/ioquake3.$(ARCH)$(BINEXT)
+  TARGETS += $(B)/ioUrbanTerror.$(ARCH)$(BINEXT)
   ifneq ($(BUILD_CLIENT_SMP),0)
-    TARGETS += $(B)/ioquake3-smp.$(ARCH)$(BINEXT)
+    TARGETS += $(B)/ioUrbanTerror-smp.$(ARCH)$(BINEXT)
   endif
 endif
 
@@ -878,7 +891,7 @@ release:
 # an informational message, then start building
 targets: makedirs
 	@echo ""
-	@echo "Building ioquake3 in $(B):"
+	@echo "Building ioUrbanTerror in $(B):"
 	@echo "  PLATFORM: $(PLATFORM)"
 	@echo "  ARCH: $(ARCH)"
 	@echo "  COMPILE_PLATFORM: $(COMPILE_PLATFORM)"
@@ -1274,12 +1287,12 @@ Q3POBJ += \
 Q3POBJ_SMP += \
   $(B)/clientsmp/sdl_glimp.o
 
-$(B)/ioquake3.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ) $(LIBSDLMAIN)
+$(B)/ioUrbanTerror.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) -o $@ $(Q3OBJ) $(Q3POBJ) $(CLIENT_LDFLAGS) \
 		$(LDFLAGS) $(LIBSDLMAIN)
 
-$(B)/ioquake3-smp.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ_SMP) $(LIBSDLMAIN)
+$(B)/ioUrbanTerror-smp.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ_SMP) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) -o $@ $(Q3OBJ) $(Q3POBJ_SMP) $(CLIENT_LDFLAGS) \
 		$(THREAD_LDFLAGS) $(LDFLAGS) $(LIBSDLMAIN)
@@ -1834,7 +1847,7 @@ copyfiles: release
 	-$(MKDIR) -p -m 0755 $(COPYDIR)/missionpack
 
 ifneq ($(BUILD_CLIENT),0)
-	$(INSTALL) -s -m 0755 $(BR)/ioquake3.$(ARCH)$(BINEXT) $(COPYDIR)/ioquake3.$(ARCH)$(BINEXT)
+	$(INSTALL) -s -m 0755 $(BR)/ioUrbanTerror.$(ARCH)$(BINEXT) $(COPYDIR)/ioUrbanTerror.$(ARCH)$(BINEXT)
 endif
 
 # Don't copy the SMP until it's working together with SDL.
@@ -1900,10 +1913,10 @@ installer: release
 	@$(MAKE) VERSION=$(VERSION) -C $(LOKISETUPDIR) V=$(V)
 
 dist:
-	rm -rf ioquake3-$(SVN_VERSION)
-	svn export . ioquake3-$(SVN_VERSION)
-	tar --owner=root --group=root --force-local -cjf ioquake3-$(SVN_VERSION).tar.bz2 ioquake3-$(SVN_VERSION)
-	rm -rf ioquake3-$(SVN_VERSION)
+	rm -rf ioUrbanTerror-$(SVN_VERSION)
+	svn export . ioUrbanTerror-$(SVN_VERSION)
+	tar --owner=root --group=root --force-local -cjf ioUrbanTerror-$(SVN_VERSION).tar.bz2 ioUrbanTerror-$(SVN_VERSION)
+	rm -rf ioUrbanTerror-$(SVN_VERSION)
 
 #############################################################################
 # DEPENDENCIES
