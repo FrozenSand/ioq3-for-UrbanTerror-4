@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
-#include "../../qcommon/q_platform.h"
 #include "cmdlib.h"
 #include "mathlib.h"
 #include "../../qcommon/qfiles.h"
@@ -1400,17 +1399,6 @@ void WriteVmFile( void ) {
 	header.jtrgLength = segment[JTRGSEG].imageUsed;
 
 	report( "Writing to %s\n", imageName );
-
-#ifdef Q3_BIG_ENDIAN
-	{
-		int i;
-
-		// byte swap the header
-		for ( i = 0 ; i < sizeof( vmHeader_t ) / 4 ; i++ ) {
-			((int *)&header)[i] = LittleLong( ((int *)&header)[i] );
-		}
-	}
-#endif
 
 	CreatePath( imageName );
 	f = SafeOpenWrite( imageName );

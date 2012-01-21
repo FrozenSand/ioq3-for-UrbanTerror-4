@@ -56,6 +56,7 @@ static fileHandle_t logfile;
 fileHandle_t	com_journalFile;			// events are written here
 fileHandle_t	com_journalDataFile;		// config files are written here
 
+cvar_t	*com_viewlog;
 cvar_t	*com_speeds;
 cvar_t	*com_developer;
 cvar_t	*com_dedicated;
@@ -79,9 +80,9 @@ cvar_t	*sv_paused;
 cvar_t  *cl_packetdelay;
 cvar_t  *sv_packetdelay;
 cvar_t	*com_cameraMode;
-cvar_t	*com_ansiColor;
-cvar_t	*com_unfocused;
-cvar_t	*com_minimized;
+#if defined(_WIN32) && defined(_DEBUG)
+cvar_t	*com_noErrorInterrupt;
+#endif
 
 // com_speeds times
 int		time_game;
@@ -160,9 +161,10 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 		return;
 	}
 
-#ifndef DEDICATED
-	CL_ConsolePrint( msg );
-#endif
+	// echo to console if we're not a dedicated server
+	if ( com_dedicated && !com_dedicated->integer ) {
+		CL_ConsolePrint( msg );
+	}
 
 	// echo to dedicated console and early console
 	Sys_Print( msg );
@@ -243,6 +245,16 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 	static int	lastErrorTime;
 	static int	errorCount;
 	int			currentTime;
+
+#if defined(_WIN32) && defined(_DEBUG)
+	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
+		if (!com_noErrorInterrupt->integer) {
+			__asm {
+				int 0x03
+			}
+		}
+	}
+#endif
 
 	// when we are running automated scripts, make sure we
 	// know if anything failed
@@ -1114,6 +1126,7 @@ typedef struct memstatic_s {
 	byte mem[2];
 } memstatic_t;
 
+// bk001204 - initializer brackets
 memstatic_t emptystring =
 	{ {(sizeof(memblock_t)+2 + 3) & ~3, TAG_STATIC, NULL, NULL, ZONEID}, {'\0', '\0'} };
 memstatic_t numberstring[] = {
@@ -1372,6 +1385,7 @@ Com_InitZoneMemory
 */
 void Com_InitSmallZoneMemory( void ) {
 	s_smallZoneTotal = 512 * 1024;
+	// bk001205 - was malloc
 	smallzone = calloc( s_smallZoneTotal, 1 );
 	if ( !smallzone ) {
 		Com_Error( ERR_FATAL, "Small zone data failed to allocate %1.1f megs", (float)s_smallZoneTotal / (1024*1024) );
@@ -1397,6 +1411,7 @@ void Com_InitZoneMemory( void ) {
 		s_zoneTotal = cv->integer * 1024 * 1024;
 	}
 
+	// bk001205 - was malloc
 	mainzone = calloc( s_zoneTotal, 1 );
 	if ( !mainzone ) {
 		Com_Error( ERR_FATAL, "Zone data failed to allocate %i megs", s_zoneTotal / (1024*1024) );
@@ -1521,6 +1536,8 @@ void Com_InitHunkMemory( void ) {
 		s_hunkTotal = cv->integer * 1024 * 1024;
 	}
 
+
+	// bk001205 - was malloc
 	s_hunkData = calloc( s_hunkTotal + 31, 1 );
 	if ( !s_hunkData ) {
 		Com_Error( ERR_FATAL, "Hunk data failed to allocate %i megs", s_hunkTotal / (1024*1024) );
@@ -1884,9 +1901,14 @@ journaled file
 ===================================================================
 */
 
+// bk001129 - here we go again: upped from 64
+// FIXME TTimo blunt upping from 256 to 1024
+// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=5
 #define	MAX_PUSHED_EVENTS	            1024
+// bk001129 - init, also static
 static int com_pushedEventsHead = 0;
 static int com_pushedEventsTail = 0;
+// bk001129 - static
 static sysEvent_t	com_pushedEvents[MAX_PUSHED_EVENTS];
 
 /*
@@ -1920,125 +1942,6 @@ void Com_InitJournaling( void ) {
 }
 
 /*
-========================================================================
-
-EVENT LOOP
-
-========================================================================
-*/
-
-#define MAX_QUEUED_EVENTS  256
-#define MASK_QUEUED_EVENTS ( MAX_QUEUED_EVENTS - 1 )
-
-static sysEvent_t  eventQueue[ MAX_QUEUED_EVENTS ];
-static int         eventHead = 0;
-static int         eventTail = 0;
-static byte        sys_packetReceived[ MAX_MSGLEN ];
-
-/*
-================
-Com_QueueEvent
-
-A time of 0 will get the current time
-Ptr should either be null, or point to a block of data that can
-be freed by the game later.
-================
-*/
-void Com_QueueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr )
-{
-	sysEvent_t  *ev;
-
-	ev = &eventQueue[ eventHead & MASK_QUEUED_EVENTS ];
-
-	if ( eventHead - eventTail >= MAX_QUEUED_EVENTS )
-	{
-		Com_Printf("Com_QueueEvent: overflow\n");
-		// we are discarding an event, but don't leak memory
-		if ( ev->evPtr )
-		{
-			Z_Free( ev->evPtr );
-		}
-		eventTail++;
-	}
-
-	eventHead++;
-
-	if ( time == 0 )
-	{
-		time = Sys_Milliseconds();
-	}
-
-	ev->evTime = time;
-	ev->evType = type;
-	ev->evValue = value;
-	ev->evValue2 = value2;
-	ev->evPtrLength = ptrLength;
-	ev->evPtr = ptr;
-}
-
-/*
-================
-Com_GetSystemEvent
-
-================
-*/
-sysEvent_t Com_GetSystemEvent( void )
-{
-	sysEvent_t  ev;
-	char        *s;
-	msg_t       netmsg;
-	netadr_t    adr;
-
-	// return if we have data
-	if ( eventHead > eventTail )
-	{
-		eventTail++;
-		return eventQueue[ ( eventTail - 1 ) & MASK_QUEUED_EVENTS ];
-	}
-
-	// check for console commands
-	s = Sys_ConsoleInput();
-	if ( s )
-	{
-		char  *b;
-		int   len;
-
-		len = strlen( s ) + 1;
-		b = Z_Malloc( len );
-		strcpy( b, s );
-		Com_QueueEvent( 0, SE_CONSOLE, 0, 0, len, b );
-	}
-
-	// check for network packets
-	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );
-	if ( Sys_GetPacket ( &adr, &netmsg ) )
-	{
-		netadr_t  *buf;
-		int       len;
-
-		// copy out to a seperate buffer for qeueing
-		len = sizeof( netadr_t ) + netmsg.cursize;
-		buf = Z_Malloc( len );
-		*buf = adr;
-		memcpy( buf+1, netmsg.data, netmsg.cursize );
-		Com_QueueEvent( 0, SE_PACKET, 0, 0, len, buf );
-	}
-
-	// return if we have data
-	if ( eventHead > eventTail )
-	{
-		eventTail++;
-		return eventQueue[ ( eventTail - 1 ) & MASK_QUEUED_EVENTS ];
-	}
-
-	// create an empty event to return
-	memset( &ev, 0, sizeof( ev ) );
-	ev.evTime = Sys_Milliseconds();
-
-	return ev;
-}
-
-/*
 =================
 Com_GetRealEvent
 =================
@@ -2061,7 +1964,7 @@ sysEvent_t	Com_GetRealEvent( void ) {
 			}
 		}
 	} else {
-		ev = Com_GetSystemEvent();
+		ev = Sys_GetEvent();
 
 		// write the journal value out if needed
 		if ( com_journal->integer == 1 ) {
@@ -2087,6 +1990,7 @@ sysEvent_t	Com_GetRealEvent( void ) {
 Com_InitPushEvent
 =================
 */
+// bk001129 - added
 void Com_InitPushEvent( void ) {
   // clear the static buffer array
   // this requires SE_NONE to be accepted as a valid but NOP event
@@ -2105,7 +2009,7 @@ Com_PushEvent
 */
 void Com_PushEvent( sysEvent_t *event ) {
 	sysEvent_t		*ev;
-	static int printedWarning = 0;
+	static int printedWarning = 0; // bk001129 - init, bk001204 - explicit int
 
 	ev = &com_pushedEvents[ com_pushedEventsHead & (MAX_PUSHED_EVENTS-1) ];
 
@@ -2206,6 +2110,7 @@ int Com_EventLoop( void ) {
 
 		switch ( ev.evType ) {
 		default:
+		  // bk001129 - was ev.evTime
 			Com_Error( ERR_FATAL, "Com_EventLoop: bad event type %i", ev.evType );
 			break;
         case SE_NONE:
@@ -2417,7 +2322,7 @@ void Com_AppendCDKey( const char *filename ) {
 	}
 }
 
-#ifndef DEDICATED
+#ifndef DEDICATED // bk001204
 /*
 =================
 Com_WriteCDKey
@@ -2473,7 +2378,7 @@ static void Com_DetectAltivec(void)
 		static qboolean altivec = qfalse;
 		static qboolean detected = qfalse;
 		if (!detected) {
-			altivec = ( Sys_GetProcessorFeatures( ) & CF_ALTIVEC );
+			altivec = Sys_DetectAltivec();
 			detected = qtrue;
 		}
 
@@ -2492,17 +2397,13 @@ Com_Init
 void Com_Init( char *commandLine ) {
 	char	*s;
 
-	Com_Printf( "%s %s %s\n", Q3_VERSION, PLATFORM_STRING, __DATE__ );
+	Com_Printf( "%s %s %s\n", SVN_VERSION, PLATFORM_STRING, __DATE__ );
 
 	if ( setjmp (abortframe) ) {
 		Sys_Error ("Error during initialization");
 	}
 
-	// Clear queues
-	Com_Memset( &eventQueue[ 0 ], 0, MAX_QUEUED_EVENTS * sizeof( sysEvent_t ) );
-	Com_Memset( &sys_packetReceived[ 0 ], 0, MAX_MSGLEN * sizeof( byte ) );
-
-  // do this before anything else decides to push events
+  // bk001129 - do this before anything else decides to push events
   Com_InitPushEvent();
 
 	Com_InitSmallZoneMemory();
@@ -2572,6 +2473,7 @@ void Com_Init( char *commandLine ) {
 	com_fixedtime = Cvar_Get ("fixedtime", "0", CVAR_CHEAT);
 	com_showtrace = Cvar_Get ("com_showtrace", "0", CVAR_CHEAT);
 	com_dropsim = Cvar_Get ("com_dropsim", "0", CVAR_CHEAT);
+	com_viewlog = Cvar_Get( "viewlog", "0", CVAR_CHEAT );
 	com_speeds = Cvar_Get ("com_speeds", "0", 0);
 	com_timedemo = Cvar_Get ("timedemo", "0", CVAR_CHEAT);
 	com_cameraMode = Cvar_Get ("com_cameraMode", "0", CVAR_CHEAT);
@@ -2583,12 +2485,18 @@ void Com_Init( char *commandLine ) {
 	com_sv_running = Cvar_Get ("sv_running", "0", CVAR_ROM);
 	com_cl_running = Cvar_Get ("cl_running", "0", CVAR_ROM);
 	com_buildScript = Cvar_Get( "com_buildScript", "0", 0 );
-	com_ansiColor = Cvar_Get( "com_ansiColor", "0", CVAR_ARCHIVE );
-
-	com_unfocused = Cvar_Get( "com_unfocused", "0", CVAR_ROM );
-	com_minimized = Cvar_Get( "com_minimized", "0", CVAR_ROM );
 
 	com_introPlayed = Cvar_Get( "com_introplayed", "0", CVAR_ARCHIVE);
+
+#if defined(_WIN32) && defined(_DEBUG)
+	com_noErrorInterrupt = Cvar_Get( "com_noErrorInterrupt", "0", 0 );
+#endif
+
+	if ( com_dedicated->integer ) {
+		if ( !com_viewlog->integer ) {
+			Cvar_Set( "viewlog", "1" );
+		}
+	}
 
 	if ( com_developer && com_developer->integer ) {
 		Cmd_AddCommand ("error", Com_Error_f);
@@ -2608,9 +2516,10 @@ void Com_Init( char *commandLine ) {
 	SV_Init();
 
 	com_dedicated->modified = qfalse;
-#ifndef DEDICATED
-	CL_Init();
-#endif
+	if ( !com_dedicated->integer ) {
+		CL_Init();
+		Sys_ShowConsole( com_viewlog->integer, qfalse );
+	}
 
 	// set com_frameTime so that if a map is started on the
 	// command line it will still be able to count on com_frameTime
@@ -2632,7 +2541,7 @@ void Com_Init( char *commandLine ) {
 	// start in full screen ui mode
 	Cvar_Set("r_uiFullScreen", "1");
 
-	CL_StartHunkUsers( qfalse );
+	CL_StartHunkUsers();
 
 	// make sure single player is off by default
 	Cvar_Set("ui_singlePlayerActive", "0");
@@ -2641,9 +2550,9 @@ void Com_Init( char *commandLine ) {
 
 	// always set the cvar, but only print the info if it makes sense.
 	Com_DetectAltivec();
-#if idppc
+	#if idppc
 	Com_Printf ("Altivec support is %s\n", com_altivec->integer ? "enabled" : "disabled");
-#endif
+	#endif
 
 	Com_Printf ("--- Common Initialization Complete ---\n");
 }
@@ -2674,7 +2583,7 @@ Writes key bindings and archived cvars to config file if modified
 ===============
 */
 void Com_WriteConfiguration( void ) {
-#ifndef DEDICATED
+#ifndef DEDICATED // bk001204
 	cvar_t	*fs;
 #endif
 	// if we are quiting without fully initializing, make sure
@@ -2690,7 +2599,7 @@ void Com_WriteConfiguration( void ) {
 
 	Com_WriteConfigToFile( "q3config.cfg" );
 
-	// not needed for dedicated
+	// bk001119 - tentative "not needed for dedicated"
 #ifndef DEDICATED
 	fs = Cvar_Get ("fs_game", "", CVAR_INIT|CVAR_SYSTEMINFO );
 	if (UI_usesUniqueCDKey() && fs && fs->string[0] != 0) {
@@ -2799,6 +2708,8 @@ void Com_Frame( void ) {
 		return;			// an ERR_DROP was thrown
 	}
 
+	// bk001204 - init to zero.
+	//  also:  might be clobbered by `longjmp' or `vfork'
 	timeBeforeFirstEvents =0;
 	timeBeforeServer =0;
 	timeBeforeEvents =0;
@@ -2811,6 +2722,14 @@ void Com_Frame( void ) {
 
 	// write config file if anything changed
 	Com_WriteConfiguration(); 
+
+	// if "viewlog" has been modified, show or hide the log console
+	if ( com_viewlog->modified ) {
+		if ( !com_dedicated->value ) {
+			Sys_ShowConsole( com_viewlog->integer, qfalse );
+		}
+		com_viewlog->modified = qfalse;
+	}
 
 	//
 	// main event loop
@@ -2864,39 +2783,42 @@ void Com_Frame( void ) {
 		Cvar_Get( "dedicated", "0", 0 );
 		com_dedicated->modified = qfalse;
 		if ( !com_dedicated->integer ) {
-			SV_Shutdown( "dedicated set to 0" );
-			CL_FlushMemory();
+			CL_Init();
+			Sys_ShowConsole( com_viewlog->integer, qfalse );
+		} else {
+			CL_Shutdown();
+			Sys_ShowConsole( 1, qtrue );
 		}
 	}
 
-#ifndef DEDICATED
 	//
 	// client system
 	//
-	//
-	// run event loop a second time to get server to client packets
-	// without a frame of latency
-	//
-	if ( com_speeds->integer ) {
-		timeBeforeEvents = Sys_Milliseconds ();
+	if ( !com_dedicated->integer ) {
+		//
+		// run event loop a second time to get server to client packets
+		// without a frame of latency
+		//
+		if ( com_speeds->integer ) {
+			timeBeforeEvents = Sys_Milliseconds ();
+		}
+		Com_EventLoop();
+		Cbuf_Execute ();
+
+
+		//
+		// client side
+		//
+		if ( com_speeds->integer ) {
+			timeBeforeClient = Sys_Milliseconds ();
+		}
+
+		CL_Frame( msec );
+
+		if ( com_speeds->integer ) {
+			timeAfter = Sys_Milliseconds ();
+		}
 	}
-	Com_EventLoop();
-	Cbuf_Execute ();
-
-
-	//
-	// client side
-	//
-	if ( com_speeds->integer ) {
-		timeBeforeClient = Sys_Milliseconds ();
-	}
-
-	CL_Frame( msec );
-
-	if ( com_speeds->integer ) {
-		timeAfter = Sys_Milliseconds ();
-	}
-#endif
 
 	//
 	// report timing information
@@ -3292,8 +3214,6 @@ static void Field_CompleteCommand( char *cmd,
 	}
 	else
 	{
-		int completionOffset;
-
 		if( completionString[0] == '\\' || completionString[0] == '/' )
 			completionString++;
 
@@ -3312,10 +3232,9 @@ static void Field_CompleteCommand( char *cmd,
 		if( matchCount == 0 )
 			return; // no matches
 
-		completionOffset = strlen( completionField->buffer ) - strlen( completionString );
-
-		Q_strncpyz( &completionField->buffer[ completionOffset ], shortestMatch,
-			sizeof( completionField->buffer ) - completionOffset );
+		Q_strncpyz( &completionField->buffer[ strlen( completionField->buffer ) -
+			strlen( completionString ) ], shortestMatch,
+			sizeof( completionField->buffer ) );
 
 		completionField->cursor = strlen( completionField->buffer );
 

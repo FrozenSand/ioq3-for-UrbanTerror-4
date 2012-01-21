@@ -44,7 +44,6 @@ cvar_t	*cl_freezeDemo;
 cvar_t	*cl_shownet;
 cvar_t	*cl_showSend;
 cvar_t	*cl_timedemo;
-cvar_t	*cl_timedemoLog;
 cvar_t	*cl_autoRecordDemo;
 cvar_t	*cl_aviFrameRate;
 cvar_t	*cl_aviMotionJpeg;
@@ -67,7 +66,7 @@ cvar_t	*cl_activeAction;
 
 cvar_t	*cl_motdString;
 
-cvar_t	*cl_allowDownload;
+cvar_t	*cl_autoDownload;
 cvar_t	*cl_conXOffset;
 cvar_t	*cl_inGameVideo;
 
@@ -78,10 +77,13 @@ cvar_t	*cl_lanForcePackets;
 
 cvar_t	*cl_guidServerUniq;
 
+cvar_t	*cl_altTab;
+
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
 vm_t				*cgvm;
+qboolean allowautodl;
 
 // Structure containing functions exported from refresh DLL
 refexport_t	re;
@@ -395,94 +397,17 @@ CLIENT SIDE DEMO PLAYBACK
 
 /*
 =================
-CL_DemoFrameDurationSDev
-=================
-*/
-static float CL_DemoFrameDurationSDev( void )
-{
-	int i;
-	int numFrames;
-	float mean = 0.0f;
-	float variance = 0.0f;
-
-	if( ( clc.timeDemoFrames - 1 ) > MAX_TIMEDEMO_DURATIONS )
-		numFrames = MAX_TIMEDEMO_DURATIONS;
-	else
-		numFrames = clc.timeDemoFrames - 1;
-
-	for( i = 0; i < numFrames; i++ )
-		mean += clc.timeDemoDurations[ i ];
-	mean /= numFrames;
-
-	for( i = 0; i < numFrames; i++ )
-	{
-		float x = clc.timeDemoDurations[ i ];
-
-		variance += ( ( x - mean ) * ( x - mean ) );
-	}
-	variance /= numFrames;
-
-	return sqrt( variance );
-}
-
-/*
-=================
 CL_DemoCompleted
 =================
 */
-void CL_DemoCompleted( void )
-{
-	char buffer[ MAX_STRING_CHARS ];
-
-	if( cl_timedemo && cl_timedemo->integer )
-	{
+void CL_DemoCompleted( void ) {
+	if (cl_timedemo && cl_timedemo->integer) {
 		int	time;
 		
 		time = Sys_Milliseconds() - clc.timeDemoStart;
-		if( time > 0 )
-		{
-			// Millisecond times are frame durations:
-			// minimum/average/maximum/std deviation
-			Com_sprintf( buffer, sizeof( buffer ),
-					"%i frames %3.1f seconds %3.1f fps %d.0/%.1f/%d.0/%.1f ms\n",
-					clc.timeDemoFrames,
-					time/1000.0,
-					clc.timeDemoFrames*1000.0 / time,
-					clc.timeDemoMinDuration,
-					time / (float)clc.timeDemoFrames,
-					clc.timeDemoMaxDuration,
-					CL_DemoFrameDurationSDev( ) );
-			Com_Printf( buffer );
-
-			// Write a log of all the frame durations
-			if( cl_timedemoLog && strlen( cl_timedemoLog->string ) > 0 )
-			{
-				int i;
-				int numFrames;
-				fileHandle_t f;
-
-				if( ( clc.timeDemoFrames - 1 ) > MAX_TIMEDEMO_DURATIONS )
-					numFrames = MAX_TIMEDEMO_DURATIONS;
-				else
-					numFrames = clc.timeDemoFrames - 1;
-
-				f = FS_FOpenFileWrite( cl_timedemoLog->string );
-				if( f )
-				{
-					FS_Printf( f, "# %s", buffer );
-
-					for( i = 0; i < numFrames; i++ )
-						FS_Printf( f, "%d\n", clc.timeDemoDurations[ i ] );
-
-					FS_FCloseFile( f );
-					Com_Printf( "%s written\n", cl_timedemoLog->string );
-				}
-				else
-				{
-					Com_Printf( "Couldn't open %s for writing\n",
-							cl_timedemoLog->string );
-				}
-			}
+		if ( time > 0 ) {
+			Com_Printf ("%i frames, %3.1f seconds: %3.1f fps\n", clc.timeDemoFrames,
+			time/1000.0, clc.timeDemoFrames*1000.0 / time);
 		}
 	}
 
@@ -653,7 +578,7 @@ Closing the main menu will restart the demo loop
 void CL_StartDemoLoop( void ) {
 	// start the demo loop again
 	Cbuf_AddText ("d1\n");
-	Key_SetCatcher( 0 );
+	cls.keyCatchers = 0;
 }
 
 /*
@@ -690,7 +615,7 @@ CL_ShutdownAll
 */
 void CL_ShutdownAll(void) {
 
-#ifdef USE_CURL
+#if USE_CURL
 	CL_cURL_Shutdown();
 #endif
 	// clear sounds
@@ -737,7 +662,7 @@ void CL_FlushMemory( void ) {
 		Hunk_ClearToMark();
 	}
 
-	CL_StartHunkUsers( qfalse );
+	CL_StartHunkUsers();
 }
 
 /*
@@ -750,18 +675,12 @@ memory on the hunk from cgame, ui, and renderer
 =====================
 */
 void CL_MapLoading( void ) {
-	if ( com_dedicated->integer ) {
-		cls.state = CA_DISCONNECTED;
-		Key_SetCatcher( KEYCATCH_CONSOLE );
-		return;
-	}
-
 	if ( !com_cl_running->integer ) {
 		return;
 	}
 
 	Con_Close();
-	Key_SetCatcher( 0 );
+	cls.keyCatchers = 0;
 
 	// if we are already connected to the local host, stay connected
 	if ( cls.state >= CA_CONNECTED && !Q_stricmp( cls.servername, "localhost" ) ) {
@@ -777,7 +696,7 @@ void CL_MapLoading( void ) {
 		CL_Disconnect( qtrue );
 		Q_strncpyz( cls.servername, "localhost", sizeof(cls.servername) );
 		cls.state = CA_CHALLENGING;		// so the connect screen is drawn
-		Key_SetCatcher( 0 );
+		cls.keyCatchers = 0;
 		SCR_UpdateScreen();
 		clc.connectTime = -RETRANSMIT_TIMEOUT;
 		NET_StringToAdr( cls.servername, &clc.serverAddress);
@@ -917,7 +836,7 @@ void CL_ForwardCommandToServer( const char *string ) {
 	}
 
 	if ( clc.demoplaying || cls.state < CA_CONNECTED || cmd[0] == '+' ) {
-		Com_Printf ("Unknown command \"%s" S_COLOR_WHITE "\"\n", cmd);
+		Com_Printf ("Unknown command \"%s\"\n", cmd);
 		return;
 	}
 
@@ -935,6 +854,7 @@ CL_RequestMotd
 ===================
 */
 void CL_RequestMotd( void ) {
+	/*
 	char		info[MAX_INFO_STRING];
 
 	if ( !cl_motd->integer ) {
@@ -964,6 +884,7 @@ void CL_RequestMotd( void ) {
 	Info_SetValueForKey( info, "version", com_version->string );
 
 	NET_OutOfBandPrint( NS_CLIENT, cls.updateServer, "getmotd \"%s\"\n", info );
+*/
 }
 
 /*
@@ -1005,6 +926,7 @@ in anyway.
 ===================
 */
 void CL_RequestAuthorization( void ) {
+	/*
 	char	nums[64];
 	int		i, j, l;
 	cvar_t	*fs;
@@ -1026,26 +948,30 @@ void CL_RequestAuthorization( void ) {
 		return;
 	}
 
-	// only grab the alphanumeric values from the cdkey, to avoid any dashes or spaces
-	j = 0;
-	l = strlen( cl_cdkey );
-	if ( l > 32 ) {
-		l = 32;
-	}
-	for ( i = 0 ; i < l ; i++ ) {
-		if ( ( cl_cdkey[i] >= '0' && cl_cdkey[i] <= '9' )
+	if ( Cvar_VariableValue( "fs_restrict" ) ) {
+		Q_strncpyz( nums, "demota", sizeof( nums ) );
+	} else {
+		// only grab the alphanumeric values from the cdkey, to avoid any dashes or spaces
+		j = 0;
+		l = strlen( cl_cdkey );
+		if ( l > 32 ) {
+			l = 32;
+		}
+		for ( i = 0 ; i < l ; i++ ) {
+			if ( ( cl_cdkey[i] >= '0' && cl_cdkey[i] <= '9' )
 				|| ( cl_cdkey[i] >= 'a' && cl_cdkey[i] <= 'z' )
 				|| ( cl_cdkey[i] >= 'A' && cl_cdkey[i] <= 'Z' )
-			 ) {
-			nums[j] = cl_cdkey[i];
-			j++;
+				) {
+				nums[j] = cl_cdkey[i];
+				j++;
+			}
 		}
+		nums[j] = 0;
 	}
-	nums[j] = 0;
 
 	fs = Cvar_Get ("cl_anonymous", "0", CVAR_INIT|CVAR_SYSTEMINFO );
 
-	NET_OutOfBandPrint(NS_CLIENT, cls.authorizeServer, va("getKeyAuthorize %i %s", fs->integer, nums) );
+	NET_OutOfBandPrint(NS_CLIENT, cls.authorizeServer, va("getKeyAuthorize %i %s", fs->integer, nums) );*/
 }
 
 /*
@@ -1208,7 +1134,7 @@ void CL_Connect_f( void ) {
 		cls.state = CA_CONNECTING;
 	}
 
-	Key_SetCatcher( 0 );
+	cls.keyCatchers = 0;
 	clc.connectTime = -99999;	// CL_CheckForResend() will fire immediately
 	clc.connectPacketCount = 0;
 
@@ -1359,7 +1285,7 @@ void CL_Vid_Restart_f( void ) {
 	CL_InitRef();
 
 	// startup all the client stuff
-	CL_StartHunkUsers( qfalse );
+	CL_StartHunkUsers();
 
 	// start the cgame if connected
 	if ( cls.state > CA_CONNECTED && cls.state != CA_CINEMATIC ) {
@@ -1454,7 +1380,7 @@ Called when all downloading has been completed
 */
 void CL_DownloadsComplete( void ) {
 
-#ifdef USE_CURL
+#if USE_CURL
 	// if we downloaded with cURL
 	if(clc.cURLUsed) { 
 		clc.cURLUsed = qfalse;
@@ -1550,6 +1476,45 @@ void CL_BeginDownload( const char *localName, const char *remoteName ) {
 
 /*
 =================
+CL_FirstDownload
+
+First Download
+=================
+*/
+void CL_FirstDownload(void) {
+	char *s;
+
+	if( cl_autoDownload->integer & DLF_ENABLE ) {
+		// check whether there is a <bspname>.pk3; if so, download, else proceed as normal
+		if (!(((int)clc.mapname[0] >= (int)('a') && (int)clc.mapname[0] <= (int)('y')) || ((int)clc.mapname[0] >= (int)('A') && (int)clc.mapname[0] <= (int)('Y')))) {
+			clc.downloadList[0] = '\0';
+		}
+		else {
+			s=strstr(clc.downloadList, va("/%s.pk3@", clc.mapname));
+			if (s) {
+				// remove stuff after current map
+				s=Q_strnchr(s, '@', 2);
+				if(s) {
+					s[0] = '\0';
+				}
+
+				// remove stuff before current map
+				s=Q_strnrchr(clc.downloadList, '@', 2);
+				if(s) {
+					memmove( clc.downloadList, s, strlen(s) + 1);
+				}
+			}
+	
+			else {
+				clc.downloadList[0] = '\0';
+			}
+		}
+	}
+	CL_NextDownload();
+}
+
+/*
+=================
 CL_NextDownload
 
 A download completed or failed
@@ -1575,55 +1540,59 @@ void CL_NextDownload(void) {
 			CL_DownloadsComplete();
 			return;
 		}
+		if ( ! ( allowautodl ) ) {
+                        Cvar_Set("com_errorMessage",
+                        va("To play on this server, you need the map:\n\n"
 
+						"%s.\n\n"
+						
+                        "If you trust data from this server and want to try to automatically download the map, press ANY key.\n\n"
+
+						"To cancel and disconnect, press ESC.", clc.mapname));
+
+                        VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN);
+                        clc.dlquerying = qtrue;
+                        return;
+		}
+		allowautodl = qfalse;
 		*s++ = 0;
 		localName = s;
 		if ( (s = strchr(s, '@')) != NULL )
 			*s++ = 0;
 		else
 			s = localName + strlen(localName); // point at the nul byte
-#ifdef USE_CURL
-		if(!(cl_allowDownload->integer & DLF_NO_REDIRECT)) {
-			if(clc.sv_allowDownload & DLF_NO_REDIRECT) {
-				Com_Printf("WARNING: server does not "
-					"allow download redirection "
-					"(sv_allowDownload is %d)\n",
-					clc.sv_allowDownload);
-			}
-			else if(!*clc.sv_dlURL) {
-				Com_Printf("WARNING: server allows "
-					"download redirection, but does not "
-					"have sv_dlURL set\n");
+#if USE_CURL
+			if(!*clc.sv_dlURL) {
+				Com_Error(ERR_DROP, "Can not autodownload "
+					"missing file(s), because "
+					"the server does not have  "
+					"a download URL set. \n\n"
+					"You can try disabling "
+					"autodownload or searching "
+					"for the map on an "
+					"UrT mapsite. \n");
+				return;	
 			}
 			else if(!CL_cURL_Init()) {
-				Com_Printf("WARNING: could not load "
-					"cURL library\n");
+				Com_Error(ERR_DROP, "Can not autodownload "
+					"missing file(s), because "
+					"the cURL library could "
+					"not be loaded. \n");
+				return;	
 			}
 			else {
 				CL_cURL_BeginDownload(localName, va("%s/%s",
 					clc.sv_dlURL, remoteName));
 				useCURL = qtrue;
 			}
-		}
-		else if(!(clc.sv_allowDownload & DLF_NO_REDIRECT)) {
-			Com_Printf("WARNING: server allows download "
-				"redirection, but it disabled by client "
-				"configuration (cl_allowDownload is %d)\n",
-				cl_allowDownload->integer);
-		}
+
 #endif /* USE_CURL */
 		if(!useCURL) {
-			if((cl_allowDownload->integer & DLF_NO_UDP)) {
-				Com_Error(ERR_DROP, "UDP Downloads are "
-					"disabled on your client. "
-					"(cl_allowDownload is %d)",
-					cl_allowDownload->integer);
+			Com_Error(ERR_DROP, "Unknown error "
+					"in auto-download. ");
 				return;	
 			}
-			else {
-				CL_BeginDownload( localName, remoteName );
-			}
-		}
+
 		clc.downloadRestart = qtrue;
 
 		// move over the rest
@@ -1646,7 +1615,7 @@ and determine if we need to download them
 void CL_InitDownloads(void) {
   char missingfiles[1024];
 
-  if ( !(cl_allowDownload->integer & DLF_ENABLE) )
+  if ( !(cl_autoDownload->integer & DLF_ENABLE) )
   {
     // autodownload is disabled on the client
     // but it's possible that some referenced files on the server are missing
@@ -1666,13 +1635,32 @@ void CL_InitDownloads(void) {
 		if ( *clc.downloadList ) {
 			// if autodownloading is not enabled on the server
 			cls.state = CA_CONNECTED;
-			CL_NextDownload();
+			CL_FirstDownload();
 			return;
 		}
 
 	}
 		
 	CL_DownloadsComplete();
+}
+
+void CL_DownloadMenu(int key)
+{
+	clc.dlquerying = qfalse;
+	Cvar_Set("com_errorMessage", "");
+
+	if(key == K_ESCAPE)
+	{
+		*clc.downloadList = '\0';
+		CL_Disconnect(qtrue);
+	}
+	else
+	{
+		allowautodl = qtrue;
+		VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_NONE);
+		CL_NextDownload();
+	}
+
 }
 
 /*
@@ -2208,7 +2196,7 @@ void CL_Frame ( int msec ) {
 		return;
 	}
 
-#ifdef USE_CURL
+#if USE_CURL
 	if(clc.downloadCURLM) {
 		CL_cURL_PerformDownload();
 		// we can't process frames normally when in disconnected
@@ -2231,7 +2219,7 @@ void CL_Frame ( int msec ) {
 		// bring up the cd error dialog if needed
 		cls.cddialog = qfalse;
 		VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_NEED_CD );
-	} else	if ( cls.state == CA_DISCONNECTED && !( Key_GetCatcher( ) & KEYCATCH_UI )
+	} else	if ( cls.state == CA_DISCONNECTED && !( cls.keyCatchers & KEYCATCH_UI )
 		&& !com_sv_running->integer ) {
 		// if disconnected, bring up the menu
 		S_StopAllSounds();
@@ -2399,7 +2387,7 @@ After the server has cleared the hunk, these will need to be restarted
 This is the only place that any of these functions are called from
 ============================
 */
-void CL_StartHunkUsers( qboolean rendererOnly ) {
+void CL_StartHunkUsers( void ) {
 	if (!com_cl_running) {
 		return;
 	}
@@ -2411,10 +2399,6 @@ void CL_StartHunkUsers( qboolean rendererOnly ) {
 	if ( !cls.rendererStarted ) {
 		cls.rendererStarted = qtrue;
 		CL_InitRenderer();
-	}
-
-	if ( rendererOnly ) {
-		return;
 	}
 
 	if ( !cls.soundStarted ) {
@@ -2667,7 +2651,6 @@ void CL_Init( void ) {
 	cl_motd = Cvar_Get ("cl_motd", "1", 0);
 
 	cl_timeout = Cvar_Get ("cl_timeout", "200", 0);
-
 	cl_master = Cvar_Get ("cl_master", MASTER_SERVER_NAME, CVAR_ARCHIVE);
 	cl_timeNudge = Cvar_Get ("cl_timeNudge", "0", CVAR_TEMP );
 	cl_shownet = Cvar_Get ("cl_shownet", "0", CVAR_TEMP );
@@ -2678,7 +2661,6 @@ void CL_Init( void ) {
 	cl_activeAction = Cvar_Get( "activeAction", "", CVAR_TEMP );
 
 	cl_timedemo = Cvar_Get ("timedemo", "0", 0);
-	cl_timedemoLog = Cvar_Get ("cl_timedemoLog", "", CVAR_ARCHIVE);
 	cl_autoRecordDemo = Cvar_Get ("cl_autoRecordDemo", "0", CVAR_ARCHIVE);
 	cl_aviFrameRate = Cvar_Get ("cl_aviFrameRate", "25", CVAR_ARCHIVE);
 	cl_aviMotionJpeg = Cvar_Get ("cl_aviMotionJpeg", "1", CVAR_ARCHIVE);
@@ -2701,8 +2683,8 @@ void CL_Init( void ) {
 
 	cl_showMouseRate = Cvar_Get ("cl_showmouserate", "0", 0);
 
-	cl_allowDownload = Cvar_Get ("cl_allowDownload", "0", CVAR_ARCHIVE);
-#ifdef USE_CURL
+	cl_autoDownload = Cvar_Get ("cl_autoDownload", "1", CVAR_ARCHIVE);
+#if USE_CURL
 	cl_cURLLib = Cvar_Get("cl_cURLLib", DEFAULT_CURL_LIB, CVAR_ARCHIVE);
 #endif
 
@@ -2738,6 +2720,8 @@ void CL_Init( void ) {
 	cl_lanForcePackets = Cvar_Get ("cl_lanForcePackets", "1", CVAR_ARCHIVE);
 
 	cl_guidServerUniq = Cvar_Get ("cl_guidServerUniq", "1", CVAR_ARCHIVE);
+	
+	cl_altTab = Cvar_Get ("cl_altTab", "1", CVAR_ARCHIVE);
 
 	// userinfo
 	Cvar_Get ("name", "UnnamedPlayer", CVAR_USERINFO | CVAR_ARCHIVE );
@@ -2861,7 +2845,6 @@ void CL_Shutdown( void ) {
 	recursive = qfalse;
 
 	Com_Memset( &cls, 0, sizeof( cls ) );
-	Key_SetCatcher( 0 );
 
 	Com_Printf( "-----------------------\n" );
 
@@ -3292,6 +3275,11 @@ void CL_GlobalServers_f( void ) {
 	count   = Cmd_Argc();
 	for (i=3; i<count; i++)
 		buffptr += sprintf( buffptr, " %s", Cmd_Argv(i) );
+
+	// if we are a demo, automatically add a "demo" keyword
+	if ( Cvar_VariableValue( "fs_restrict" ) ) {
+		buffptr += sprintf( buffptr, " demo" );
+	}
 
 	NET_OutOfBandPrint( NS_SERVER, to, command );
 }

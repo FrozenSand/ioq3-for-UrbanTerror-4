@@ -546,8 +546,6 @@ qboolean	FS_ConditionalRestart( int checksumFeed );
 void	FS_Restart( int checksumFeed );
 // shutdown and restart the filesystem so changes to fs_gamedir can take effect
 
-void FS_AddGameDirectory( const char *path, const char *dir );
-
 char	**FS_ListFiles( const char *directory, const char *extension, int *numfiles );
 // directory should not have either a leading or trailing /
 // if extension is "/", only subdirectories will be returned
@@ -690,59 +688,35 @@ MISC
 ==============================================================
 */
 
+// TTimo
 // vsnprintf is ISO/IEC 9899:1999
 // abstracting this to make it portable
-#ifdef _WIN32
+#ifdef WIN32
 #define Q_vsnprintf _vsnprintf
-#define Q_snprintf _snprintf
 #else
+// TODO: do we need Mac define?
 #define Q_vsnprintf vsnprintf
-#define Q_snprintf snprintf
 #endif
 
 // centralizing the declarations for cl_cdkey
 // https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=470
 extern char cl_cdkey[34];
 
-// returned by Sys_GetProcessorFeatures
-typedef enum
-{
-  CF_RDTSC      = 1 << 0,
-  CF_MMX        = 1 << 1,
-  CF_MMX_EXT    = 1 << 2,
-  CF_3DNOW      = 1 << 3,
-  CF_3DNOW_EXT  = 1 << 4,
-  CF_SSE        = 1 << 5,
-  CF_SSE2       = 1 << 6,
-  CF_ALTIVEC    = 1 << 7
-} cpuFeatures_t;
+// returnbed by Sys_GetProcessorId
+#define CPUID_GENERIC			0			// any unrecognized processor
 
+#define CPUID_AXP				0x10
+
+#define CPUID_INTEL_UNSUPPORTED	0x20			// Intel 386/486
+#define CPUID_INTEL_PENTIUM		0x21			// Intel Pentium or PPro
+#define CPUID_INTEL_MMX			0x22			// Intel Pentium/MMX or P2/MMX
+#define CPUID_INTEL_KATMAI		0x23			// Intel Katmai
+
+#define CPUID_AMD_3DNOW			0x30			// AMD K6 3DNOW!
+
+// TTimo
 // centralized and cleaned, that's the max string you can send to a Com_Printf / Com_DPrintf (above gets truncated)
 #define	MAXPRINTMSG	4096
-
-
-typedef enum {
-	// SE_NONE must be zero
-	SE_NONE = 0,	// evTime is still valid
-	SE_KEY,		// evValue is a key code, evValue2 is the down flag
-	SE_CHAR,	// evValue is an ascii char
-	SE_MOUSE,	// evValue and evValue2 are reletive signed x / y moves
-	SE_JOYSTICK_AXIS,	// evValue is an axis number and evValue2 is the current state (-127 to 127)
-	SE_CONSOLE,	// evPtr is a char*
-	SE_PACKET	// evPtr is a netadr_t followed by data bytes to evPtrLength
-} sysEventType_t;
-
-typedef struct {
-	int				evTime;
-	sysEventType_t	evType;
-	int				evValue, evValue2;
-	int				evPtrLength;	// bytes of data pointed to by evPtr, for journaling
-	void			*evPtr;			// this must be manually freed if not NULL
-} sysEvent_t;
-
-void		Com_QueueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr );
-int			Com_EventLoop( void );
-sysEvent_t	Com_GetSystemEvent( void );
 
 char		*CopyString( const char *in );
 void		Info_Print( const char *s );
@@ -753,7 +727,7 @@ void 		QDECL Com_Printf( const char *fmt, ... ) __attribute__ ((format (printf, 
 void 		QDECL Com_DPrintf( const char *fmt, ... ) __attribute__ ((format (printf, 1, 2)));
 void 		QDECL Com_Error( int code, const char *fmt, ... ) __attribute__ ((format (printf, 2, 3)));
 void 		Com_Quit_f( void );
-
+int			Com_EventLoop( void );
 int			Com_Milliseconds( void );	// will be journaled properly
 unsigned	Com_BlockChecksum( const void *buffer, int length );
 char		*Com_MD5File(const char *filename, int length, const char *prefix, int prefix_len);
@@ -775,14 +749,12 @@ extern	cvar_t	*com_speeds;
 extern	cvar_t	*com_timescale;
 extern	cvar_t	*com_sv_running;
 extern	cvar_t	*com_cl_running;
+extern	cvar_t	*com_viewlog;			// 0 = hidden, 1 = visible, 2 = minimized
 extern	cvar_t	*com_version;
 extern	cvar_t	*com_blood;
 extern	cvar_t	*com_buildScript;		// for building release pak files
 extern	cvar_t	*com_journal;
 extern	cvar_t	*com_cameraMode;
-extern	cvar_t	*com_ansiColor;
-extern	cvar_t	*com_unfocused;
-extern	cvar_t	*com_minimized;
 extern	cvar_t	*com_altivec;
 
 // both client and server must agree to pause
@@ -926,7 +898,7 @@ void CL_ShutdownAll( void );
 void CL_FlushMemory( void );
 // dump all memory on an error
 
-void CL_StartHunkUsers( qboolean rendererOnly );
+void CL_StartHunkUsers( void );
 // start all the client stuff using the hunk
 
 void Key_KeynameCompletion( void(*callback)(const char *s) );
@@ -974,9 +946,31 @@ typedef enum {
 	MAX_JOYSTICK_AXIS
 } joystickAxis_t;
 
+typedef enum {
+  // bk001129 - make sure SE_NONE is zero
+	SE_NONE = 0,	// evTime is still valid
+	SE_KEY,		// evValue is a key code, evValue2 is the down flag
+	SE_CHAR,	// evValue is an ascii char
+	SE_MOUSE,	// evValue and evValue2 are reletive signed x / y moves
+	SE_JOYSTICK_AXIS,	// evValue is an axis number and evValue2 is the current state (-127 to 127)
+	SE_CONSOLE,	// evPtr is a char*
+	SE_PACKET	// evPtr is a netadr_t followed by data bytes to evPtrLength
+} sysEventType_t;
+
+typedef struct {
+	int				evTime;
+	sysEventType_t	evType;
+	int				evValue, evValue2;
+	int				evPtrLength;	// bytes of data pointed to by evPtr, for journaling
+	void			*evPtr;			// this must be manually freed if not NULL
+} sysEvent_t;
+
+sysEvent_t	Sys_GetEvent( void );
+
 void	Sys_Init (void);
 
 // general development dll loading for virtual machine testing
+// fqpath param added 7/20/02 by T.Ray - Sys_LoadDll is only called in vm.c at this time
 void	* QDECL Sys_LoadDll( const char *name, char *fqpath , intptr_t (QDECL **entryPoint)(int, ...),
 				  intptr_t (QDECL *systemcalls)(intptr_t, ...) );
 void	Sys_UnloadDll( void *dllHandle );
@@ -1013,12 +1007,17 @@ qboolean Sys_RandomBytes( byte *string, int len );
 // the system console is shown when a dedicated server is running
 void	Sys_DisplaySystemConsole( qboolean show );
 
-cpuFeatures_t Sys_GetProcessorFeatures( void );
+int		Sys_GetProcessorId( void );
 
+void	Sys_BeginStreamedFile( fileHandle_t f, int readahead );
+void	Sys_EndStreamedFile( fileHandle_t f );
+int		Sys_StreamedRead( void *buffer, int size, int count, fileHandle_t f );
+void	Sys_StreamSeek( fileHandle_t f, int offset, int origin );
+
+void	Sys_ShowConsole( int level, qboolean quitOnClose );
 void	Sys_SetErrorText( const char *text );
 
 void	Sys_SendPacket( int length, const void *data, netadr_t to );
-qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message );
 
 qboolean	Sys_StringToAdr( const char *s, netadr_t *a );
 //Does NOT parse port numbers, only base addresses.
@@ -1026,26 +1025,29 @@ qboolean	Sys_StringToAdr( const char *s, netadr_t *a );
 qboolean	Sys_IsLANAddress (netadr_t adr);
 void		Sys_ShowIP(void);
 
+qboolean	Sys_CheckCD( void );
+
 void	Sys_Mkdir( const char *path );
 char	*Sys_Cwd( void );
+void	Sys_SetDefaultCDPath(const char *path);
+char	*Sys_DefaultCDPath(void);
 void	Sys_SetDefaultInstallPath(const char *path);
 char	*Sys_DefaultInstallPath(void);
-
-#ifdef MACOS_X
-char    *Sys_DefaultAppPath(void);
-#endif
-
 void  Sys_SetDefaultHomePath(const char *path);
 char	*Sys_DefaultHomePath(void);
-const char *Sys_Dirname( char *path );
-const char *Sys_Basename( char *path );
-char *Sys_ConsoleInput(void);
 
 char **Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs );
 void	Sys_FreeFileList( char **list );
-void	Sys_Sleep(int msec);
+
+void	Sys_BeginProfiling( void );
+void	Sys_EndProfiling( void );
 
 qboolean Sys_LowPhysicalMemory( void );
+unsigned int Sys_ProcessorCount( void );
+
+int Sys_MonkeyShouldBeSpanked( void );
+
+qboolean Sys_DetectAltivec( void );
 
 /* This is based on the Adaptive Huffman algorithm described in Sayood's Data
  * Compression book.  The ranks are not actually stored, but implicitly defined
@@ -1101,10 +1103,11 @@ extern huffman_t clientHuffTables;
 #define	CL_ENCODE_START		12
 #define CL_DECODE_START		4
 
-// flags for sv_allowDownload and cl_allowDownload
+// flags for sv_allowDownload and cl_autoDownload
 #define DLF_ENABLE 1
 #define DLF_NO_REDIRECT 2
 #define DLF_NO_UDP 4
 #define DLF_NO_DISCONNECT 8
+#define DLF_BSPNAME_ONLY 32
 
 #endif // _QCOMMON_H_

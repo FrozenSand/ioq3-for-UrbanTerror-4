@@ -20,12 +20,42 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
-#ifdef USE_CURL
+#if USE_CURL
 #include "client.h"
 cvar_t *cl_cURLLib;
 
-#ifdef USE_CURL_DLOPEN
-#include "../sys/sys_loadlib.h"
+#if USE_CURL_DLOPEN
+
+#if USE_SDL_VIDEO
+#include "SDL.h"
+#include "SDL_loadso.h"
+#define OBJTYPE void *
+#define OBJLOAD(x) SDL_LoadObject(x)
+#define SYMLOAD(x,y) SDL_LoadFunction(x,y)
+#define OBJFREE(x) SDL_UnloadObject(x)
+
+#elif defined _WIN32
+#include <windows.h>
+#define OBJTYPE HMODULE
+#define OBJLOAD(x) LoadLibrary(x)
+#define SYMLOAD(x,y) GetProcAddress(x,y)
+#define OBJFREE(x) FreeLibrary(x)
+
+#elif defined __linux__ || defined __FreeBSD__ || defined MACOS_X || defined __sun
+#include <dlfcn.h>
+#define OBJTYPE void *
+#define OBJLOAD(x) dlopen(x, RTLD_LAZY | RTLD_GLOBAL)
+#define SYMLOAD(x,y) dlsym(x,y)
+#define OBJFREE(x) dlclose(x)
+#else
+
+#error "Your platform has no lib loading code or it is disabled"
+#endif
+
+#if defined __linux__ || defined __FreeBSD__ || defined MACOS_X
+#include <unistd.h>
+#include <sys/types.h>
+#endif
 
 char* (*qcurl_version)(void);
 
@@ -55,7 +85,7 @@ CURLMsg *(*qcurl_multi_info_read)(CURLM *multi_handle,
                                                 int *msgs_in_queue);
 const char *(*qcurl_multi_strerror)(CURLMcode);
 
-static void *cURLLib = NULL;
+static OBJTYPE cURLLib = NULL;
 
 /*
 =================
@@ -66,7 +96,7 @@ static void *GPA(char *str)
 {
 	void *rv;
 
-	rv = Sys_LoadFunction(cURLLib, str);
+	rv = SYMLOAD(cURLLib, str);
 	if(!rv)
 	{
 		Com_Printf("Can't load symbol %s\n", str);
@@ -88,23 +118,23 @@ CL_cURL_Init
 */
 qboolean CL_cURL_Init()
 {
-#ifdef USE_CURL_DLOPEN
+#if USE_CURL_DLOPEN
 	if(cURLLib)
 		return qtrue;
 
 
 	Com_Printf("Loading \"%s\"...", cl_cURLLib->string);
-	if( (cURLLib = Sys_LoadLibrary(cl_cURLLib->string)) == 0 )
+	if( (cURLLib = OBJLOAD(cl_cURLLib->string)) == 0 )
 	{
 #ifdef _WIN32
 		return qfalse;
 #else
 		char fn[1024];
-		Q_strncpyz( fn, Sys_Cwd( ), sizeof( fn ) );
+		getcwd(fn, sizeof(fn));
 		strncat(fn, "/", sizeof(fn)-strlen(fn)-1);
 		strncat(fn, cl_cURLLib->string, sizeof(fn)-strlen(fn)-1);
 
-		if( (cURLLib = Sys_LoadLibrary(fn)) == 0 )
+		if( (cURLLib = OBJLOAD(fn)) == 0 )
 		{
 			return qfalse;
 		}
@@ -156,10 +186,10 @@ CL_cURL_Shutdown
 void CL_cURL_Shutdown( void )
 {
 	CL_cURL_Cleanup();
-#ifdef USE_CURL_DLOPEN
+#if USE_CURL_DLOPEN
 	if(cURLLib)
 	{
-		Sys_UnloadLibrary(cURLLib);
+		OBJFREE(cURLLib);
 		cURLLib = NULL;
 	}
 	qcurl_easy_init = NULL;

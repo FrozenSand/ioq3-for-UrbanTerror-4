@@ -423,7 +423,7 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 
 #ifndef DEDICATED
 	// Restart renderer
-	CL_StartHunkUsers( qtrue );
+	CL_StartHunkUsers( );
 #endif
 
 	// clear collision map data

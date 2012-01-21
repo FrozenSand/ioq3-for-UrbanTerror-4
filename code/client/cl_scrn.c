@@ -30,6 +30,7 @@ cvar_t		*cl_debuggraph;
 cvar_t		*cl_graphheight;
 cvar_t		*cl_graphscale;
 cvar_t		*cl_graphshift;
+cvar_t		*cl_drawclock;
 
 /*
 ================
@@ -196,8 +197,7 @@ to a fixed color.
 Coordinates are at 640 by 480 virtual resolution
 ==================
 */
-void SCR_DrawStringExt( int x, int y, float size, const char *string, float *setColor, qboolean forceColor,
-		qboolean noColorEscape ) {
+void SCR_DrawStringExt( int x, int y, float size, const char *string, float *setColor, qboolean forceColor ) {
 	vec4_t		color;
 	const char	*s;
 	int			xx;
@@ -209,7 +209,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	s = string;
 	xx = x;
 	while ( *s ) {
-		if ( !noColorEscape && Q_IsColorString( s ) ) {
+		if ( Q_IsColorString( s ) ) {
 			s += 2;
 			continue;
 		}
@@ -224,7 +224,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	xx = x;
 	re.SetColor( setColor );
 	while ( *s ) {
-		if ( !noColorEscape && Q_IsColorString( s ) ) {
+		if ( Q_IsColorString( s ) ) {
 			if ( !forceColor ) {
 				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
 				color[3] = setColor[3];
@@ -241,16 +241,16 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 }
 
 
-void SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape ) {
+void SCR_DrawBigString( int x, int y, const char *s, float alpha ) {
 	float	color[4];
 
 	color[0] = color[1] = color[2] = 1.0;
 	color[3] = alpha;
-	SCR_DrawStringExt( x, y, BIGCHAR_WIDTH, s, color, qfalse, noColorEscape );
+	SCR_DrawStringExt( x, y, BIGCHAR_WIDTH, s, color, qfalse );
 }
 
-void SCR_DrawBigStringColor( int x, int y, const char *s, vec4_t color, qboolean noColorEscape ) {
-	SCR_DrawStringExt( x, y, BIGCHAR_WIDTH, s, color, qtrue, noColorEscape );
+void SCR_DrawBigStringColor( int x, int y, const char *s, vec4_t color ) {
+	SCR_DrawStringExt( x, y, BIGCHAR_WIDTH, s, color, qtrue );
 }
 
 
@@ -260,10 +260,11 @@ SCR_DrawSmallString[Color]
 
 Draws a multi-colored string with a drop shadow, optionally forcing
 to a fixed color.
+
+Coordinates are at 640 by 480 virtual resolution
 ==================
 */
-void SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, qboolean forceColor,
-		qboolean noColorEscape ) {
+void SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, qboolean forceColor ) {
 	vec4_t		color;
 	const char	*s;
 	int			xx;
@@ -273,7 +274,7 @@ void SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, 
 	xx = x;
 	re.SetColor( setColor );
 	while ( *s ) {
-		if ( !noColorEscape && Q_IsColorString( s ) ) {
+		if ( Q_IsColorString( s ) ) {
 			if ( !forceColor ) {
 				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
 				color[3] = setColor[3];
@@ -339,7 +340,23 @@ void SCR_DrawDemoRecording( void ) {
 	pos = FS_FTell( clc.demofile );
 	sprintf( string, "RECORDING %s: %ik", clc.demoName, pos / 1024 );
 
-	SCR_DrawStringExt( 320 - strlen( string ) * 4, 20, 8, string, g_color_table[7], qtrue, qfalse );
+	SCR_DrawStringExt( 320 - strlen( string ) * 4, 1, 7, string, g_color_table[7], qtrue );
+}
+
+
+/*
+=================
+SCR_DrawClock
+=================
+*/
+void SCR_DrawClock( void ) {
+	qtime_t myTime;
+	char	string[16];
+	if (Cvar_VariableValue ("cl_drawclock")) {
+		Com_RealTime( &myTime );
+		Com_sprintf( string, sizeof ( string ), "%02i:%02i:%02i", myTime.tm_hour, myTime.tm_min, myTime.tm_sec );
+		SCR_DrawStringExt( 320 - strlen( string ) * 4, 11, 8, string, g_color_table[7], qtrue );
+	}
 }
 
 
@@ -421,6 +438,7 @@ void SCR_Init( void ) {
 	cl_graphheight = Cvar_Get ("graphheight", "32", CVAR_CHEAT);
 	cl_graphscale = Cvar_Get ("graphscale", "1", CVAR_CHEAT);
 	cl_graphshift = Cvar_Get ("graphshift", "0", CVAR_CHEAT);
+	cl_drawclock = Cvar_Get ("cl_drawclock", "0", CVAR_ARCHIVE);
 
 	scr_initialized = qtrue;
 }
@@ -448,9 +466,14 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 		}
 	}
 
+	if ( !uivm ) {
+		Com_DPrintf("draw screen without UI loaded\n");
+		return;
+	}
+
 	// if the menu is going to cover the entire screen, we
 	// don't need to render anything under it
-	if ( uivm && !VM_Call( uivm, UI_IS_FULLSCREEN )) {
+	if ( !VM_Call( uivm, UI_IS_FULLSCREEN )) {
 		switch( cls.state ) {
 		default:
 			Com_Error( ERR_FATAL, "SCR_DrawScreenField: bad cls.state" );
@@ -485,12 +508,13 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 		case CA_ACTIVE:
 			CL_CGameRendering( stereoFrame );
 			SCR_DrawDemoRecording();
+			SCR_DrawClock();
 			break;
 		}
 	}
 
 	// the menu draws next
-	if ( Key_GetCatcher( ) & KEYCATCH_UI && uivm ) {
+	if ( cls.keyCatchers & KEYCATCH_UI && uivm ) {
 		VM_Call( uivm, UI_REFRESH, cls.realtime );
 	}
 

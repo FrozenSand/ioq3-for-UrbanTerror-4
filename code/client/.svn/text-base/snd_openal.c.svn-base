@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "snd_codec.h"
 #include "client.h"
 
-#ifdef USE_OPENAL
+#if USE_OPENAL
 
 #include "qal.h"
 
@@ -1842,6 +1842,13 @@ void S_AL_Shutdown( void )
 	S_AL_SrcShutdown( );
 	S_AL_BufferShutdown( );
 
+	// Check for Linux shutdown race condition
+	// FIXME: this will probably not be necessary once OpenAL CVS
+	//        from 11/11/05 is released and prevelant
+	if( Q_stricmp((const char*)qalGetString( AL_VENDOR ), "J. Valenzuela" ) ) {
+		qalcMakeContextCurrent( NULL );
+	}
+
 	qalcDestroyContext(alContext);
 	qalcCloseDevice(alDevice);
 
@@ -1857,7 +1864,7 @@ S_AL_Init
 */
 qboolean S_AL_Init( soundInterface_t *si )
 {
-#ifdef USE_OPENAL
+#if USE_OPENAL
 
 	qboolean enumsupport, founddev = qfalse;
 

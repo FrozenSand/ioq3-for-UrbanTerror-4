@@ -30,7 +30,6 @@ cvar_t *s_volume;
 cvar_t *s_musicVolume;
 cvar_t *s_doppler;
 cvar_t *s_backend;
-cvar_t *s_muteWhenMinimized;
 
 static soundInterface_t si;
 
@@ -220,11 +219,6 @@ S_Update
 */
 void S_Update( void )
 {
-	if( s_muteWhenMinimized->integer && com_minimized->integer ) {
-		S_StopAllSounds( );
-		return;
-	}
-
 	if( si.Update ) {
 		si.Update( );
 	}
@@ -378,7 +372,6 @@ void S_Init( void )
 	s_musicVolume = Cvar_Get( "s_musicvolume", "0.25", CVAR_ARCHIVE );
 	s_doppler = Cvar_Get( "s_doppler", "1", CVAR_ARCHIVE );
 	s_backend = Cvar_Get( "s_backend", "", CVAR_ROM );
-	s_muteWhenMinimized = Cvar_Get( "s_muteWhenMinimized", "0", CVAR_ARCHIVE );
 
 	cv = Cvar_Get( "s_initsound", "1", 0 );
 	if( !cv->integer ) {
@@ -393,7 +386,7 @@ void S_Init( void )
 		Cmd_AddCommand( "s_stop", S_StopAllSounds );
 		Cmd_AddCommand( "s_info", S_SoundInfo );
 
-		cv = Cvar_Get( "s_useOpenAL", "1", CVAR_ARCHIVE );
+		cv = Cvar_Get( "s_useOpenAL", "0", CVAR_ARCHIVE );
 		if( cv->integer ) {
 			//OpenAL
 			started = S_AL_Init( &si );

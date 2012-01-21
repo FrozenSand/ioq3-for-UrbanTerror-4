@@ -26,17 +26,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define PRODUCT_NAME            "ioq3"
-#define PRODUCT_VERSION         "1.35urt"
-
-#ifdef SVN_VERSION
-# define Q3_VERSION PRODUCT_NAME " " SVN_VERSION
-#else
-# define Q3_VERSION PRODUCT_NAME " " PRODUCT_VERSION
+#define Q3_VERSION            "ioQ3 1.35urt"
+#ifndef SVN_VERSION
+  #define SVN_VERSION Q3_VERSION
 #endif
-
-#define CLIENT_WINDOW_TITLE     "ioUrbanTerror"
-#define CLIENT_WINDOW_MIN_TITLE "ioUrT"
+#define CLIENT_WINDOW_TITLE   "ioUrbanTerror"
+#define CLIENT_WINDOW_ICON    "iourbanterror"
+#define CONSOLE_WINDOW_TITLE  "ioUrbanTerror console"
+#define CONSOLE_WINDOW_ICON   "iourbanterror console"
 // 1.32 released 7-10-2002
 
 #define BASEGAME              "q3ut4"

@@ -387,7 +387,7 @@ CL_ShutdonwCGame
 ====================
 */
 void CL_ShutdownCGame( void ) {
-	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CGAME );
+	cls.keyCatchers &= ~KEYCATCH_CGAME;
 	cls.cgameStarted = qfalse;
 	if ( !cgvm ) {
 		return;
@@ -607,8 +607,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
   case CG_KEY_GETCATCHER:
 		return Key_GetCatcher();
   case CG_KEY_SETCATCHER:
-		// Don't allow the cgame module to close the console
-		Key_SetCatcher( args[1] | ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) );
+		Key_SetCatcher( args[1] );
     return 0;
   case CG_KEY_GETKEY:
 		return Key_GetKey( VMA(1) );
@@ -698,7 +697,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return re.inPVS( VMA(1), VMA(2) );
 
 	default:
-	        assert(0);
+	        assert(0); // bk010102
 		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", (long int) args[0] );
 	}
 	return 0;
@@ -907,6 +906,8 @@ void CL_FirstSnapshot( void ) {
 		Cbuf_AddText( cl_activeAction->string );
 		Cvar_Set( "activeAction", "" );
 	}
+	
+	Sys_BeginProfiling();
 }
 
 /*
@@ -1009,35 +1010,9 @@ void CL_SetCGameTime( void ) {
 	// while a normal demo may have different time samples
 	// each time it is played back
 	if ( cl_timedemo->integer ) {
-		int now = Sys_Milliseconds( );
-		int frameDuration;
-
 		if (!clc.timeDemoStart) {
-			clc.timeDemoStart = clc.timeDemoLastFrame = now;
-			clc.timeDemoMinDuration = INT_MAX;
-			clc.timeDemoMaxDuration = 0;
+			clc.timeDemoStart = Sys_Milliseconds();
 		}
-
-		frameDuration = now - clc.timeDemoLastFrame;
-		clc.timeDemoLastFrame = now;
-
-		// Ignore the first measurement as it'll always be 0
-		if( clc.timeDemoFrames > 0 )
-		{
-			if( frameDuration > clc.timeDemoMaxDuration )
-				clc.timeDemoMaxDuration = frameDuration;
-
-			if( frameDuration < clc.timeDemoMinDuration )
-				clc.timeDemoMinDuration = frameDuration;
-
-			// 255 ms = about 4fps
-			if( frameDuration > UCHAR_MAX )
-				frameDuration = UCHAR_MAX;
-
-			clc.timeDemoDurations[ ( clc.timeDemoFrames - 1 ) %
-				MAX_TIMEDEMO_DURATIONS ] = frameDuration;
-		}
-
 		clc.timeDemoFrames++;
 		cl.serverTime = clc.timeDemoBaseTime + clc.timeDemoFrames * 50;
 	}
