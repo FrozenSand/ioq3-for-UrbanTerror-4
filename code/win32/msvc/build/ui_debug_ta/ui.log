@@ -1,0 +1,129 @@
+﻿Build started 21/01/2012 23:03:30.
+     1>Project "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\ui.vcxproj" on node 3 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating ".\build\ui_debug_ta\ui.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _MBCS /D _USRDLL /D UI_EXPORTS /D MISSIONPACK /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\build\ui_debug_ta\\" /Fd".\build\ui_debug_ta\vc100.pdb" /FR".\build\ui_debug_ta\\" /Gd /TC /analyze- /errorReport:prompt ..\..\game\bg_misc.c ..\..\ui\ui_atoms.c ..\..\ui\ui_gameinfo.c ..\..\ui\ui_main.c ..\..\ui\ui_players.c ..\..\ui\ui_shared.c ..\..\ui\ui_syscalls.c
+         bg_misc.c
+         ui_atoms.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_atoms.c(37): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_atoms.c(48): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+         ui_gameinfo.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_gameinfo.c(88): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_gameinfo.c(95): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_gameinfo.c(161): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_gameinfo.c(162): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_gameinfo.c(272): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_gameinfo.c(273): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+         ui_main.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(987): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(1278): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(1279): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(1287): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(1288): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(1289): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(1488): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(1489): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(3475): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(3484): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(3512): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(3747): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_main.c(5517): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+         ui_players.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_players.c(92): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_players.c(94): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_players.c(98): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_players.c(100): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+         ui_shared.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_shared.c(190): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_shared.c(261): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_shared.c(283): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_shared.c(2941): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(188) : see declaration of 'strncpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_shared.c(3370): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_shared.c(3371): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\ui\ui_shared.c(3376): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+         ui_syscalls.c
+         Generating Code...
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D UI_EXPORTS /D MISSIONPACK /D _WINDLL /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\build\ui_debug_ta\\" /Fd".\build\ui_debug_ta\vc100.pdb" /FR".\build\ui_debug_ta\\" /Gd /TC /analyze- /errorReport:prompt ..\..\qcommon\q_math.c ..\..\qcommon\q_shared.c
+         q_math.c
+         q_shared.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(298): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(310): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(781): warning C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(188) : see declaration of 'strncpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(965): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(1001): warning C4996: 'vsprintf': This function or variable may be unsafe. Consider using vsprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'vsprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(1181): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(1236): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(1303): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(1304): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\qcommon\q_shared.c(1343): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+         Generating Code...
+     1>C:\Program Files\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\.\build\ui_debug_ta\ui.dll) does not match the Linker's OutputFile property value (C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\build\ui_debug_ta\uix86.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+     1>C:\Program Files\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(ui) does not match the Linker's OutputFile property value (uix86). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+       Link:
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\build\ui_debug_ta\uix86.dll" /INCREMENTAL:NO /NOLOGO odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /DEF:".\ui.def" /MANIFEST /ManifestFile:".\build\ui_debug_ta\ui.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:".\build\ui_debug_ta\ui.pdb" /MAP:".\build\ui_debug_ta\uix86.map" /TLBID:1 /BASE:"0x40000000" /DYNAMICBASE /NXCOMPAT /IMPLIB:".\build\ui_debug_ta\uix86.lib" /MACHINE:X86 /DLL .\build\ui_debug_ta\bg_misc.obj
+         .\build\ui_debug_ta\q_math.obj
+         .\build\ui_debug_ta\q_shared.obj
+         .\build\ui_debug_ta\ui_atoms.obj
+         .\build\ui_debug_ta\ui_gameinfo.obj
+         .\build\ui_debug_ta\ui_main.obj
+         .\build\ui_debug_ta\ui_players.obj
+         .\build\ui_debug_ta\ui_shared.obj
+         .\build\ui_debug_ta\ui_syscalls.obj
+     1>bg_misc.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
+            Creating library .\build\ui_debug_ta\uix86.lib and object .\build\ui_debug_ta\uix86.exp
+         ui.vcxproj -> C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\.\build\ui_debug_ta\ui.dll
+       Manifest:
+         C:\Program Files\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:".\build\ui_debug_ta\uix86.dll;#2" /manifest .\build\ui_debug_ta\ui.dll.intermediate.manifest
+       BscMake:
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\bscmake.exe /nologo /o".\build\ui_debug_ta\ui.bsc" .\build\ui_debug_ta\bg_misc.sbr .\build\ui_debug_ta\q_math.sbr .\build\ui_debug_ta\q_shared.sbr .\build\ui_debug_ta\ui_atoms.sbr .\build\ui_debug_ta\ui_gameinfo.sbr .\build\ui_debug_ta\ui_main.sbr .\build\ui_debug_ta\ui_players.sbr .\build\ui_debug_ta\ui_shared.sbr .\build\ui_debug_ta\ui_syscalls.sbr
+       FinalizeBuildStatus:
+         Deleting file ".\build\ui_debug_ta\ui.unsuccessfulbuild".
+         Touching ".\build\ui_debug_ta\ui.lastbuildstate".
+     1>Done Building Project "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\ui.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:02.32

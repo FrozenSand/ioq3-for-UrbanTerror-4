@@ -1,0 +1,58 @@
+8
+
+dir
+1142
+svn://svn.icculus.org/quake3/trunk/code/unix/setup/pkg
+svn://svn.icculus.org/quake3
+
+
+
+2007-01-14T18:33:03.076454Z
+1031
+zakk
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+edf5b092-35ff-0310-97b2-ce42778d08ea
+
+ioq3ded.sh
+file
+
+
+
+
+2007-10-09T00:47:17.609000Z
+17b549565aabe0421727b2e5699cecaa
+2006-03-14T22:26:35.643760Z
+643
+tma
+
+ioquake3
+dir
+
+ioquake3.sh
+file
+
+
+
+
+2007-10-09T00:47:18.484000Z
+408afad8e0b6d02642f556ea1dfe5e8c
+2006-03-14T22:26:35.643760Z
+643
+tma
+
+ioquake3d
+dir
+

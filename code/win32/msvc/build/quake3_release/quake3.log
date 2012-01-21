@@ -1,0 +1,150 @@
+﻿Build started 21/01/2012 23:12:56.
+     1>Project "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\quake3.vcxproj" on node 3 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating ".\build\quake3_release\quake3.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W0 /WX- /O2 /Ob2 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D BOTLIB /D USE_LOCAL_HEADERS /D USE_CURL=1 /D CURL_STATICLIB=1 /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\build\quake3_release\\" /Fd".\build\quake3_release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt ..\..\client\cl_avi.c ..\..\client\cl_cgame.c ..\..\client\cl_cin.c ..\..\client\cl_console.c ..\..\client\cl_curl.c ..\..\client\cl_input.c ..\..\client\cl_keys.c ..\..\client\cl_main.c ..\..\client\cl_net_chan.c ..\..\client\cl_parse.c ..\..\client\cl_scrn.c ..\..\client\cl_ui.c ..\..\qcommon\cm_load.c ..\..\qcommon\cm_patch.c ..\..\qcommon\cm_polylib.c ..\..\qcommon\cm_test.c ..\..\qcommon\cm_trace.c ..\..\qcommon\cmd.c ..\..\qcommon\common.c ..\..\qcommon\cvar.c ..\..\qcommon\files.c ..\..\qcommon\huffman.c ..\..\qcommon\md4.c ..\..\qcommon\md5.c ..\..\qcommon\msg.c ..\..\qcommon\net_chan.c ..\..\qcommon\net_ip.c ..\..\qcommon\puff.c ..\..\qcommon\q_math.c ..\..\qcommon\q_shared.c ..\..\client\qal.c ..\..\client\snd_adpcm.c ..\..\client\snd_codec.c ..\..\client\snd_codec_ogg.c ..\..\client\snd_codec_wav.c ..\..\client\snd_dma.c ..\..\client\snd_main.c ..\..\client\snd_mem.c ..\..\client\snd_mix.c ..\..\client\snd_openal.c ..\..\client\snd_wavelet.c ..\..\server\sv_bot.c ..\..\server\sv_ccmds.c ..\..\server\sv_client.c ..\..\server\sv_game.c ..\..\server\sv_init.c ..\..\server\sv_main.c ..\..\server\sv_net_chan.c ..\..\server\sv_snapshot.c ..\..\server\sv_world.c ..\..\qcommon\unzip.c ..\..\qcommon\vm.c ..\..\qcommon\vm_interpreted.c ..\..\qcommon\vm_x86.c ..\win_input.c ..\win_main.c ..\win_shared.c ..\win_snd.c ..\win_syscon.c ..\win_wndproc.c
+         cl_avi.c
+         cl_cgame.c
+         cl_cin.c
+         cl_console.c
+         cl_curl.c
+         cl_input.c
+         cl_keys.c
+         cl_main.c
+         cl_net_chan.c
+         cl_parse.c
+         cl_scrn.c
+         cl_ui.c
+         cm_load.c
+         cm_patch.c
+         cm_polylib.c
+         cm_test.c
+         cm_trace.c
+         cmd.c
+         common.c
+         cvar.c
+         Generating Code...
+         Compiling...
+         files.c
+         huffman.c
+         md4.c
+         md5.c
+         msg.c
+         net_chan.c
+         net_ip.c
+         puff.c
+         q_math.c
+         q_shared.c
+         qal.c
+         snd_adpcm.c
+         snd_codec.c
+         snd_codec_ogg.c
+         snd_codec_wav.c
+         snd_dma.c
+         snd_main.c
+         snd_mem.c
+         snd_mix.c
+         snd_openal.c
+         Generating Code...
+         Compiling...
+         snd_wavelet.c
+         sv_bot.c
+         sv_ccmds.c
+         sv_client.c
+         sv_game.c
+         sv_init.c
+         sv_main.c
+         sv_net_chan.c
+         sv_snapshot.c
+         sv_world.c
+         unzip.c
+         vm.c
+         vm_interpreted.c
+         vm_x86.c
+         win_input.c
+         win_main.c
+         win_shared.c
+         win_snd.c
+         win_syscon.c
+         win_wndproc.c
+         Generating Code...
+       ResourceCompile:
+         C:\Program Files\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /D NDEBUG /l"0x0409" /nologo /fo".\build\quake3_release\win_resource.res" ..\win_resource.rc 
+     1>C:\Program Files\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\.\build\quake3_release\quake3.exe) does not match the Linker's OutputFile property value (C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\ioUrbanTerror.exe). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+     1>C:\Program Files\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(quake3) does not match the Linker's OutputFile property value (ioUrbanTerror). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+       Link:
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\build\quake3_release\..\..\ioUrbanTerror.exe" /INCREMENTAL:NO /NOLOGO winmm.lib wsock32.lib libcurl.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /NODEFAULTLIB:libc.lib /MANIFEST /ManifestFile:".\build\quake3_release\quake3.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /PDB:".\build\quake3_release\quake3.pdb" /SUBSYSTEM:WINDOWS /STACK:"8388608" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\build\quake3_release\quake3.lib" /MACHINE:X86 .\build\quake3_release\win_resource.res
+         .\build\quake3_release\cl_avi.obj
+         .\build\quake3_release\cl_cgame.obj
+         .\build\quake3_release\cl_cin.obj
+         .\build\quake3_release\cl_console.obj
+         .\build\quake3_release\cl_curl.obj
+         .\build\quake3_release\cl_input.obj
+         .\build\quake3_release\cl_keys.obj
+         .\build\quake3_release\cl_main.obj
+         .\build\quake3_release\cl_net_chan.obj
+         .\build\quake3_release\cl_parse.obj
+         .\build\quake3_release\cl_scrn.obj
+         .\build\quake3_release\cl_ui.obj
+         .\build\quake3_release\cm_load.obj
+         .\build\quake3_release\cm_patch.obj
+         .\build\quake3_release\cm_polylib.obj
+         .\build\quake3_release\cm_test.obj
+         .\build\quake3_release\cm_trace.obj
+         .\build\quake3_release\cmd.obj
+         .\build\quake3_release\common.obj
+         .\build\quake3_release\cvar.obj
+         .\build\quake3_release\files.obj
+         .\build\quake3_release\huffman.obj
+         .\build\quake3_release\md4.obj
+         .\build\quake3_release\md5.obj
+         .\build\quake3_release\msg.obj
+         .\build\quake3_release\net_chan.obj
+         .\build\quake3_release\net_ip.obj
+         .\build\quake3_release\puff.obj
+         .\build\quake3_release\q_math.obj
+         .\build\quake3_release\q_shared.obj
+         .\build\quake3_release\qal.obj
+         .\build\quake3_release\snd_adpcm.obj
+         .\build\quake3_release\snd_codec.obj
+         .\build\quake3_release\snd_codec_ogg.obj
+         .\build\quake3_release\snd_codec_wav.obj
+         .\build\quake3_release\snd_dma.obj
+         .\build\quake3_release\snd_main.obj
+         .\build\quake3_release\snd_mem.obj
+         .\build\quake3_release\snd_mix.obj
+         .\build\quake3_release\snd_openal.obj
+         .\build\quake3_release\snd_wavelet.obj
+         .\build\quake3_release\sv_bot.obj
+         .\build\quake3_release\sv_ccmds.obj
+         .\build\quake3_release\sv_client.obj
+         .\build\quake3_release\sv_game.obj
+         .\build\quake3_release\sv_init.obj
+         .\build\quake3_release\sv_main.obj
+         .\build\quake3_release\sv_net_chan.obj
+         .\build\quake3_release\sv_snapshot.obj
+         .\build\quake3_release\sv_world.obj
+         .\build\quake3_release\unzip.obj
+         .\build\quake3_release\vm.obj
+         .\build\quake3_release\vm_interpreted.obj
+         .\build\quake3_release\vm_x86.obj
+         .\build\quake3_release\win_input.obj
+         .\build\quake3_release\win_main.obj
+         .\build\quake3_release\win_shared.obj
+         .\build\quake3_release\win_snd.obj
+         .\build\quake3_release\win_syscon.obj
+         .\build\quake3_release\win_wndproc.obj
+         "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\build\botlib_release\botlib.lib"
+         "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\build\renderer_release\renderer.lib"
+         quake3.vcxproj -> C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\.\build\quake3_release\quake3.exe
+       Manifest:
+         C:\Program Files\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:".\build\quake3_release\..\..\ioUrbanTerror.exe;#1" /manifest .\build\quake3_release\quake3.exe.intermediate.manifest
+       FinalizeBuildStatus:
+         Deleting file ".\build\quake3_release\quake3.unsuccessfulbuild".
+         Touching ".\build\quake3_release\quake3.lastbuildstate".
+     1>Done Building Project "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\quake3.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:13.62

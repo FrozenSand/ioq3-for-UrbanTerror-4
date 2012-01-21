@@ -1,0 +1,21 @@
+﻿Build started 21/01/2012 23:11:52.
+     1>Project "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\q3_ui.vcxproj" on node 3 (build target(s)).
+     1>InitializeBuildStatus:
+         Touching ".\build\q3_ui_debug_ta\q3_ui.unsuccessfulbuild".
+       ClCompile:
+         All outputs are up-to-date.
+         All outputs are up-to-date.
+     1>C:\Program Files\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(990,5): warning MSB8012: TargetPath(C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\.\build\q3_ui_debug_ta\q3_ui.dll) does not match the Linker's OutputFile property value (C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\build\q3_ui_debug_ta\uix86_old.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+     1>C:\Program Files\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(992,5): warning MSB8012: TargetName(q3_ui) does not match the Linker's OutputFile property value (uix86_old). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+       Link:
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:".\build\q3_ui_debug_ta\uix86_old.dll" /INCREMENTAL:NO /NOLOGO odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /DEF:"q3_ui.def" /MANIFEST /ManifestFile:".\build\q3_ui_debug_ta\q3_ui.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:".\build\q3_ui_debug_ta\ui.pdb" /MAP:".\build\q3_ui_debug_ta\uix86.map" /TLBID:1 /BASE:"0x40000000" /DYNAMICBASE /NXCOMPAT /IMPLIB:".\build\q3_ui_debug_ta\uix86.lib" /MACHINE:X86 /DLL .\build\q3_ui_debug_ta\q_math.obj
+         .\build\q3_ui_debug_ta\q_shared.obj
+         .\build\q3_ui_debug_ta\ui_syscalls.obj
+     1>q_math.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
+     1>q3_ui.def : error LNK2001: unresolved external symbol vmMain
+     1>.\build\q3_ui_debug_ta\uix86.lib : fatal error LNK1120: 1 unresolved externals
+     1>Done Building Project "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\q3_ui.vcxproj" (build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.85

@@ -1,0 +1,10 @@
+K 10
+svn:ignore
+V 40
+*.ncb
+*.suo
+Ankh.Load
+Ankh.NoLoad
+build
+
+END

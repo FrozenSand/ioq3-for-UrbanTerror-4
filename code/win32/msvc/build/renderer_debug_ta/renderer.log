@@ -1,0 +1,233 @@
+﻿Build started 21/01/2012 23:02:59.
+     1>Project "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\renderer.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating ".\build\renderer_debug_ta\renderer.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _LIB /D _MBCS /Gm- /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo".\build\renderer_debug_ta\\" /Fd".\build\renderer_debug_ta\vc100.pdb" /FR".\build\renderer_debug_ta\\" /Gd /TC /analyze- /errorReport:prompt ..\..\renderer\tr_animation.c ..\..\renderer\tr_backend.c ..\..\renderer\tr_bsp.c ..\..\renderer\tr_cmds.c ..\..\renderer\tr_curve.c ..\..\renderer\tr_flares.c ..\..\renderer\tr_font.c ..\..\renderer\tr_image.c ..\..\renderer\tr_init.c ..\..\renderer\tr_light.c ..\..\renderer\tr_main.c ..\..\renderer\tr_marks.c ..\..\renderer\tr_mesh.c ..\..\renderer\tr_model.c ..\..\renderer\tr_noise.c ..\..\renderer\tr_scene.c ..\..\renderer\tr_shade.c ..\..\renderer\tr_shade_calc.c ..\..\renderer\tr_shader.c ..\..\renderer\tr_shadows.c ..\..\renderer\tr_sky.c ..\..\renderer\tr_surface.c ..\..\renderer\tr_world.c ..\win_gamma.c ..\win_glimp.c ..\win_qgl.c "..\..\jpeg-6\jcapimin.c" "..\..\jpeg-6\jccoefct.c" "..\..\jpeg-6\jccolor.c" "..\..\jpeg-6\jcdctmgr.c" "..\..\jpeg-6\jchuff.c" "..\..\jpeg-6\jcinit.c" "..\..\jpeg-6\jcmainct.c" "..\..\jpeg-6\jcmarker.c" "..\..\jpeg-6\jcmaster.c" "..\..\jpeg-6\jcomapi.c" "..\..\jpeg-6\jcparam.c" "..\..\jpeg-6\jcphuff.c" "..\..\jpeg-6\jcprepct.c" "..\..\jpeg-6\jcsample.c" "..\..\jpeg-6\jdapimin.c" "..\..\jpeg-6\jdapistd.c" "..\..\jpeg-6\jdatasrc.c" "..\..\jpeg-6\jdcoefct.c" "..\..\jpeg-6\jdcolor.c" "..\..\jpeg-6\jddctmgr.c" "..\..\jpeg-6\jdhuff.c" "..\..\jpeg-6\jdinput.c" "..\..\jpeg-6\jdmainct.c" "..\..\jpeg-6\jdmarker.c" "..\..\jpeg-6\jdmaster.c" "..\..\jpeg-6\jdpostct.c" "..\..\jpeg-6\jdsample.c" "..\..\jpeg-6\jdtrans.c" "..\..\jpeg-6\jerror.c" "..\..\jpeg-6\jfdctflt.c" "..\..\jpeg-6\jidctflt.c" "..\..\jpeg-6\jmemmgr.c" "..\..\jpeg-6\jmemnobs.c" "..\..\jpeg-6\jutils.c"
+         tr_animation.c
+         tr_backend.c
+         tr_bsp.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_bsp.c(1707): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_bsp.c(1761): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(325) : see declaration of 'sscanf'
+         tr_cmds.c
+         tr_curve.c
+         tr_flares.c
+         tr_font.c
+         tr_image.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_image.c(761): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+         tr_init.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_init.c(214): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_init.c(256): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_init.c(259): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_init.c(262): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_init.c(265): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_init.c(268): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_init.c(271): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_init.c(544): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'sprintf'
+         tr_light.c
+         tr_main.c
+         tr_marks.c
+         tr_mesh.c
+         tr_model.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_model.c(138): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+         tr_noise.c
+         tr_scene.c
+         tr_shade.c
+         tr_shade_calc.c
+         tr_shader.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_shader.c(987): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_shader.c(988): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_shader.c(2905): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\renderer\tr_shader.c(2908): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(110) : see declaration of 'strcat'
+         tr_shadows.c
+         Generating Code...
+         Compiling...
+         tr_sky.c
+         tr_surface.c
+         tr_world.c
+         win_gamma.c
+         win_glimp.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_glimp.c(1426): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(325) : see declaration of 'sscanf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_glimp.c(1429): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(325) : see declaration of 'sscanf'
+         win_qgl.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(793): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(795): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(797): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(799): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(801): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(803): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(805): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(807): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(809): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(811): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(813): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'sprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(845): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'sprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(923): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(926): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(929): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(932): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(935): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(938): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(941): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\string.h(105) : see declaration of 'strcpy'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(944): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'sprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(3687): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\time.inl(112) : see declaration of 'localtime'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(3689): warning C4996: 'asctime': This function or variable may be unsafe. Consider using asctime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\time.h(153) : see declaration of 'asctime'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(3693): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(234) : see declaration of 'fopen'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\win32\win_qgl.c(3695): warning C4996: 'asctime': This function or variable may be unsafe. Consider using asctime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\time.h(153) : see declaration of 'asctime'
+         jcapimin.c
+         jccoefct.c
+         jccolor.c
+         jcdctmgr.c
+         jchuff.c
+         jcinit.c
+         jcmainct.c
+         jcmarker.c
+         jcmaster.c
+         jcomapi.c
+         jcparam.c
+         jcphuff.c
+         jcprepct.c
+         jcsample.c
+         Generating Code...
+         Compiling...
+         jdapimin.c
+         jdapistd.c
+         jdatasrc.c
+         jdcoefct.c
+         jdcolor.c
+         jddctmgr.c
+         jdhuff.c
+         jdinput.c
+         jdmainct.c
+         jdmarker.c
+         jdmaster.c
+         jdpostct.c
+         jdsample.c
+         jdtrans.c
+         jerror.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\jpeg-6\jerror.c(173): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'sprintf'
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\jpeg-6\jerror.c(179): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(371) : see declaration of 'sprintf'
+         jfdctflt.c
+         jidctflt.c
+         jmemmgr.c
+     1>c:\msys\1.0\ioq3-for-urbanterror-4\code\jpeg-6\jmemmgr.c(1106): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 c:\program files\microsoft visual studio 10.0\vc\include\stdio.h(325) : see declaration of 'sscanf'
+         jmemnobs.c
+         jutils.c
+         Generating Code...
+       Lib:
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\Lib.exe /OUT:".\build\renderer_debug_ta\renderer.lib" /NOLOGO .\build\renderer_debug_ta\tr_animation.obj
+         .\build\renderer_debug_ta\tr_backend.obj
+         .\build\renderer_debug_ta\tr_bsp.obj
+         .\build\renderer_debug_ta\tr_cmds.obj
+         .\build\renderer_debug_ta\tr_curve.obj
+         .\build\renderer_debug_ta\tr_flares.obj
+         .\build\renderer_debug_ta\tr_font.obj
+         .\build\renderer_debug_ta\tr_image.obj
+         .\build\renderer_debug_ta\tr_init.obj
+         .\build\renderer_debug_ta\tr_light.obj
+         .\build\renderer_debug_ta\tr_main.obj
+         .\build\renderer_debug_ta\tr_marks.obj
+         .\build\renderer_debug_ta\tr_mesh.obj
+         .\build\renderer_debug_ta\tr_model.obj
+         .\build\renderer_debug_ta\tr_noise.obj
+         .\build\renderer_debug_ta\tr_scene.obj
+         .\build\renderer_debug_ta\tr_shade.obj
+         .\build\renderer_debug_ta\tr_shade_calc.obj
+         .\build\renderer_debug_ta\tr_shader.obj
+         .\build\renderer_debug_ta\tr_shadows.obj
+         .\build\renderer_debug_ta\tr_sky.obj
+         .\build\renderer_debug_ta\tr_surface.obj
+         .\build\renderer_debug_ta\tr_world.obj
+         .\build\renderer_debug_ta\win_gamma.obj
+         .\build\renderer_debug_ta\win_glimp.obj
+         .\build\renderer_debug_ta\win_qgl.obj
+         .\build\renderer_debug_ta\jcapimin.obj
+         .\build\renderer_debug_ta\jccoefct.obj
+         .\build\renderer_debug_ta\jccolor.obj
+         .\build\renderer_debug_ta\jcdctmgr.obj
+         .\build\renderer_debug_ta\jchuff.obj
+         .\build\renderer_debug_ta\jcinit.obj
+         .\build\renderer_debug_ta\jcmainct.obj
+         .\build\renderer_debug_ta\jcmarker.obj
+         .\build\renderer_debug_ta\jcmaster.obj
+         .\build\renderer_debug_ta\jcomapi.obj
+         .\build\renderer_debug_ta\jcparam.obj
+         .\build\renderer_debug_ta\jcphuff.obj
+         .\build\renderer_debug_ta\jcprepct.obj
+         .\build\renderer_debug_ta\jcsample.obj
+         .\build\renderer_debug_ta\jdapimin.obj
+         .\build\renderer_debug_ta\jdapistd.obj
+         .\build\renderer_debug_ta\jdatasrc.obj
+         .\build\renderer_debug_ta\jdcoefct.obj
+         .\build\renderer_debug_ta\jdcolor.obj
+         .\build\renderer_debug_ta\jddctmgr.obj
+         .\build\renderer_debug_ta\jdhuff.obj
+         .\build\renderer_debug_ta\jdinput.obj
+         .\build\renderer_debug_ta\jdmainct.obj
+         .\build\renderer_debug_ta\jdmarker.obj
+         .\build\renderer_debug_ta\jdmaster.obj
+         .\build\renderer_debug_ta\jdpostct.obj
+         .\build\renderer_debug_ta\jdsample.obj
+         .\build\renderer_debug_ta\jdtrans.obj
+         .\build\renderer_debug_ta\jerror.obj
+         .\build\renderer_debug_ta\jfdctflt.obj
+         .\build\renderer_debug_ta\jidctflt.obj
+         .\build\renderer_debug_ta\jmemmgr.obj
+         .\build\renderer_debug_ta\jmemnobs.obj
+         .\build\renderer_debug_ta\jutils.obj
+         renderer.vcxproj -> C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\.\build\renderer_debug_ta\renderer.lib
+       BscMake:
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\bscmake.exe /nologo /o".\build\renderer_debug_ta\renderer.bsc" .\build\renderer_debug_ta\tr_animation.sbr .\build\renderer_debug_ta\tr_backend.sbr .\build\renderer_debug_ta\tr_bsp.sbr .\build\renderer_debug_ta\tr_cmds.sbr .\build\renderer_debug_ta\tr_curve.sbr .\build\renderer_debug_ta\tr_flares.sbr .\build\renderer_debug_ta\tr_font.sbr .\build\renderer_debug_ta\tr_image.sbr .\build\renderer_debug_ta\tr_init.sbr .\build\renderer_debug_ta\tr_light.sbr .\build\renderer_debug_ta\tr_main.sbr .\build\renderer_debug_ta\tr_marks.sbr .\build\renderer_debug_ta\tr_mesh.sbr .\build\renderer_debug_ta\tr_model.sbr .\build\renderer_debug_ta\tr_noise.sbr .\build\renderer_debug_ta\tr_scene.sbr .\build\renderer_debug_ta\tr_shade.sbr .\build\renderer_debug_ta\tr_shade_calc.sbr .\build\renderer_debug_ta\tr_shader.sbr .\build\renderer_debug_ta\tr_shadows.sbr .\build\renderer_debug_ta\tr_sky.sbr .\build\renderer_debug_ta\tr_surface.sbr .\build\renderer_debug_ta\tr_world.sbr .\build\renderer_debug_ta\win_gamma.sbr .\build\renderer_debug_ta\win_glimp.sbr .\build\renderer_debug_ta\win_qgl.sbr .\build\renderer_debug_ta\jcapimin.sbr .\build\renderer_debug_ta\jccoefct.sbr .\build\renderer_debug_ta\jccolor.sbr .\build\renderer_debug_ta\jcdctmgr.sbr .\build\renderer_debug_ta\jchuff.sbr .\build\renderer_debug_ta\jcinit.sbr .\build\renderer_debug_ta\jcmainct.sbr .\build\renderer_debug_ta\jcmarker.sbr .\build\renderer_debug_ta\jcmaster.sbr .\build\renderer_debug_ta\jcomapi.sbr .\build\renderer_debug_ta\jcparam.sbr .\build\renderer_debug_ta\jcphuff.sbr .\build\renderer_debug_ta\jcprepct.sbr .\build\renderer_debug_ta\jcsample.sbr .\build\renderer_debug_ta\jdapimin.sbr .\build\renderer_debug_ta\jdapistd.sbr .\build\renderer_debug_ta\jdatasrc.sbr .\build\renderer_debug_ta\jdcoefct.sbr .\build\renderer_debug_ta\jdcolor.sbr .\build\renderer_debug_ta\jddctmgr.sbr .\build\renderer_debug_ta\jdhuff.sbr .\build\renderer_debug_ta\jdinput.sbr .\build\renderer_debug_ta\jdmainct.sbr .\build\renderer_debug_ta\jdmarker.sbr .\build\renderer_debug_ta\jdmaster.sbr .\build\renderer_debug_ta\jdpostct.sbr .\build\renderer_debug_ta\jdsample.sbr .\build\renderer_debug_ta\jdtrans.sbr .\build\renderer_debug_ta\jerror.sbr .\build\renderer_debug_ta\jfdctflt.sbr .\build\renderer_debug_ta\jidctflt.sbr .\build\renderer_debug_ta\jmemmgr.sbr .\build\renderer_debug_ta\jmemnobs.sbr .\build\renderer_debug_ta\jutils.sbr
+       FinalizeBuildStatus:
+         Deleting file ".\build\renderer_debug_ta\renderer.unsuccessfulbuild".
+         Touching ".\build\renderer_debug_ta\renderer.lastbuildstate".
+     1>Done Building Project "C:\msys\1.0\ioq3-for-UrbanTerror-4\code\win32\msvc\renderer.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:26.42
