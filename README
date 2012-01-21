@@ -27,6 +27,7 @@ for further development. Some of the major features currently implemented are:
   * Multiuser support on Windows systems (user specific game data
     is stored in "%APPDATA%\Quake3")
   * PNG support
+  * Fullscreen Alt-Tab support
   * Many, many bug fixes
 
 The map editor and associated compiling tools are not included. We suggest you
@@ -139,6 +140,16 @@ New cvars
   cl_cURLLib                        - filename of cURL library to load
   sv_dlURL                          - the base of the HTTP or FTP site that
                                       holds custom pk3 files for your server
+
+  r_minimize                        - when set to non-0, ioq3 will be minimized
+                                       then the value will be reset to 0
+  cl_altTab                         - Alt-Tab key combo will minimize when in
+                                      fullscreen mode
+  win_fastModeChange                - when set to non-0 a vid_restart will
+                                      not be forced when switching display
+                                      resolution (e.g. Alt-Tab).  This may
+                                      cause texture corruption on some drivers.									  
+								  
 
 New commands
   video [filename]        - start video capture (use with demo command)
