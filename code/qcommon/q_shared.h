@@ -89,9 +89,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
  **********************************************************************/
 
+#ifdef Q3_VM
+
 #include "../game/bg_lib.h"
 
-#ifndef Q3_VM
+#else
 
 #include <assert.h>
 #include <math.h>
@@ -260,6 +262,14 @@ void *Hunk_AllocDebug( int size, ha_pref preference, char *label, char *file, in
 void *Hunk_Alloc( int size, ha_pref preference );
 #endif
 
+#if defined(__GNUC__) && !defined(__MINGW32__) && !defined(MACOS_X)
+// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=371
+// custom Snd_Memset implementation for glibc memset bug workaround
+void Snd_Memset (void* dest, const int val, const size_t count);
+#else
+#define Snd_Memset Com_Memset
+#endif
+
 #define Com_Memset memset
 #define Com_Memcpy memcpy
 
@@ -325,7 +335,7 @@ extern	vec4_t		colorMdGrey;
 extern	vec4_t		colorDkGrey;
 
 #define Q_COLOR_ESCAPE	'^'
-#define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && isalnum(*((p)+1)) ) // ^[0-9a-zA-Z]
+#define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) != Q_COLOR_ESCAPE )
 
 #define COLOR_BLACK		'0'
 #define COLOR_RED		'1'
@@ -670,7 +680,6 @@ char	*Q_strupr( char *s1 );
 char	*Q_strrchr( const char* string, int c );
 char	*Q_strnchr( const char* string, int c, int n );
 char	*Q_strnrchr( const char *string, int c, int n );
-const char	*Q_stristr( const char *s, const char *find);
 
 // buffer size safe library replacements
 void	Q_strncpyz( char *dest, const char *src, int destsize );
