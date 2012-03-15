@@ -23,6 +23,11 @@ ifeq ($(COMPILE_PLATFORM),mingw32)
   endif
 endif
 
+
+# force compile for i386 !!!
+COMPILE_ARCH=i386
+
+
 BUILD_CLIENT     =0
 BUILD_CLIENT_SMP =0
 BUILD_SERVER     =1
