@@ -997,7 +997,7 @@ static void SV_NameServerDemo(char *filename, int length, const client_t *client
 		// the limit?) it get's cut off at the end ruining the
 		// file extension
 		Com_sprintf(
-			filename, length-1, "serverdemos/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
+			filename, length-1, "serverdemos/%.4d_%.2d_%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
 			time.tm_year+1900, time.tm_mon, time.tm_mday,
 			time.tm_hour, time.tm_min, time.tm_sec,
 			playername,
