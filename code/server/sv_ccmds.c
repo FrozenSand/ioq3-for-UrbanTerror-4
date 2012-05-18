@@ -31,6 +31,56 @@ These commands can only be entered from stdin or by a remote operator datagram
 ===============================================================================
 */
 
+/*
+Reusable version of SV_GetPlayerByHandle() that doesn't
+print any silly messages.
+*/
+client_t *SV_BetterGetPlayerByHandle(const char *handle)
+{
+	client_t	*cl;
+	int		i;
+	char		cleanName[64];
+
+	// make sure server is running
+	if ( !com_sv_running->integer ) {
+		return NULL;
+	}
+
+	// Check whether this is a numeric player handle
+	for(i = 0; handle[i] >= '0' && handle[i] <= '9'; i++);
+
+	if(!handle[i])
+	{
+		int plid = atoi(handle);
+
+		// Check for numeric playerid match
+		if(plid >= 0 && plid < sv_maxclients->integer)
+		{
+			cl = &svs.clients[plid];
+
+			if(cl->state)
+				return cl;
+		}
+	}
+
+	// check for a name match
+	for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
+		if ( !cl->state ) {
+			continue;
+		}
+		if ( !Q_stricmp( cl->name, handle ) ) {
+			return cl;
+		}
+
+		Q_strncpyz( cleanName, cl->name, sizeof(cleanName) );
+		Q_CleanStr( cleanName );
+		if ( !Q_stricmp( cleanName, handle ) ) {
+			return cl;
+		}
+	}
+
+	return NULL;
+}
 
 /*
 ==================
