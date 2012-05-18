@@ -139,7 +139,25 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 		Com_DPrintf ("%s: Delta request from out of date packet.\n", client->name);
 		oldframe = NULL;
 		lastframe = 0;
+	} else if (client->demo_recording && client->demo_deltas <= 0) {
+		// if we're recording this client, force full frames every now and then
+		oldframe = NULL;
+		lastframe = 0;
+		Com_DPrintf("Forced a full frame for %s\n", client->name);
+		// once we reach 1 full frame for every 1024 delta frames we stay there
+		// TODO: these numbers need to be tweaked properly, the current values
+		// just seem to work "fine" for all the tests we ran...
+		if (client->demo_backoff < 1024) {
+			client->demo_backoff *= 2;
+		}
+		client->demo_deltas = client->demo_backoff;
 	} else {
+		// count down delta frames to know when we need to send the next full frame
+		if (client->demo_recording) {
+			Com_DPrintf("Counted a delta frame for %s\n", client->name);
+			client->demo_deltas--;
+		}
+		
 		// we have a valid snapshot to delta from
 		oldframe = &client->frames[ client->deltaMessage & PACKET_MASK ];
 		lastframe = client->netchan.outgoingSequence - client->deltaMessage;
@@ -152,6 +170,12 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 		}
 	}
 
+	// start recording only once there's a non-delta frame to start with
+	if (!oldframe && client->demo_recording && client->demo_waiting) {
+		client->demo_waiting = qfalse;
+		Com_DPrintf("Got non-delta frame, recording %s now\n", client->name);
+	}
+	
 	MSG_WriteByte (msg, svc_snapshot);
 
 	// NOTE, MRE: now sent at the start of every message from server to client
@@ -573,6 +597,11 @@ Called by SV_SendClientSnapshot and SV_SendClientGameState
 void SV_SendMessageToClient( msg_t *msg, client_t *client ) {
 	int			rateMsec;
 
+	if (client->demo_recording && !client->demo_waiting) {
+		SVD_WriteDemoFile(client, msg);
+		Com_DPrintf("Wrote a frame for %s\n", client->name);
+	}
+	
 	// record information about the message
 	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSize = msg->cursize;
 	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSent = svs.time;
