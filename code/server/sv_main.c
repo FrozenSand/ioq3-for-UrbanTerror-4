@@ -55,6 +55,8 @@ cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates t
 cvar_t	*sv_strictAuth;
 
 cvar_t	*sv_demonotice;		// notice to print to a client being recorded server-side
+cvar_t  *sv_tellprefix;
+cvar_t  *sv_sayprefix;
 
 /*
 =============================================================================
