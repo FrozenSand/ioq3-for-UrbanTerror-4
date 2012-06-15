@@ -1358,6 +1358,7 @@ static void LoadTGA ( const char *name, byte **pic, int *width, int *height)
 
 #if 0 
   // TTimo: this is the chunk of code to ensure a behavior that meets TGA specs 
+  // bk0101024 - fix from Leonardo
   // bit 5 set => top-down
   if (targa_header.attributes & 0x20) {
     unsigned char *flip = (unsigned char*)malloc (columns*4);
@@ -4664,34 +4665,100 @@ static void R_CreateFogImage( void ) {
 R_CreateDefaultImage
 ==================
 */
-#define	DEFAULT_SIZE	16
+#define	DEFAULT_SIZE	72
+#define	HALF_SIZE		36
+#define	THIRD_SIZE		12
+#define 	TWOTHIRD_SIZE	24	
 static void R_CreateDefaultImage( void ) {
-	int		x;
+	int		x,y;
 	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
 
 	// the default image will be a box, to allow you to see the mapping coordinates
-	Com_Memset( data, 32, sizeof( data ) );
-	for ( x = 0 ; x < DEFAULT_SIZE ; x++ ) {
-		data[0][x][0] =
-		data[0][x][1] =
-		data[0][x][2] =
+	Com_Memset( data, 0, sizeof( data ) );
+	
+
+for (y = 0 ; y < THIRD_SIZE; y++)
+   {
+      for (x=0; x < DEFAULT_SIZE; x++)
+      {
+         data[y][x][0]=255;
+         data[y][x][1]=0;
+         data[y][x][2]=0;
+         data[y][x][3]=255;
+
+         data[y+THIRD_SIZE][x][0]=255;
+         data[y+THIRD_SIZE][x][1]=255;
+         data[y+THIRD_SIZE][x][2]=255;
+         data[y+THIRD_SIZE][x][3]=255;
+
+         data[y+TWOTHIRD_SIZE][x][0]=0;
+         data[y+TWOTHIRD_SIZE][x][1]=0;
+         data[y+TWOTHIRD_SIZE][x][2]=255;
+         data[y+TWOTHIRD_SIZE][x][3]=255;
+
+         data[y+TWOTHIRD_SIZE+THIRD_SIZE][x][0]=255;
+         data[y+TWOTHIRD_SIZE+THIRD_SIZE][x][1]=0;
+         data[y+TWOTHIRD_SIZE+THIRD_SIZE][x][2]=0;
+         data[y+TWOTHIRD_SIZE+THIRD_SIZE][x][3]=255;
+
+         data[y+TWOTHIRD_SIZE+TWOTHIRD_SIZE][x][0]=255;
+         data[y+TWOTHIRD_SIZE+TWOTHIRD_SIZE][x][1]=255;
+         data[y+TWOTHIRD_SIZE+TWOTHIRD_SIZE][x][2]=255;
+         data[y+TWOTHIRD_SIZE+TWOTHIRD_SIZE][x][3]=255;
+
+         data[y+TWOTHIRD_SIZE+TWOTHIRD_SIZE+THIRD_SIZE][x][0]=0;
+         data[y+TWOTHIRD_SIZE+TWOTHIRD_SIZE+THIRD_SIZE][x][1]=0;
+         data[y+TWOTHIRD_SIZE+TWOTHIRD_SIZE+THIRD_SIZE][x][2]=255;
+         data[y+TWOTHIRD_SIZE+TWOTHIRD_SIZE+THIRD_SIZE][x][3]=255;
+
+      }
+   }
+
+
+
+
+for ( x = 0 ; x < DEFAULT_SIZE ; x++ ) {
+		data[0][x][0] = 255;
+		data[0][x][1] = 100;
+		data[0][x][2] = 0;
 		data[0][x][3] = 255;
 
-		data[x][0][0] =
-		data[x][0][1] =
-		data[x][0][2] =
-		data[x][0][3] = 255;
+		data[HALF_SIZE][x][0] = 255;
+		data[HALF_SIZE][x][1] = 100;
+		data[HALF_SIZE][x][2] = 0;
+		data[HALF_SIZE][x][3] = 255;
 
-		data[DEFAULT_SIZE-1][x][0] =
-		data[DEFAULT_SIZE-1][x][1] =
-		data[DEFAULT_SIZE-1][x][2] =
+		data[HALF_SIZE-1][x][0] = 255;
+		data[HALF_SIZE-1][x][1] = 100;
+		data[HALF_SIZE-1][x][2] = 0;
+		data[HALF_SIZE-1][x][3] = 255;
+
+		data[DEFAULT_SIZE-1][x][0] = 255;
+		data[DEFAULT_SIZE-1][x][1] = 100;
+		data[DEFAULT_SIZE-1][x][2] = 0;
 		data[DEFAULT_SIZE-1][x][3] = 255;
 
-		data[x][DEFAULT_SIZE-1][0] =
-		data[x][DEFAULT_SIZE-1][1] =
-		data[x][DEFAULT_SIZE-1][2] =
+		data[x][0][0] = 255;
+		data[x][0][1] = 100;
+		data[x][0][2] = 0;
+		data[x][0][3] = 255;
+
+		data[x][HALF_SIZE][0] = 255;
+		data[x][HALF_SIZE][1] = 100;
+		data[x][HALF_SIZE][2] = 0;
+		data[x][HALF_SIZE][3] = 255;
+
+		data[x][HALF_SIZE-1][0] = 255;
+		data[x][HALF_SIZE-1][1] = 100;
+		data[x][HALF_SIZE-1][2] = 0;
+		data[x][HALF_SIZE-1][3] = 255;
+
+		data[x][DEFAULT_SIZE-1][0] = 255;
+		data[x][DEFAULT_SIZE-1][1] = 100;
+		data[x][DEFAULT_SIZE-1][2] = 0;
 		data[x][DEFAULT_SIZE-1][3] = 255;
 	}
+
 	tr.defaultImage = R_CreateImage("*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, qtrue, qfalse, GL_REPEAT );
 }
 
@@ -4849,13 +4916,15 @@ void R_DeleteTextures( void ) {
 	tr.numImages = 0;
 
 	Com_Memset( glState.currenttextures, 0, sizeof( glState.currenttextures ) );
-	if ( qglActiveTextureARB ) {
-		GL_SelectTexture( 1 );
-		qglBindTexture( GL_TEXTURE_2D, 0 );
-		GL_SelectTexture( 0 );
-		qglBindTexture( GL_TEXTURE_2D, 0 );
-	} else {
-		qglBindTexture( GL_TEXTURE_2D, 0 );
+	if ( qglBindTexture ) {
+		if ( qglActiveTextureARB ) {
+			GL_SelectTexture( 1 );
+			qglBindTexture( GL_TEXTURE_2D, 0 );
+			GL_SelectTexture( 0 );
+			qglBindTexture( GL_TEXTURE_2D, 0 );
+		} else {
+			qglBindTexture( GL_TEXTURE_2D, 0 );
+		}
 	}
 }
 

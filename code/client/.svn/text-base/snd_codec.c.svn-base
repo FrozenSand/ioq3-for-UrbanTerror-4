@@ -102,7 +102,7 @@ void S_CodecInit()
 {
 	codecs = NULL;
 	S_CodecRegister(&wav_codec);
-#ifdef USE_CODEC_VORBIS
+#if USE_CODEC_VORBIS
 	S_CodecRegister(&ogg_codec);
 #endif
 }
@@ -226,9 +226,8 @@ snd_stream_t *S_CodecUtilOpen(const char *filename, snd_codec_t *codec)
 S_CodecUtilClose
 =================
 */
-void S_CodecUtilClose(snd_stream_t **stream)
+void S_CodecUtilClose(snd_stream_t *stream)
 {
-	FS_FCloseFile((*stream)->file);
-	Z_Free(*stream);
-	*stream = NULL;
+	FS_FCloseFile(stream->file);
+	Z_Free(stream);
 }

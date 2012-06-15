@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../cgame/cg_public.h"
 #include "../game/bg_public.h"
 
-#ifdef USE_CURL
+#if USE_CURL
 #include "cl_curl.h"
 #endif /* USE_CURL */
 
@@ -153,7 +153,6 @@ demo through a file.
 =============================================================================
 */
 
-#define MAX_TIMEDEMO_DURATIONS	4096
 
 typedef struct {
 
@@ -191,6 +190,7 @@ typedef struct {
 	fileHandle_t download;
 	char		downloadTempName[MAX_OSPATH];
 	char		downloadName[MAX_OSPATH];
+	qboolean	dlquerying;
 #ifdef USE_CURL
 	qboolean	cURLEnabled;
 	qboolean	cURLUsed;
@@ -200,6 +200,7 @@ typedef struct {
 	CURLM		*downloadCURLM;
 #endif /* USE_CURL */
 	int		sv_allowDownload;
+  char    mapname[MAX_QPATH];
 	char		sv_dlURL[MAX_CVAR_VALUE_STRING];
 	int			downloadNumber;
 	int			downloadBlock;	// block we are waiting for
@@ -220,10 +221,6 @@ typedef struct {
 	int			timeDemoFrames;		// counter of rendered frames
 	int			timeDemoStart;		// cls.realtime before first frame
 	int			timeDemoBaseTime;	// each frame will be at this time + frameNum * 50
-	int			timeDemoLastFrame;// time the last frame was rendered
-	int			timeDemoMinDuration;	// minimum frame duration
-	int			timeDemoMaxDuration;	// maximum frame duration
-	unsigned char	timeDemoDurations[ MAX_TIMEDEMO_DURATIONS ];	// log of frame durations
 
 	// big stuff at end of structure so most offsets are 15 bits or less
 	netchan_t	netchan;
@@ -270,6 +267,7 @@ typedef struct {
 
 typedef struct {
 	connstate_t	state;				// connection status
+	int			keyCatchers;		// bit flags
 
 	qboolean	cddialog;			// bring up the cd needed dialog next frame
 
@@ -369,13 +367,15 @@ extern	cvar_t	*cl_aviMotionJpeg;
 
 extern	cvar_t	*cl_activeAction;
 
-extern	cvar_t	*cl_allowDownload;
+extern	cvar_t	*cl_autoDownload;
 extern  cvar_t  *cl_downloadMethod;
 extern	cvar_t	*cl_conXOffset;
 extern	cvar_t	*cl_inGameVideo;
 
 extern	cvar_t	*cl_lanForcePackets;
 extern	cvar_t	*cl_autoRecordDemo;
+
+extern	cvar_t	*cl_altTab;
 
 //=================================================
 
@@ -388,7 +388,7 @@ void CL_FlushMemory(void);
 void CL_ShutdownAll(void);
 void CL_AddReliableCommand( const char *cmd );
 
-void CL_StartHunkUsers( qboolean rendererOnly );
+void CL_StartHunkUsers( void );
 
 void CL_Disconnect_f (void);
 void CL_GetChallengePacket (void);
@@ -401,6 +401,7 @@ void CL_StopRecord_f(void);
 
 void CL_InitDownloads(void);
 void CL_NextDownload(void);
+void CL_DownloadMenu(int key);
 
 void CL_GetPing( int n, char *buf, int buflen, int *pingtime );
 void CL_GetPingInfo( int n, char *buf, int buflen );
@@ -441,8 +442,6 @@ void CL_VerifyCode( void );
 
 float CL_KeyState (kbutton_t *key);
 char *Key_KeynumToString (int keynum);
-int Key_GetCatcher( void );
-void Key_SetCatcher( int catcher );
 
 //
 // cl_parse.c
@@ -501,9 +500,9 @@ void	SCR_FillRect( float x, float y, float width, float height,
 void	SCR_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
 void	SCR_DrawNamedPic( float x, float y, float width, float height, const char *picname );
 
-void	SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape );			// draws a string with embedded color control characters with fade
-void	SCR_DrawBigStringColor( int x, int y, const char *s, vec4_t color, qboolean noColorEscape );	// ignores embedded color control characters
-void	SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, qboolean forceColor, qboolean noColorEscape );
+void	SCR_DrawBigString( int x, int y, const char *s, float alpha );			// draws a string with embedded color control characters with fade
+void	SCR_DrawBigStringColor( int x, int y, const char *s, vec4_t color );	// ignores embedded color control characters
+void	SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, qboolean forceColor );
 void	SCR_DrawSmallChar( int x, int y, int ch );
 
 

@@ -31,6 +31,56 @@ These commands can only be entered from stdin or by a remote operator datagram
 ===============================================================================
 */
 
+/*
+Reusable version of SV_GetPlayerByHandle() that doesn't
+print any silly messages.
+*/
+client_t *SV_BetterGetPlayerByHandle(const char *handle)
+{
+	client_t	*cl;
+	int		i;
+	char		cleanName[64];
+
+	// make sure server is running
+	if ( !com_sv_running->integer ) {
+		return NULL;
+	}
+
+	// Check whether this is a numeric player handle
+	for(i = 0; handle[i] >= '0' && handle[i] <= '9'; i++);
+
+	if(!handle[i])
+	{
+		int plid = atoi(handle);
+
+		// Check for numeric playerid match
+		if(plid >= 0 && plid < sv_maxclients->integer)
+		{
+			cl = &svs.clients[plid];
+
+			if(cl->state)
+				return cl;
+		}
+	}
+
+	// check for a name match
+	for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
+		if ( !cl->state ) {
+			continue;
+		}
+		if ( !Q_stricmp( cl->name, handle ) ) {
+			return cl;
+		}
+
+		Q_strncpyz( cleanName, cl->name, sizeof(cleanName) );
+		Q_CleanStr( cleanName );
+		if ( !Q_stricmp( cleanName, handle ) ) {
+			return cl;
+		}
+	}
+
+	return NULL;
+}
 
 /*
 ==================
@@ -761,6 +811,390 @@ static void SV_KillServer_f( void ) {
 //===========================================================
 
 /*
+Start a server-side demo.
+
+This does it all, create the file and adjust the demo-related
+stuff in client_t.
+
+This is mostly ripped from sv_client.c/SV_SendClientGameState
+and cl_main.c/CL_Record_f.
+*/
+static void SVD_StartDemoFile(client_t *client, const char *path)
+{
+	int		i, len;
+	entityState_t	*base, nullstate;
+	msg_t		msg;
+	byte		buffer[MAX_MSGLEN];
+	fileHandle_t	file;
+
+	Com_DPrintf("SVD_StartDemoFile\n");
+	assert(!client->demo_recording);
+
+	// create the demo file and write the necessary header
+	file = FS_FOpenFileWrite(path);
+	assert(file != 0);
+
+	MSG_Init(&msg, buffer, sizeof(buffer));
+	MSG_Bitstream(&msg); // XXX server code doesn't do this, client code does
+
+	MSG_WriteLong(&msg, client->lastClientCommand); // TODO: or is it client->reliableSequence?
+
+	MSG_WriteByte(&msg, svc_gamestate);
+	MSG_WriteLong(&msg, client->reliableSequence);
+
+	for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
+		if (sv.configstrings[i][0]) {
+			MSG_WriteByte(&msg, svc_configstring);
+			MSG_WriteShort(&msg, i);
+			MSG_WriteBigString(&msg, sv.configstrings[i]);
+		}
+	}
+
+	Com_Memset(&nullstate, 0, sizeof(nullstate));
+	for (i = 0 ; i < MAX_GENTITIES; i++) {
+		base = &sv.svEntities[i].baseline;
+		if (!base->number) {
+			continue;
+		}
+		MSG_WriteByte(&msg, svc_baseline);
+		MSG_WriteDeltaEntity(&msg, &nullstate, base, qtrue);
+	}
+
+	MSG_WriteByte(&msg, svc_EOF);
+
+	MSG_WriteLong(&msg, client - svs.clients);
+	MSG_WriteLong(&msg, sv.checksumFeed);
+
+	MSG_WriteByte(&msg, svc_EOF); // XXX server code doesn't do this, SV_Netchan_Transmit adds it!
+
+	len = LittleLong(client->netchan.outgoingSequence-1);
+	FS_Write(&len, 4, file);
+
+	len = LittleLong (msg.cursize);
+	FS_Write(&len, 4, file);
+	FS_Write(msg.data, msg.cursize, file);
+
+	FS_Flush(file);
+
+	// adjust client_t to reflect demo started
+	client->demo_recording = qtrue;
+	client->demo_file = file;
+	client->demo_waiting = qtrue;
+	client->demo_backoff = 1;
+	client->demo_deltas = 0;
+}
+
+/*
+Write a message to a server-side demo file.
+*/
+void SVD_WriteDemoFile(const client_t *client, const msg_t *msg)
+{
+	int len;
+	msg_t cmsg;
+	byte cbuf[MAX_MSGLEN];
+	fileHandle_t file = client->demo_file;
+
+	if (*(int *)msg->data == -1) { // TODO: do we need this?
+		Com_DPrintf("Ignored connectionless packet, not written to demo!\n");
+		return;
+	}
+
+	// TODO: we only copy because we want to add svc_EOF; can we add it and then
+	// "back off" from it, thus avoiding the copy?
+	MSG_Copy(&cmsg, cbuf, sizeof(cbuf), (msg_t*) msg);
+	MSG_WriteByte(&cmsg, svc_EOF); // XXX server code doesn't do this, SV_Netchan_Transmit adds it!
+
+	// TODO: the headerbytes stuff done in the client seems unnecessary
+	// here because we get the packet *before* the netchan has it's way
+	// with it; just not sure that's really true :-/
+
+	len = LittleLong(client->netchan.outgoingSequence);
+	FS_Write(&len, 4, file);
+
+	len = LittleLong(cmsg.cursize);
+	FS_Write(&len, 4, file);
+
+	FS_Write(cmsg.data, cmsg.cursize, file); // XXX don't use len!
+	FS_Flush(file);
+}
+
+/*
+Stop a server-side demo.
+
+This finishes out the file and clears the demo-related stuff
+in client_t again.
+*/
+static void SVD_StopDemoFile(client_t *client)
+{
+	int marker = -1;
+	fileHandle_t file = client->demo_file;
+
+	Com_DPrintf("SVD_StopDemoFile\n");
+	assert(client->demo_recording);
+
+	// write the necessary trailer and close the demo file
+	FS_Write(&marker, 4, file);
+	FS_Write(&marker, 4, file);
+	FS_Flush(file);
+	FS_FCloseFile(file);
+
+	// adjust client_t to reflect demo stopped
+	client->demo_recording = qfalse;
+	client->demo_file = -1;
+	client->demo_waiting = qfalse;
+	client->demo_backoff = 1;
+	client->demo_deltas = 0;
+}
+
+/*
+Clean up player name to be suitable as path name.
+Similar to Q_CleanStr() but tweaked.
+*/
+static void SVD_CleanPlayerName(char *name)
+{
+	char *src = name, *dst = name, c;
+	while ((c = *src)) {
+		// note Q_IsColorString(src++) won't work since it's a macro
+		if (Q_IsColorString(src)) {
+			src++;
+		}
+		else if (c == ':' || c == '\\' || c == '/' || c == '*' || c == '?') {
+			*dst++ = '%';
+		}
+		else if (c > ' ' && c < 0x7f) {
+			*dst++ = c;
+		}
+		src++;
+	}
+	*dst = '\0';
+
+	if (strlen(name) == 0) {
+		strcpy(name, "UnnamedPlayer");
+	}
+}
+
+/*
+Generate unique name for a new server demo file.
+(We pretend there are no race conditions.)
+*/
+static void SV_NameServerDemo(char *filename, int length, const client_t *client)
+{
+	qtime_t time;
+	char playername[64];
+
+	Com_DPrintf("SV_NameServerDemo\n");
+
+	Com_RealTime(&time);
+	Q_strncpyz(playername, client->name, sizeof(playername));
+	SVD_CleanPlayerName(playername);
+
+	do {
+		// TODO: really this should contain something identifying
+		// the server instance it came from; but we could be on
+		// (multiple) IPv4 and IPv6 interfaces; in the end, some
+		// kind of server guid may be more appropriate; mission?
+		// TODO: when the string gets too long (what exactly is
+		// the limit?) it get's cut off at the end ruining the
+		// file extension
+		Com_sprintf(
+			filename, length-1, "serverdemos/%.4d_%.2d_%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
+			time.tm_year+1900, time.tm_mon+1, time.tm_mday,
+			time.tm_hour, time.tm_min, time.tm_sec,
+			playername,
+			Sys_Milliseconds(),
+			PROTOCOL_VERSION
+		);
+		filename[length-1] = '\0';
+	} while (FS_FileExists(filename));
+}
+
+static void SV_StartRecordOne(client_t *client)
+{
+	char path[MAX_OSPATH];
+
+	Com_DPrintf("SV_StartRecordOne\n");
+
+	if (client->demo_recording) {
+		Com_Printf("startserverdemo: %s is already being recorded\n", client->name);
+		return;
+	}
+	if (client->state != CS_ACTIVE) {
+		Com_Printf("startserverdemo: %s is not active\n", client->name);
+		return;
+	}
+	if (client->netchan.remoteAddress.type == NA_BOT) {
+		Com_Printf("startserverdemo: %s is a bot\n", client->name);
+		return;
+	}
+
+	SV_NameServerDemo(path, sizeof(path), client);
+	SVD_StartDemoFile(client, path);
+
+	if(sv_demonotice->string)
+		SV_SendServerCommand(client, "print \"%s\"\n", sv_demonotice->string);
+
+	Com_Printf("startserverdemo: recording %s to %s\n", client->name, path);
+}
+
+static void SV_StartRecordAll(void)
+{
+	int slot;
+	client_t *client;
+
+	Com_DPrintf("SV_StartRecordAll\n");
+
+	for (slot=0, client=svs.clients; slot < sv_maxclients->integer; slot++, client++) {
+		// filter here to avoid lots of bogus messages from SV_StartRecordOne()
+		if (client->netchan.remoteAddress.type == NA_BOT
+		    || client->state != CS_ACTIVE
+		    || client->demo_recording) {
+			continue;
+		}
+		SV_StartRecordOne(client);
+	}
+}
+
+static void SV_StopRecordOne(client_t *client)
+{
+	Com_DPrintf("SV_StopRecordOne\n");
+
+	if (!client->demo_recording) {
+		Com_Printf("stopserverdemo: %s is not being recorded\n", client->name);
+		return;
+	}
+	if (client->state != CS_ACTIVE) { // disconnects are handled elsewhere
+		Com_Printf("stopserverdemo: %s is not active\n", client->name);
+		return;
+	}
+	if (client->netchan.remoteAddress.type == NA_BOT) {
+		Com_Printf("stopserverdemo: %s is a bot\n", client->name);
+		return;
+	}
+
+	SVD_StopDemoFile(client);
+
+	Com_Printf("stopserverdemo: stopped recording %s\n", client->name);
+}
+
+static void SV_StopRecordAll(void)
+{
+	int slot;
+	client_t *client;
+
+	Com_DPrintf("SV_StopRecordAll\n");
+
+	for (slot=0, client=svs.clients; slot < sv_maxclients->integer; slot++, client++) {
+		// filter here to avoid lots of bogus messages from SV_StopRecordOne()
+		if (client->netchan.remoteAddress.type == NA_BOT
+		    || client->state != CS_ACTIVE // disconnects are handled elsewhere
+		    || !client->demo_recording) {
+			continue;
+		}
+		SV_StopRecordOne(client);
+	}
+}
+
+/*
+==================
+SV_StartServerDemo_f
+
+Record a server-side demo for given player/slot. The demo
+will be called "YYYY-MM-DD_hh-mm-ss_playername_id.dm_proto",
+in the "demos" directory under your game directory. Note
+that "startserverdemo all" will start demos for all players
+currently in the server. Players who join later require a
+new "startserverdemo" command. If you are already recording
+demos for some players, another "startserverdemo all" will
+start new demos only for players not already recording. Note
+that bots will never be recorded, not even if "all" is given.
+The server-side demos will stop when "stopserverdemo" is issued
+or when the server restarts for any reason (such as a new map
+loading).
+==================
+*/
+static void SV_StartServerDemo_f(void)
+{
+	client_t *client;
+
+	Com_DPrintf("SV_StartServerDemo_f\n");
+
+	if (!com_sv_running->integer) {
+		Com_Printf("startserverdemo: Server not running\n");
+		return;
+	}
+
+	if (Cmd_Argc() != 2) {
+		Com_Printf("Usage: startserverdemo <player-or-all>\n");
+		return;
+	}
+
+	client = SV_BetterGetPlayerByHandle(Cmd_Argv(1));
+	if (!Q_stricmp(Cmd_Argv(1), "all")) {
+		if (client) {
+			Com_Printf("startserverdemo: Player 'all' ignored, starting all demos instead\n");
+		}
+		SV_StartRecordAll();
+	}
+	else if (client) {
+		SV_StartRecordOne(client);
+	}
+	else {
+		Com_Printf("startserverdemo: No player with that handle/in that slot\n");
+	}
+}
+
+/*
+==================
+SV_StopServerDemo_f
+
+Stop a server-side demo for given player/slot. Note that
+"stopserverdemo all" will stop demos for all players in
+the server.
+==================
+*/
+static void SV_StopServerDemo_f(void)
+{
+	client_t *client;
+
+	Com_DPrintf("SV_StopServerDemo_f\n");
+
+	if (!com_sv_running->integer) {
+		Com_Printf("stopserverdemo: Server not running\n");
+		return;
+	}
+
+	if (Cmd_Argc() != 2) {
+		Com_Printf("Usage: stopserverdemo <player-or-all>\n");
+		return;
+	}
+
+	client = SV_BetterGetPlayerByHandle(Cmd_Argv(1));
+	if (!Q_stricmp(Cmd_Argv(1), "all")) {
+		if (client) {
+			Com_Printf("stopserverdemo: Player 'all' ignored, stopping all demos instead\n");
+		}
+		SV_StopRecordAll();
+	}
+	else if (client) {
+		SV_StopRecordOne(client);
+	}
+	else {
+		Com_Printf("stopserverdemo: No player with that handle/in that slot\n");
+	}
+}
+
+/*
+==================
+SV_CompleteMapName
+==================
+*/
+static void SV_CompleteMapName( char *args, int argNum ) {
+	if( argNum == 2 ) {
+		Field_CompleteFilename( "maps", "bsp", qtrue, qfalse );
+	}
+}
+
+/*
 ==================
 SV_AddOperatorCommands
 ==================
@@ -794,6 +1228,8 @@ void SV_AddOperatorCommands( void ) {
 	if( com_dedicated->integer ) {
 		Cmd_AddCommand ("say", SV_ConSay_f);
 		Cmd_AddCommand ("tell", SV_ConTell_f);
+		Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
+		Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);
 	}
 }
 
@@ -817,6 +1253,8 @@ void SV_RemoveOperatorCommands( void ) {
 	Cmd_RemoveCommand ("sectorlist");
 	Cmd_RemoveCommand ("say");
 	Cmd_RemoveCommand ("tell");
+	Cmd_RemoveCommand ("startserverdemo");
+	Cmd_RemoveCommand ("stopserverdemo");
 #endif
 }
 

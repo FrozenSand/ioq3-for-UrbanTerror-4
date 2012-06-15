@@ -585,7 +585,7 @@ void S_Base_StartLocalSound( sfxHandle_t sfxHandle, int channelNum ) {
 	S_Base_StartSound (NULL, listener_number, channelNum, sfxHandle );
 }
 
-
+#define Snd_Memset Com_Memset
 /*
 ==================
 S_ClearSoundBuffer
@@ -616,7 +616,11 @@ void S_Base_ClearSoundBuffer( void ) {
 
 	SNDDMA_BeginPainting ();
 	if (dma.buffer)
-		Com_Memset(dma.buffer, clear, dma.samples * dma.samplebits/8);
+    // TTimo: due to a particular bug workaround in linux sound code,
+    //   have to optionally use a custom C implementation of Com_Memset
+    //   not affecting win32, we have #define Snd_Memset Com_Memset
+    // https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=371
+		Snd_Memset(dma.buffer, clear, dma.samples * dma.samplebits/8);
 	SNDDMA_Submit ();
 }
 

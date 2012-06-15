@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "snd_codec.h"
 #include "client.h"
 
-#ifdef USE_OPENAL
+#if USE_OPENAL
 
 #include "qal.h"
 
@@ -1857,7 +1857,7 @@ S_AL_Init
 */
 qboolean S_AL_Init( soundInterface_t *si )
 {
-#ifdef USE_OPENAL
+#if USE_OPENAL
 
 	qboolean enumsupport, founddev = qfalse;
 
