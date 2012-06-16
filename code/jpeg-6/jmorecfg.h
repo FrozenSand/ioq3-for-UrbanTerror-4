@@ -149,17 +149,17 @@ typedef unsigned short UINT16;
 typedef unsigned int UINT16;
 #endif /* HAVE_UNSIGNED_SHORT */
 
-/* INT32 must hold at least signed 32-bit values. */
-
-/* MinGW basetsd.h defines INT32 - don't redefine it */
-#if !(defined __MINGW32__ && defined _BASETSD_H)
-typedef long INT32;
-#endif
-
 /* INT16 must hold at least the values -32768..32767. */
 
 #ifndef XMD_H			/* X11/xmd.h correctly defines INT16 */
 typedef short INT16;
+#endif
+
+/* INT32 must hold at least signed 32-bit values. */
+
+/* MinGW basetsd.h defines INT32 - don't redefine it */
+#if !(defined __MINGW32__ && defined _BASETSD_H_)
+typedef long INT32;
 #endif
 
 /* Datatype used for image dimensions.  The JPEG standard only supports
