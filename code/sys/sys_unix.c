@@ -522,3 +522,25 @@ void Sys_ErrorDialog( const char *error )
 
 	FS_FCloseFile( f );
 }
+
+/*
+==============
+Sys_PlatformInit
+
+Unix specific initialisation
+==============
+*/
+void Sys_PlatformInit( void )
+{
+	const char* term = getenv( "TERM" );
+
+	signal( SIGHUP, Sys_SigHandler );
+	signal( SIGQUIT, Sys_SigHandler );
+	signal( SIGTRAP, Sys_SigHandler );
+	signal( SIGIOT, Sys_SigHandler );
+	signal( SIGBUS, Sys_SigHandler );
+
+	stdinIsATTY = isatty( STDIN_FILENO ) &&
+		!( term && ( !strcmp( term, "raw" ) || !strcmp( term, "dumb" ) ) );
+}
+
