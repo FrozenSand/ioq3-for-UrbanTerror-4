@@ -36,7 +36,11 @@ OPTIMIZE         =1
 USE_SDL          =1
 USE_OPENAL       =0
 USE_CURL         =1
-USE_CODEC_VORBIS =0 
+USE_CODEC_VORBIS =0
+
+# Barbatos - Urban Terror 4.2 auth system
+# You're not forced to use it. Off by default.
+USE_AUTH		=0 
 
 ifeq ($(V),1)
 echo_cmd=@:

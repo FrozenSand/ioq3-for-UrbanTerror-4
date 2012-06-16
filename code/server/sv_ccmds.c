@@ -398,6 +398,7 @@ Kick a user off of the server  FIXME: move to game
 static void SV_Kick_f( void ) {
 	client_t	*cl;
 	int			i;
+	char    *reason = "was kicked";
 
 	// make sure server is running
 	if ( !com_sv_running->integer ) {
@@ -405,10 +406,13 @@ static void SV_Kick_f( void ) {
 		return;
 	}
 
-	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: kick <player name>\nkick all = kick everyone\nkick allbots = kick all bots\n");
+	if ( (Cmd_Argc() < 2) || (Cmd_Argc() > 3) ) {
+		Com_Printf ("Usage: kick <player> <reason>\nkick all = kick everyone\nkick allbots = kick all bots\n");
 		return;
 	}
+
+	if ( Cmd_Argc() == 3 ) 
+		reason = Cmd_Argv(2);
 
 	cl = SV_GetPlayerByHandle();
 	if ( !cl ) {
@@ -420,7 +424,7 @@ static void SV_Kick_f( void ) {
 				if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
 					continue;
 				}
-				SV_DropClient( cl, "was kicked" );
+				SV_DropClient( cl, reason );
 				cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 			}
 		}
@@ -432,7 +436,7 @@ static void SV_Kick_f( void ) {
 				if( cl->netchan.remoteAddress.type != NA_BOT ) {
 					continue;
 				}
-				SV_DropClient( cl, "was kicked" );
+				SV_DropClient( cl, reason );
 				cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 			}
 		}
@@ -443,7 +447,7 @@ static void SV_Kick_f( void ) {
 		return;
 	}
 
-	SV_DropClient( cl, "was kicked" );
+	SV_DropClient( cl, reason );
 	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 }
 
@@ -675,7 +679,7 @@ static void SV_ConSay_f(void) {
 		return;
 	}
 
-	strcpy (text, "console: ");
+	strcpy (text, sv_sayprefix->string);
 	p = Cmd_Args();
 
 	if ( *p == '"' ) {
@@ -715,7 +719,7 @@ static void SV_ConTell_f(void) {
 		return;
 	}
 
-	strcpy (text, "console_tell: ");
+	strcpy (text, sv_tellprefix->string);
 	p = Cmd_ArgsFrom(2);
 
 	if ( *p == '"' ) {
@@ -977,7 +981,7 @@ static void SVD_CleanPlayerName(char *name)
 Generate unique name for a new server demo file.
 (We pretend there are no race conditions.)
 */
-static void SV_NameServerDemo(char *filename, int length, const client_t *client)
+static void SV_NameServerDemo(char *filename, int length, const client_t *client, char *fn)
 {
 	qtime_t time;
 	char playername[64];
@@ -987,28 +991,34 @@ static void SV_NameServerDemo(char *filename, int length, const client_t *client
 	Com_RealTime(&time);
 	Q_strncpyz(playername, client->name, sizeof(playername));
 	SVD_CleanPlayerName(playername);
-
-	do {
-		// TODO: really this should contain something identifying
-		// the server instance it came from; but we could be on
-		// (multiple) IPv4 and IPv6 interfaces; in the end, some
-		// kind of server guid may be more appropriate; mission?
-		// TODO: when the string gets too long (what exactly is
-		// the limit?) it get's cut off at the end ruining the
-		// file extension
-		Com_sprintf(
-			filename, length-1, "serverdemos/%.4d_%.2d_%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
-			time.tm_year+1900, time.tm_mon+1, time.tm_mday,
-			time.tm_hour, time.tm_min, time.tm_sec,
-			playername,
-			Sys_Milliseconds(),
-			PROTOCOL_VERSION
-		);
-		filename[length-1] = '\0';
-	} while (FS_FileExists(filename));
+	if (fn != NULL) {
+		Q_snprintf(filename, length-1, "serverdemos/%s.dm_%d", fn, PROTOCOL_VERSION);
+		while (FS_FileExists(filename)) {
+			Q_snprintf(filename, length-1, "serverdemos/%s_%d.dm_%d", fn, Sys_Milliseconds(), PROTOCOL_VERSION);
+		}
+	} else {
+		do {
+			// TODO: really this should contain something identifying
+			// the server instance it came from; but we could be on
+			// (multiple) IPv4 and IPv6 interfaces; in the end, some
+			// kind of server guid may be more appropriate; mission?
+			// TODO: when the string gets too long (what exactly is
+			// the limit?) it get's cut off at the end ruining the
+			// file extension
+			Q_snprintf(
+				filename, length-1, "serverdemos/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
+				time.tm_year+1900, time.tm_mon, time.tm_mday,
+				time.tm_hour, time.tm_min, time.tm_sec,
+				playername,
+				Sys_Milliseconds(),
+				PROTOCOL_VERSION
+			);
+			filename[length-1] = '\0';
+		} while (FS_FileExists(filename));
+	}
 }
 
-static void SV_StartRecordOne(client_t *client)
+static void SV_StartRecordOne(client_t *client, char *filename)
 {
 	char path[MAX_OSPATH];
 
@@ -1027,7 +1037,7 @@ static void SV_StartRecordOne(client_t *client)
 		return;
 	}
 
-	SV_NameServerDemo(path, sizeof(path), client);
+	SV_NameServerDemo(path, sizeof(path), client, filename);
 	SVD_StartDemoFile(client, path);
 
 	if(sv_demonotice->string)
@@ -1050,7 +1060,7 @@ static void SV_StartRecordAll(void)
 		    || client->demo_recording) {
 			continue;
 		}
-		SV_StartRecordOne(client);
+		SV_StartRecordOne(client, NULL);
 	}
 }
 
@@ -1123,8 +1133,8 @@ static void SV_StartServerDemo_f(void)
 		return;
 	}
 
-	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: startserverdemo <player-or-all>\n");
+	if (Cmd_Argc() < 2) {
+		Com_Printf("Usage: startserverdemo <player-or-all> <optional demo name>\n");
 		return;
 	}
 
@@ -1136,7 +1146,11 @@ static void SV_StartServerDemo_f(void)
 		SV_StartRecordAll();
 	}
 	else if (client) {
-		SV_StartRecordOne(client);
+		if (Cmd_Argc() > 2) {
+      		SV_StartRecordOne(client, Cmd_ArgsFrom(2));
+    	} else {
+      		SV_StartRecordOne(client, NULL);
+		}
 	}
 	else {
 		Com_Printf("startserverdemo: No player with that handle/in that slot\n");
