@@ -123,10 +123,12 @@ typedef enum {
 	UI_CIN_SETEXTENTS,
 	UI_R_REMAP_SHADER,
 	UI_VERIFY_CDKEY,
+	#ifdef USE_AUTH
 	UI_NET_STRINGTOADR, //@Barbatos
 	UI_Q_VSNPRINTF,
 	UI_NET_SENDPACKET,
 	UI_COPYSTRING,
+	#endif
 	UI_LAN_SERVERSTATUS,
 	UI_LAN_GETSERVERPING,
 	UI_LAN_SERVERISVISIBLE,
@@ -195,7 +197,9 @@ typedef enum {
 	UI_HASUNIQUECDKEY,
 	
 	//@Barbatos
+	#ifdef USE_AUTH
 	UI_AUTHANSWER
+	#endif
 	
 // if !overlay, the background will be drawn, otherwise it will be
 // overlayed over whatever the cgame has drawn.

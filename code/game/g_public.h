@@ -389,8 +389,10 @@ typedef enum {
 	BOTLIB_PC_SOURCE_FILE_AND_LINE,
 	
 	//@Barbatos
+	#ifdef USE_AUTH
 	G_NET_STRINGTOADR,
 	G_NET_SENDPACKET
+	#endif
 
 } gameImport_t;
 
@@ -431,9 +433,11 @@ typedef enum {
 	BOTAI_START_FRAME,				// ( int time );
 	
 	//@Barbatos
+	#ifdef USE_AUTH
 	GAME_AUTHSERVER_HEARTBEAT,
 	GAME_AUTHSERVER_SHUTDOWN,
 	GAME_AUTH_IP,
 	GAME_AUTH_CLIENT
+	#endif
 } gameExport_t;
 

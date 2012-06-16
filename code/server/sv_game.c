@@ -811,10 +811,10 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		return botlib_export->ai.GeneticParentsAndChildSelection(args[1], VMA(2), VMA(3), VMA(4), VMA(5));
 
 	//@Barbatos
+	#ifdef USE_AUTH
 	case G_NET_STRINGTOADR:
 		return NET_StringToAdr( VMA(1), VMA(2));
 		
-	//@Barbatos
 	case G_NET_SENDPACKET:
 		{
 			netadr_t addr;
@@ -824,6 +824,8 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 			NET_SendPacket( args[1], args[2], VMA(3), addr ); 
 		}
 		return 0;
+	
+	#endif
 	
 	case TRAP_MEMSET:
 		Com_Memset( VMA(1), args[2], args[3] );
