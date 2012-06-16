@@ -542,6 +542,9 @@ int main( int argc, char **argv )
 {
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
+	#ifndef _WIN32
+	const char* term = getenv( "TERM" );
+	#endif
 
 #ifndef DEDICATED
 	// SDL version check
@@ -593,6 +596,9 @@ int main( int argc, char **argv )
 	signal( SIGTRAP, Sys_SigHandler );
 	signal( SIGIOT, Sys_SigHandler );
 	signal( SIGBUS, Sys_SigHandler );
+	
+	stdinIsATTY = isatty( STDIN_FILENO ) &&
+		!( term && ( !strcmp( term, "raw" ) || !strcmp( term, "dumb" ) ) );
 #endif
 
 	signal( SIGILL, Sys_SigHandler );
