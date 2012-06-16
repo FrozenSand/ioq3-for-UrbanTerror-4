@@ -878,6 +878,9 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 	FS_Write(&len, 4, file);
 	FS_Write(msg.data, msg.cursize, file);
 
+	// add size of packet in the end for backward play /* holblin */
+	FS_Write(&len, 4, file);
+
 	FS_Flush(file);
 
 	// adjust client_t to reflect demo started
@@ -919,6 +922,10 @@ void SVD_WriteDemoFile(const client_t *client, const msg_t *msg)
 	FS_Write(&len, 4, file);
 
 	FS_Write(cmsg.data, cmsg.cursize, file); // XXX don't use len!
+	
+	// add size of packet in the end for backward play /* holblin */
+	FS_Write(&len, 4, file);
+	
 	FS_Flush(file);
 }
 

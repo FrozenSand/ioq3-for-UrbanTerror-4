@@ -205,6 +205,9 @@ void CL_WriteDemoMessage ( msg_t *msg, int headerBytes ) {
 	swlen = LittleLong(len);
 	FS_Write (&swlen, 4, clc.demofile);
 	FS_Write ( msg->data + headerBytes, len, clc.demofile );
+
+	// add size of packet in the end for backward play /* holblin */
+	FS_Write (&swlen, 4, clc.demofile);
 }
 
 
@@ -389,6 +392,9 @@ void CL_Record_f( void ) {
 	FS_Write (&len, 4, clc.demofile);
 	FS_Write (buf.data, buf.cursize, clc.demofile);
 
+	// add size of packet in the end for backward play /* holblin */
+	FS_Write (&len, 4, clc.demofile);
+
 	// the rest of the demo file will be copied from net messages
 }
 
@@ -467,6 +473,21 @@ void CL_ReadDemoMessage( void ) {
 		CL_DemoCompleted ();
 		return;
 	}
+	
+	// skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
+	int length_backward;
+	r = FS_Read (&length_backward, 4, clc.demofile);
+	if ( r != 4 ) {
+		CL_DemoCompleted ();
+		return;
+	}
+	// now, check demo file format !!! /* holblin */
+	length_backward = LittleLong( length_backward );
+	if ( length_backward != buf.cursize ){
+		CL_DemoCompleted ();
+		return;
+	}
+	
 
 	clc.lastPacketTime = cls.realtime;
 	buf.readcount = 0;
