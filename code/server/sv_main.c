@@ -241,6 +241,10 @@ void SV_MasterHeartbeat( void ) {
 	svs.nextHeartbeatTime = svs.time + HEARTBEAT_MSEC;
 
 
+	#ifdef USE_AUTH
+	VM_Call( gvm, GAME_AUTHSERVER_HEARTBEAT );
+	#endif
+	
 	// send to group masters
 	for ( i = 0 ; i < MAX_MASTER_SERVERS ; i++ ) {
 		if ( !sv_master[i]->string[0] ) {
@@ -296,6 +300,10 @@ void SV_MasterShutdown( void ) {
 
 	// when the master tries to poll the server, it won't respond, so
 	// it will be removed from the list
+	
+	#ifdef USE_AUTH
+	VM_Call( gvm, GAME_AUTHSERVER_SHUTDOWN );
+	#endif
 }
 
 
@@ -407,6 +415,11 @@ void SVC_Info( netadr_t from ) {
 		va("%i", sv_maxclients->integer - sv_privateClients->integer ) );
 	Info_SetValueForKey( infostring, "gametype", va("%i", sv_gametype->integer ) );
 	Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->integer ) );
+	
+	//@Barbatos
+	#ifdef USE_AUTH
+	Info_SetValueForKey( infostring, "auth_status", Cvar_VariableString("auth_status") );
+	#endif
 
 	if( sv_minPing->integer ) {
 		Info_SetValueForKey( infostring, "minPing", va("%i", sv_minPing->integer) );
@@ -635,7 +648,19 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		SV_DirectConnect( from );
 	} else if (!Q_stricmp(c, "ipAuthorize")) {
 		SV_AuthorizeIpPacket( from );
-	} else if (!Q_stricmp(c, "rcon")) {
+	} 
+	//@Barbatos
+	#ifdef USE_AUTH
+	else if (!Q_stricmp(c, "4X:AUTH:IP")) {
+		VM_Call(gvm, GAME_AUTH_IP);
+	} else if (!Q_stricmp(c, "4X:AUTH:NAME")) {
+		VM_Call(gvm, GAME_AUTH_CLIENT);
+	} else if (!Q_stricmp(c, "4X:AUTH:MSG")) {
+		VM_Call(gvm, GAME_AUTH_CLIENT);
+	}
+	#endif
+	
+	else if (!Q_stricmp(c, "rcon")) {
 		SVC_RemoteCommand( from, msg );
 	} else if (!Q_stricmp(c, "disconnect")) {
 		// if a client starts up a local server, we may see some spurious
@@ -812,6 +837,7 @@ void SV_CheckTimeouts( void ) {
 			cl->timeoutCount = 0;
 		}
 	}
+	
 }
 
 

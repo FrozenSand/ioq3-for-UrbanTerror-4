@@ -79,6 +79,11 @@ cvar_t	*cl_guidServerUniq;
 
 cvar_t	*cl_altTab;
 
+//@Barbatos
+#ifdef USE_AUTH
+cvar_t	*cl_authChallenge;
+#endif
+
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
@@ -2055,6 +2060,14 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		return;
 	}
 
+	#ifdef USE_AUTH
+	//@Barbatos
+	if ( !Q_stricmp(c, "4X:AUTH:CLIENT") ) {
+		VM_Call( uivm, UI_AUTHANSWER, from);
+		return;
+	}
+	#endif
+	
 	Com_DPrintf ("Unknown connectionless packet command.\n");
 }
 
@@ -2722,6 +2735,9 @@ void CL_Init( void ) {
 	cl_guidServerUniq = Cvar_Get ("cl_guidServerUniq", "1", CVAR_ARCHIVE);
 	
 	cl_altTab = Cvar_Get ("cl_altTab", "1", CVAR_ARCHIVE);
+	
+	//@Barbatos
+	cl_authChallenge = Cvar_Get( "cl_authChallenge", "", CVAR_ARCHIVE | CVAR_USERINFO);
 
 	// userinfo
 	Cvar_Get ("name", "UnnamedPlayer", CVAR_USERINFO | CVAR_ARCHIVE );

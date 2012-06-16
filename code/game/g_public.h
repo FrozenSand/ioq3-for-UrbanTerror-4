@@ -386,7 +386,11 @@ typedef enum {
 	BOTLIB_PC_LOAD_SOURCE,
 	BOTLIB_PC_FREE_SOURCE,
 	BOTLIB_PC_READ_TOKEN,
-	BOTLIB_PC_SOURCE_FILE_AND_LINE
+	BOTLIB_PC_SOURCE_FILE_AND_LINE,
+	
+	//@Barbatos
+	G_NET_STRINGTOADR,
+	G_NET_SENDPACKET
 
 } gameImport_t;
 
@@ -424,6 +428,12 @@ typedef enum {
 	// The game can issue trap_argc() / trap_argv() commands to get the command
 	// and parameters.  Return qfalse if the game doesn't recognize it as a command.
 
-	BOTAI_START_FRAME				// ( int time );
+	BOTAI_START_FRAME,				// ( int time );
+	
+	//@Barbatos
+	GAME_AUTHSERVER_HEARTBEAT,
+	GAME_AUTHSERVER_SHUTDOWN,
+	GAME_AUTH_IP,
+	GAME_AUTH_CLIENT
 } gameExport_t;
 

@@ -1082,3 +1082,4 @@ NET_Restart_f
 void NET_Restart( void ) {
 	NET_Config( networkingEnabled );
 }
+
