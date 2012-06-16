@@ -334,17 +334,17 @@ ifeq ($(PLATFORM),darwin)
     USE_OPENAL_DLOPEN=1
   else
   ifeq ($(BUILD_MACOSX_UB),i386)
-    CC=gcc-4.0
+    CC=/Developer/usr/bin/gcc-4.2 # i686-apple-darwin10-gcc-4.2.1 (GCC) 4.2.1 (Apple Inc. build 5666) (dot 3) - from XCode 3.2.6, hacked install on a 10.7.4 OSX
     BASE_CFLAGS += -arch i386 -DSMP \
-      -mmacosx-version-min=10.4 \
-      -DMAC_OS_X_VERSION_MIN_REQUIRED=1040 -nostdinc \
-      -F/Developer/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks \
-      -I/Developer/SDKs/MacOSX10.4u.sdk/usr/lib/gcc/i686-apple-darwin8/4.0.1/include \
-      -isystem /Developer/SDKs/MacOSX10.4u.sdk/usr/include
-    LDFLAGS = -arch i386 -mmacosx-version-min=10.4 \
-      -L/Developer/SDKs/MacOSX10.4u.sdk/usr/lib/gcc/i686-apple-darwin8/4.0.1 \
-      -F/Developer/SDKs/MacOSX10.4u.sdk/System/Library/Frameworks \
-      -Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk
+      -mmacosx-version-min=10.5 -DMAC_OS_X_VERSION_MIN_REQUIRED=1050 \
+      -nostdinc \
+      -F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks \
+      -I/Developer/SDKs/MacOSX10.5.sdk/usr/lib/gcc/i686-apple-darwin10/4.2.1/include \
+      -isystem /Developer/SDKs/MacOSX10.5.sdk/usr/include
+    LDFLAGS = -arch i386 -mmacosx-version-min=10.5 \
+      -L/Developer/SDKs/MacOSX10.5.sdk/usr/lib/gcc/i686-apple-darwin10/4.2.1 \
+      -F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks \
+      -Wl,-syslibroot,/Developer/SDKs/MacOSX10.5.sdk
     ARCH=i386
     BUILD_SERVER=0
   else
@@ -857,8 +857,12 @@ targets: makedirs tools
 	do \
 		echo "    $$i"; \
 	done
+ifneq ($(strip $(TARGETS)),) # this avoids a nasty recursion if the target list is empty
 	@echo ""
 	@$(MAKE) $(TARGETS) V=$(V)
+else
+	@echo "no targets!"
+endif
 
 makedirs:
 	@if [ ! -d $(BUILD_DIR) ];then $(MKDIR) $(BUILD_DIR);fi
@@ -882,30 +886,30 @@ makedirs:
 #############################################################################
 # QVM BUILD TOOLS
 #############################################################################
-
-Q3LCC=$(TOOLSDIR)/q3lcc$(BINEXT)
-Q3ASM=$(TOOLSDIR)/q3asm$(BINEXT)
-
-ifeq ($(CROSS_COMPILING),1)
-tools:
-	@echo QVM tools not built when cross-compiling
-else
-tools:
-	$(MAKE) -C $(TOOLSDIR)/lcc install
-	$(MAKE) -C $(TOOLSDIR)/asm install
-endif
-
-define DO_Q3LCC
-$(echo_cmd) "Q3LCC $<"
-$(Q)$(Q3LCC) -o $@ $<
-endef
-
-define DO_Q3LCC_MISSIONPACK
-$(echo_cmd) "Q3LCC_MISSIONPACK $<"
-$(Q)$(Q3LCC) -DMISSIONPACK -o $@ $<
-endef
-
-
+#
+#Q3LCC=$(TOOLSDIR)/q3lcc$(BINEXT)
+#Q3ASM=$(TOOLSDIR)/q3asm$(BINEXT)
+#
+#ifeq ($(CROSS_COMPILING),1)
+#tools:
+#	@echo QVM tools not built when cross-compiling
+#else
+#tools:
+#	$(MAKE) -C $(TOOLSDIR)/lcc install
+#	$(MAKE) -C $(TOOLSDIR)/asm install
+#endif
+#
+#define DO_Q3LCC
+#$(echo_cmd) "Q3LCC $<"
+#$(Q)$(Q3LCC) -o $@ $<
+#endef
+#
+#define DO_Q3LCC_MISSIONPACK
+#$(echo_cmd) "Q3LCC_MISSIONPACK $<"
+#$(Q)$(Q3LCC) -DMISSIONPACK -o $@ $<
+#endef
+#
+#
 #############################################################################
 # CLIENT/SERVER
 #############################################################################

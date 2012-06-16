@@ -33,19 +33,19 @@ if [ ! -f Makefile ]; then
 	echo "This script must be run from the ioUrbanTerror build directory";
 fi
 
-if [ ! -d /Developer/SDKs/MacOSX10.2.8.sdk ]; then
-	echo "
-/Developer/SDKs/MacOSX10.2.8.sdk/ is missing.
-The installer for this SDK is included with XCode 2.2 or newer"
-	exit 1;
-fi
-
-if [ ! -d /Developer/SDKs/MacOSX10.4u.sdk ]; then
-	echo "
-/Developer/SDKs/MacOSX10.4u.sdk/ is missing.   
-The installer for this SDK is included with XCode 2.2 or newer"
-	exit 1;
-fi
+#if [ ! -d /Developer/SDKs/MacOSX10.2.8.sdk ]; then
+#	echo "
+#/Developer/SDKs/MacOSX10.2.8.sdk/ is missing.
+#The installer for this SDK is included with XCode 2.2 or newer"
+#	exit 1;
+#fi
+#
+#if [ ! -d /Developer/SDKs/MacOSX10.4u.sdk ]; then
+#	echo "
+#/Developer/SDKs/MacOSX10.4u.sdk/ is missing.   
+#The installer for this SDK is included with XCode 2.2 or newer"
+#	exit 1;
+#fi
 
 (BUILD_MACOSX_UB=ppc make && BUILD_MACOSX_UB=i386 make) || exit 1;
 
