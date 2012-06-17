@@ -1210,6 +1210,69 @@ static void SV_CompleteMapName( char *args, int argNum ) {
 
 /*
 ==================
+SV_RKick_f WITH REASON
+==================
+*/
+static void SV_RKick_f( void ) {
+client_t	*cl;
+int	 i;
+char	 *reason = "was kicked";
+
+// make sure server is running
+if ( !com_sv_running->integer ) {
+Com_Printf( "Server is not running.\n" );
+return;
+}
+
+if ( Cmd_Argc() < 2 || Cmd_Argc() > 3 ) {
+Com_Printf ("Usage: kick <player> <reason>\nkick all = kick everyone\nkick allbots = kick all bots\n");
+return;
+}
+
+
+if ( Cmd_Argc() == 3 ) {
+reason = Cmd_Argv(2);
+}
+
+cl = SV_GetPlayerByHandle();
+if ( !cl ) {
+if ( !Q_stricmp(Cmd_Argv(1), "all") ) {
+for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
+if ( !cl->state ) {
+continue;
+}
+if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
+continue;
+}
+SV_DropClient( cl, reason );
+cl->lastPacketTime = svs.time;	// in case there is a funny zombie
+}
+}
+else if ( !Q_stricmp(Cmd_Argv(1), "allbots") ) {
+for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
+if ( !cl->state ) {
+continue;
+}
+if( cl->netchan.remoteAddress.type != NA_BOT ) {
+continue;
+}
+SV_DropClient( cl, reason );
+cl->lastPacketTime = svs.time;	// in case there is a funny zombie
+}
+}
+return;
+}
+if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
+SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host player\n");
+return;
+}
+
+SV_DropClient( cl, reason );
+cl->lastPacketTime = svs.time;	// in case there is a funny zombie
+}
+
+/*
+==================
 SV_AddOperatorCommands
 ==================
 */
@@ -1233,6 +1296,7 @@ void SV_AddOperatorCommands( void ) {
 	Cmd_AddCommand ("map_restart", SV_MapRestart_f);
 	Cmd_AddCommand ("sectorlist", SV_SectorList_f);
 	Cmd_AddCommand ("map", SV_Map_f);
+	Cmd_AddCommand ("rkick", SV_RKick_f);
 #ifndef PRE_RELEASE_DEMO
 	Cmd_AddCommand ("devmap", SV_Map_f);
 	Cmd_AddCommand ("spmap", SV_Map_f);
