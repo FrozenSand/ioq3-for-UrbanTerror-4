@@ -295,6 +295,9 @@ extern	cvar_t	*sv_strictAuth;
 
 extern	cvar_t	*sv_demonotice;
 
+extern  cvar_t  *sv_sayprefix;
+extern  cvar_t  *sv_tellprefix;
+
 //===========================================================
 
 //

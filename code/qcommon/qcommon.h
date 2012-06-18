@@ -693,9 +693,11 @@ MISC
 // abstracting this to make it portable
 #ifdef WIN32
 #define Q_vsnprintf _vsnprintf
+#define Q_snprintf _snprintf
 #else
 // TODO: do we need Mac define?
 #define Q_vsnprintf vsnprintf
+#define Q_snprintf snprintf
 #endif
 
 // centralizing the declarations for cl_cdkey

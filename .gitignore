@@ -1,2 +1,3 @@
 code/tools/*
 build/*
+code/win32/msvc/*
