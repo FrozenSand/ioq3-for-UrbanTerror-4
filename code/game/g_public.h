@@ -228,6 +228,12 @@ typedef enum {
 	
 	// 1.32
 	G_FS_SEEK,
+	
+	//@Barbatos
+	#ifdef USE_AUTH
+	G_NET_STRINGTOADR,
+	G_NET_SENDPACKET,
+	#endif
 
 	BOTLIB_SETUP = 200,				// ( void );
 	BOTLIB_SHUTDOWN,				// ( void );
@@ -386,13 +392,7 @@ typedef enum {
 	BOTLIB_PC_LOAD_SOURCE,
 	BOTLIB_PC_FREE_SOURCE,
 	BOTLIB_PC_READ_TOKEN,
-	BOTLIB_PC_SOURCE_FILE_AND_LINE,
-	
-	//@Barbatos
-	#ifdef USE_AUTH
-	G_NET_STRINGTOADR,
-	G_NET_SENDPACKET
-	#endif
+	BOTLIB_PC_SOURCE_FILE_AND_LINE
 
 } gameImport_t;
 

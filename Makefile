@@ -759,6 +759,11 @@ ifeq ($(USE_CCACHE),1)
   CC := ccache $(CC)
 endif
 
+#Barbatos
+ifdef USE_AUTH
+  BASE_CFLAGS += -DUSE_AUTH=1
+endif
+
 ifdef DEFAULT_BASEDIR
   BASE_CFLAGS += -DDEFAULT_BASEDIR=\\\"$(DEFAULT_BASEDIR)\\\"
 endif

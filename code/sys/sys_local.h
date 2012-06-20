@@ -47,6 +47,10 @@ unsigned int CON_LogRead( char *out, unsigned int outSize );
 char *Sys_StripAppBundle( char *pwd );
 #endif
 
+#ifndef _WIN32
+void Sys_PlatformInit( void );
+#endif
+
 void Sys_SigHandler( int signal );
 void Sys_ErrorDialog( const char *error );
 void Sys_AnsiColorPrint( const char *msg );
