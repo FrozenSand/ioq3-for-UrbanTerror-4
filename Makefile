@@ -148,6 +148,7 @@ RDIR=$(MOUNT_DIR)/renderer
 CMDIR=$(MOUNT_DIR)/qcommon
 UDIR=$(MOUNT_DIR)/unix
 W32DIR=$(MOUNT_DIR)/win32
+SYSDIR=$(MOUNT_DIR)/sys
 GDIR=$(MOUNT_DIR)/game
 CGDIR=$(MOUNT_DIR)/cgame
 BLIBDIR=$(MOUNT_DIR)/botlib
@@ -489,11 +490,8 @@ endif
   ifeq ($(ARCH),x86)
     # build 32bit
     BASE_CFLAGS += -m32
-    LDFLAGS+=-m32
+    LDFLAGS += -m32
   endif
-
-  BUILD_SERVER = 0
-  BUILD_CLIENT_SMP = 0
 
 else # ifeq mingw32
 
@@ -1227,13 +1225,21 @@ Q3DOBJ = \
   $(B)/ded/l_script.o \
   $(B)/ded/l_struct.o \
   \
-  $(B)/ded/linux_signals.o \
-  $(B)/ded/unix_main.o \
-  $(B)/ded/unix_shared.o \
-  \
   $(B)/ded/null_client.o \
   $(B)/ded/null_input.o \
-  $(B)/ded/null_snddma.o
+  $(B)/ded/null_snddma.o \
+
+ifeq ($(PLATFORM),mingw32)
+  Q3DOBJ += \
+    $(B)/ded/win_shared.o \
+    $(B)/ded/win_syscon.o \
+    $(B)/ded/win_main.o 
+else
+  Q3DOBJ += \
+    $(B)/ded/linux_signals.o \
+    $(B)/ded/unix_main.o \
+    $(B)/ded/unix_shared.o
+endif
 
 ifeq ($(ARCH),i386)
   Q3DOBJ += \
@@ -1600,6 +1606,12 @@ $(B)/ded/%.o: $(UDIR)/%.c
 	$(DO_DED_CC)
 
 $(B)/ded/%.o: $(NDIR)/%.c
+	$(DO_DED_CC)
+
+$(B)/ded/%.o: $(W32DIR)/%.c
+	$(DO_DED_CC)
+
+$(B)/ded/%.o: $(SYSDIR)/%.c
 	$(DO_DED_CC)
 
 # Extra dependencies to ensure the SVN version is incorporated
