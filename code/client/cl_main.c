@@ -329,15 +329,25 @@ void CL_Record_f( void ) {
 	}
 
 	
-	/* File_write_header_demo // ADD this fx */
-	/* HOLBLIN TODO */ 
-	if (qfalse) { // import in demo header read & demo header write /* holblin */
-		Com_Printf("Protocol %d not supported for demos\n", protocol);
-		Q_strncpyz(retry, arg, sizeof(retry));
-		retry[strlen(retry)-6] = 0;
-		CL_WalkDemoExt( retry, name, &clc.demofile );
-	}
-	/* END HOLBLIN TODO */ 
+	/* HOLBLIN entete demo */ 
+	
+		char *s2;
+		s2 = Cvar_VariableString("g_modversion");
+
+		int size = strlen( s2 );
+		len = LittleLong( size );
+		FS_Write( &len, 4, clc.demofile );
+		FS_Write( s2 , size ,  clc.demofile );
+		
+		int v = LittleLong( PROTOCOL_VERSION );
+		FS_Write ( &v, 4 , clc.demofile );
+		
+		len = 0;
+		len = LittleLong( len );
+		FS_Write ( &len, 4 , clc.demofile );
+		FS_Write ( &len, 4 , clc.demofile );
+
+	/* END HOLBLIN entete demo */ 
 	
 	clc.demorecording = qtrue;
 	if (Cvar_VariableValue("ui_recordSPDemo")) {
@@ -479,6 +489,10 @@ void CL_ReadDemoMessage( void ) {
 		CL_DemoCompleted ();
 		return;
 	}
+	if ( buf.cursize == 0 ) { // backward read gain the header demo /* holblin */
+		CL_DemoCompleted ();
+		return;
+	}
 	if ( buf.cursize > buf.maxsize ) {
 		Com_Error (ERR_DROP, "CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN");
 	}
@@ -522,7 +536,6 @@ static void CL_WalkDemoExt(char *arg, char *name, int *demofile)
 		Com_Printf("Demo file: %s\n", name);
 	else
 		Com_Printf("Not found: %s\n", name);
-	}
 }
 
 /*
@@ -536,8 +549,6 @@ demo <demoname>
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH];
 	char		*arg, *ext_test;
-	int			protocol, i;
-	char		retry[MAX_OSPATH];
 
 	if (Cmd_Argc() != 2) {
 		Com_Printf ("playdemo <demoname>\n");
@@ -553,7 +564,7 @@ void CL_PlayDemo_f( void ) {
 	// open the demo file
 	arg = Cmd_Argv(1);
 	
-	// check for an extension .dm_?? (?? is protocol)
+	// check for an extension .urtdemo
 	ext_test = arg + strlen(arg) - 8;
 	if ((strlen(arg) > 8) && (ext_test[0] == '.')	&& ((ext_test[1] == 'u') || (ext_test[1] == 'U'))	&& ((ext_test[2] == 'r') || (ext_test[2] == 'R'))
 													&& ((ext_test[3] == 't') || (ext_test[3] == 'T'))	&& ((ext_test[4] == 'd') || (ext_test[4] == 'D'))
@@ -574,15 +585,69 @@ void CL_PlayDemo_f( void ) {
 
 	Con_Close();
 
-	/* File_read_header_demo // ADD this fx */
-	/* HOLBLIN TODO */ 
-	if (qfalse) { // import in demo header read & demo header write /* holblin */
-		Com_Printf("Protocol %d not supported for demos\n", protocol);
-		Q_strncpyz(retry, arg, sizeof(retry));
-		retry[strlen(retry)-6] = 0;
-		CL_WalkDemoExt( retry, name, &clc.demofile );
-	}
-	/* END HOLBLIN TODO */ 
+	/* HOLBLIN TODO entete demo */ 
+		
+		char *s1, *s2;
+		int			r, len;
+		
+		s1 = Cvar_VariableString("g_modversion");
+	
+	
+		r = FS_Read( &len, 4, clc.demofile );
+		if ( r != 4 ) {
+			CL_DemoCompleted ();
+			return;
+		}
+		
+		len = LittleLong( len );
+		
+		s2 = malloc( len + 1 );
+		FS_Read( s2 , len ,  clc.demofile );
+		if ( r != len ) {
+			CL_DemoCompleted ();
+			free(s2);
+			return;
+		}
+		s2[len] = '\0';
+		
+		int v1 = LittleLong( PROTOCOL_VERSION ) , v2;
+		r = FS_Read ( &v2, 4 , clc.demofile );
+		if ( r != 4 ) {
+			CL_DemoCompleted ();
+			free(s2);
+			return;
+		}
+		
+		
+		if ( strcmp(s1, s2) ){
+			Com_Printf("Game version %s not supported for demos\n", s2);
+			free(s2);
+			CL_DemoCompleted ();
+			return;
+		}
+		free(s2);
+		
+		if ( v1 != v2 ){
+			Com_Printf("Protocol %d not supported for demos\n", v2);
+			CL_DemoCompleted ();
+			return;
+		}
+
+		r = FS_Read( &len, 4, clc.demofile );
+		len = LittleLong( len );
+		if ( r != 4 || len != 0) {
+			CL_DemoCompleted ();
+			return;
+		}
+		
+		r = FS_Read( &len, 4, clc.demofile );
+		len = LittleLong( len );
+		if ( r != 4 || len != 0) {
+			CL_DemoCompleted ();
+			return;
+		}
+		
+	/* END HOLBLIN entete demo */ 
 	
 	
 	cls.state = CA_CONNECTED;

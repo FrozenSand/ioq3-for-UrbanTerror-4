@@ -839,14 +839,26 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 	assert(file != 0);
 	
 	/* File_write_header_demo // ADD this fx */
-	/* HOLBLIN TODO */ 
-	if (qfalse) { // import in demo header read & demo header write /* holblin */
-		Com_Printf("Protocol %d not supported for demos\n", protocol);
-		Q_strncpyz(retry, arg, sizeof(retry));
-		retry[strlen(retry)-6] = 0;
-		CL_WalkDemoExt( retry, name, &clc.demofile );
-	}
-	/* END HOLBLIN TODO */ 
+	/* HOLBLIN  entete demo */ 
+	
+		char *s;
+		// s = CG_ConfigString( CS_GAME_VERSION ); // is egal to next line
+		s = Cvar_VariableString("g_modversion");
+	
+		int size = strlen( s );
+		len = LittleLong( size );
+		FS_Write( &len, 4, file );
+		FS_Write( s , size ,  file );
+		
+		int v = LittleLong( PROTOCOL_VERSION );
+		FS_Write ( &v, 4 , file );
+		
+		len = 0;
+		len = LittleLong( len );
+		FS_Write ( &len, 4 , file );
+		FS_Write ( &len, 4 , file );
+		
+	/* END HOLBLIN  entete demo */ 
 
 	MSG_Init(&msg, buffer, sizeof(buffer));
 	MSG_Bitstream(&msg); // XXX server code doesn't do this, client code does
@@ -1125,7 +1137,7 @@ static void SV_StopRecordAll(void)
 SV_StartServerDemo_f
 
 Record a server-side demo for given player/slot. The demo
-will be called "YYYY-MM-DD_hh-mm-ss_playername_id.dm_proto",
+will be called "YYYY-MM-DD_hh-mm-ss_playername_id.urtdemo",
 in the "demos" directory under your game directory. Note
 that "startserverdemo all" will start demos for all players
 currently in the server. Players who join later require a
