@@ -1006,7 +1006,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 		Com_Error( ERR_FATAL, "FS_FOpenFileRead: NULL 'filename' parameter passed\n" );
 	}
 
-	Com_sprintf (demoExt, sizeof(demoExt), ".dm_%d",PROTOCOL_VERSION );
+	Com_sprintf (demoExt, sizeof(demoExt), ".urtdemo" );
 	// qpaths are not supposed to have a leading slash
 	if ( filename[0] == '/' || filename[0] == '\\' ) {
 		filename++;

@@ -837,6 +837,16 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 	// create the demo file and write the necessary header
 	file = FS_FOpenFileWrite(path);
 	assert(file != 0);
+	
+	/* File_write_header_demo // ADD this fx */
+	/* HOLBLIN TODO */ 
+	if (qfalse) { // import in demo header read & demo header write /* holblin */
+		Com_Printf("Protocol %d not supported for demos\n", protocol);
+		Q_strncpyz(retry, arg, sizeof(retry));
+		retry[strlen(retry)-6] = 0;
+		CL_WalkDemoExt( retry, name, &clc.demofile );
+	}
+	/* END HOLBLIN TODO */ 
 
 	MSG_Init(&msg, buffer, sizeof(buffer));
 	MSG_Bitstream(&msg); // XXX server code doesn't do this, client code does
@@ -999,9 +1009,9 @@ static void SV_NameServerDemo(char *filename, int length, const client_t *client
 	Q_strncpyz(playername, client->name, sizeof(playername));
 	SVD_CleanPlayerName(playername);
 	if (fn != NULL) {
-		Q_snprintf(filename, length-1, "serverdemos/%s.dm_%d", fn, PROTOCOL_VERSION);
+		Q_snprintf(filename, length-1, "serverdemos/%s.urtdemo", fn);
 		while (FS_FileExists(filename)) {
-			Q_snprintf(filename, length-1, "serverdemos/%s_%d.dm_%d", fn, Sys_Milliseconds(), PROTOCOL_VERSION);
+			Q_snprintf(filename, length-1, "serverdemos/%s_%d.urtdemo", fn, Sys_Milliseconds());
 		}
 	} else {
 		do {
@@ -1013,12 +1023,11 @@ static void SV_NameServerDemo(char *filename, int length, const client_t *client
 			// the limit?) it get's cut off at the end ruining the
 			// file extension
 			Q_snprintf(
-				filename, length-1, "serverdemos/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
+				filename, length-1, "serverdemos/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.urtdemo",
 				time.tm_year+1900, time.tm_mon, time.tm_mday,
 				time.tm_hour, time.tm_min, time.tm_sec,
 				playername,
-				Sys_Milliseconds(),
-				PROTOCOL_VERSION
+				Sys_Milliseconds()
 			);
 			filename[length-1] = '\0';
 		} while (FS_FileExists(filename));

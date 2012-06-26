@@ -578,6 +578,7 @@ static void CG_DrawStatusBar( void ) {
 		CG_Draw3DModel( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE,
 					   cgs.media.armorModel, 0, origin, angles );
 	}
+
 	//
 	// ammo
 	//
@@ -1157,9 +1158,9 @@ static float CG_DrawScores( float y ) {
 		}
 
 	}
-
 	return y1 - 8;
 }
+
 #endif // MISSIONPACK
 
 /*
