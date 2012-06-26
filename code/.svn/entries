@@ -1,85 +1,0 @@
-8
-
-dir
-1240
-svn://svn.icculus.org/quake3/trunk/code
-svn://svn.icculus.org/quake3
-
-
-
-2007-12-14T21:53:57.313104Z
-1239
-thilo
-has-props
-
-svn:special svn:externals svn:needs-lock
-
-
-
-
-
-
-
-
-
-
-
-edf5b092-35ff-0310-97b2-ce42778d08ea
-
-AL
-dir
-
-SDL12
-dir
-
-asm
-dir
-
-botlib
-dir
-
-cgame
-dir
-
-client
-dir
-
-game
-dir
-
-jpeg-6
-dir
-
-libcurl
-dir
-
-libs
-dir
-
-null
-dir
-
-q3_ui
-dir
-
-qcommon
-dir
-
-renderer
-dir
-
-sdl
-dir
-
-server
-dir
-
-sys
-dir
-
-tools
-dir
-
-ui
-dir
-

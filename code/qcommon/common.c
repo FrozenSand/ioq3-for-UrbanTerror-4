@@ -3046,7 +3046,7 @@ static void Field_CompleteKeyname( void )
 Field_CompleteFilename
 ===============
 */
-static void Field_CompleteFilename( const char *dir,
+void Field_CompleteFilename( const char *dir,
 		const char *ext, qboolean stripExt )
 {
 	matchCount = 0;

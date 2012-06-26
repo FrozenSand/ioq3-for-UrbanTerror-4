@@ -1013,36 +1013,36 @@ Generate unique name for a new server demo file.
 static void SV_NameServerDemo(char *filename, int length, const client_t *client, char *fn)
 {
 	qtime_t time;
-	char playername[64];
+	char playername[32];
+	char demoName[64]; //@Barbatos
 
 	Com_DPrintf("SV_NameServerDemo\n");
 
 	Com_RealTime(&time);
 	Q_strncpyz(playername, client->name, sizeof(playername));
 	SVD_CleanPlayerName(playername);
+	
 	if (fn != NULL) {
-		Q_snprintf(filename, length-1, "serverdemos/%s.urtdemo", fn);
-		while (FS_FileExists(filename)) {
-			Q_snprintf(filename, length-1, "serverdemos/%s_%d.urtdemo", fn, Sys_Milliseconds());
+		Q_strncpyz(demoName, fn, sizeof(demoName));
+		
+		Q_snprintf(filename, length-1, "%s/%s.urtdemo", sv_demofolder->string, demoName );
+		if (FS_FileExists(filename)) {
+			Q_snprintf(filename, length-1, "%s/%s_%d.urtdemo", sv_demofolder->string, demoName, Sys_Milliseconds() );
 		}
 	} else {
-		do {
-			// TODO: really this should contain something identifying
-			// the server instance it came from; but we could be on
-			// (multiple) IPv4 and IPv6 interfaces; in the end, some
-			// kind of server guid may be more appropriate; mission?
-			// TODO: when the string gets too long (what exactly is
-			// the limit?) it get's cut off at the end ruining the
-			// file extension
-			Q_snprintf(
-				filename, length-1, "serverdemos/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.urtdemo",
-				time.tm_year+1900, time.tm_mon, time.tm_mday,
-				time.tm_hour, time.tm_min, time.tm_sec,
-				playername,
-				Sys_Milliseconds()
-			);
-			filename[length-1] = '\0';
-		} while (FS_FileExists(filename));
+		Q_snprintf(
+			filename, length-1, "%s/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.urtdemo",
+			sv_demofolder->string, time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
+			time.tm_hour, time.tm_min, time.tm_sec,
+			playername,
+			Sys_Milliseconds()
+		);
+		filename[length-1] = '\0';
+		
+		if (FS_FileExists(filename)) {
+			filename[0] = 0;
+			return;
+		}
 	}
 }
 
@@ -1231,7 +1231,7 @@ SV_CompleteMapName
 ==================
 */
 static void SV_CompleteMapName( char *args, int argNum ) {
-	if( argNum == 2 ) {
+	if ( argNum == 2 ) {
 		Field_CompleteFilename( "maps", "bsp", qtrue, qfalse );
 	}
 }

@@ -1,9 +1,0 @@
-K 10
-svn:ignore
-V 28
-q3asm*
-q3lcc*
-q3cpp*
-q3rcc*
-
-END

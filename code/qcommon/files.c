@@ -2736,12 +2736,13 @@ static void FS_Startup( const char *gameName )
 	}
 	// fs_homepath is somewhat particular to *nix systems, only add if relevant
 	
-	#ifdef MACOS_X
+	//#ifdef MACOS_X
+#if 0
 	fs_apppath = Cvar_Get ("fs_apppath", Sys_DefaultAppPath(), CVAR_INIT );
 	// Make MacOSX also include the base path included with the .app bundle
 	if (fs_apppath->string[0])
 		FS_AddGameDirectory(fs_apppath->string, gameName);
-	#endif
+#endif
 	
 	// NOTE: same filtering below for mods and basegame
 	if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string,fs_basepath->string)) {
