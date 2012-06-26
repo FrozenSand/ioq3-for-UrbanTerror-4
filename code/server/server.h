@@ -297,6 +297,7 @@ extern	cvar_t	*sv_demonotice;
 
 extern  cvar_t  *sv_sayprefix;
 extern  cvar_t  *sv_tellprefix;
+extern  cvar_t  *sv_demofolder;
 
 //===========================================================
 

@@ -992,9 +992,9 @@ static void SV_NameServerDemo(char *filename, int length, const client_t *client
 	Q_strncpyz(playername, client->name, sizeof(playername));
 	SVD_CleanPlayerName(playername);
 	if (fn != NULL) {
-		Q_snprintf(filename, length-1, "serverdemos/%s.dm_%d", fn, PROTOCOL_VERSION);
+		Q_snprintf(filename, length-1, "%s/%s.dm_%d", sv_demofolder->string, fn, PROTOCOL_VERSION);
 		while (FS_FileExists(filename)) {
-			Q_snprintf(filename, length-1, "serverdemos/%s_%d.dm_%d", fn, Sys_Milliseconds(), PROTOCOL_VERSION);
+			Q_snprintf(filename, length-1, "%s/%s_%d.dm_%d", sv_demofolder->string, fn, Sys_Milliseconds(), PROTOCOL_VERSION);
 		}
 	} else {
 		do {
@@ -1006,8 +1006,8 @@ static void SV_NameServerDemo(char *filename, int length, const client_t *client
 			// the limit?) it get's cut off at the end ruining the
 			// file extension
 			Q_snprintf(
-				filename, length-1, "serverdemos/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
-				time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
+				filename, length-1, "%s/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
+				sv_demofolder->string, time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
 				time.tm_hour, time.tm_min, time.tm_sec,
 				playername,
 				Sys_Milliseconds(),
