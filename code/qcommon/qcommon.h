@@ -222,8 +222,11 @@ PROTOCOL
 
 ==============================================================
 */
-
-#define	PROTOCOL_VERSION	70
+#ifdef USE_DEMO_FORMAT_42
+	#define	PROTOCOL_VERSION	70
+#else
+	#define	PROTOCOL_VERSION	68
+#endif
 // 1.31 - 67
 
 // maintain a list of compatible protocols for demo playing

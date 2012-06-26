@@ -42,6 +42,10 @@ USE_CODEC_VORBIS =0
 # You're not forced to use it. Off by default.
 USE_AUTH		=0 
 
+# Holblin - Urban Terror 4.2 file demo system
+# You're not forced to use it. Off by default.
+USE_DEMO_FORMAT_42	=0 
+
 ifeq ($(V),1)
 echo_cmd=@:
 Q=

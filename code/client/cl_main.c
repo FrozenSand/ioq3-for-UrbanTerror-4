@@ -206,8 +206,10 @@ void CL_WriteDemoMessage ( msg_t *msg, int headerBytes ) {
 	FS_Write (&swlen, 4, clc.demofile);
 	FS_Write ( msg->data + headerBytes, len, clc.demofile );
 
-	// add size of packet in the end for backward play /* holblin */
-	FS_Write (&swlen, 4, clc.demofile);
+	#ifndef USE_DEMO_FORMAT_42
+		// add size of packet in the end for backward play /* holblin */
+		FS_Write (&swlen, 4, clc.demofile);
+	#endif
 }
 
 
@@ -305,14 +307,23 @@ void CL_Record_f( void ) {
 	if ( Cmd_Argc() == 2 ) {
 		s = Cmd_Argv(1);
 		Q_strncpyz( demoName, s, sizeof( demoName ) );
-		Com_sprintf (name, sizeof(name), "demos/%s.urtdemo", demoName );
+		#ifdef USE_DEMO_FORMAT_42
+			Com_sprintf (name, sizeof(name), "demos/%s.urtdemo", demoName );
+		#else
+			Com_sprintf (name, sizeof(name), "demos/%s.dm_%d", demoName, PROTOCOL_VERSION );
+		#endif
 	} else {
 		int		number;
 
 		// scan for a free demo name
 		for ( number = 0 ; number <= 9999 ; number++ ) {
 			CL_DemoFilename( number, demoName );
-			Com_sprintf (name, sizeof(name), "demos/%s.urtdemo", demoName );
+			#ifdef USE_DEMO_FORMAT_42
+				Com_sprintf (name, sizeof(name), "demos/%s.urtdemo", demoName );
+			#else
+				Com_sprintf (name, sizeof(name), "demos/%s.dm_%d", demoName, PROTOCOL_VERSION );
+			#endif
+
 
 			if (!FS_FileExists(name))
 				break;	// file doesn't exist
@@ -330,6 +341,7 @@ void CL_Record_f( void ) {
 
 	
 	/* HOLBLIN entete demo */ 
+	#ifdef USE_DEMO_FORMAT_42
 	
 		char *s2;
 		s2 = Cvar_VariableString("g_modversion");
@@ -346,7 +358,8 @@ void CL_Record_f( void ) {
 		len = LittleLong( len );
 		FS_Write ( &len, 4 , clc.demofile );
 		FS_Write ( &len, 4 , clc.demofile );
-
+		
+	#endif
 	/* END HOLBLIN entete demo */ 
 	
 	clc.demorecording = qtrue;
@@ -414,9 +427,11 @@ void CL_Record_f( void ) {
 	FS_Write (&len, 4, clc.demofile);
 	FS_Write (buf.data, buf.cursize, clc.demofile);
 
-	// add size of packet in the end for backward play /* holblin */
-	FS_Write (&len, 4, clc.demofile);
-
+	#ifdef USE_DEMO_FORMAT_42
+		// add size of packet in the end for backward play /* holblin */
+		FS_Write (&len, 4, clc.demofile);
+	#endif
+	
 	// the rest of the demo file will be copied from net messages
 }
 
@@ -459,8 +474,10 @@ void CL_ReadDemoMessage( void ) {
 	byte		bufData[ MAX_MSGLEN ];
 	int			s;
 	
-	// skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
-	int length_backward;
+	#ifndef USE_DEMO_FORMAT_42
+		// skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
+		int length_backward;
+	#endif
 
 	if ( !clc.demofile ) {
 		CL_DemoCompleted ();
@@ -489,10 +506,14 @@ void CL_ReadDemoMessage( void ) {
 		CL_DemoCompleted ();
 		return;
 	}
-	if ( buf.cursize == 0 ) { // backward read gain the header demo /* holblin */
-		CL_DemoCompleted ();
-		return;
-	}
+	
+	#ifdef USE_DEMO_FORMAT_42
+		if ( buf.cursize == 0 ) { // backward read gain the header demo /* holblin */
+			CL_DemoCompleted ();
+			return;
+		}
+	#endif
+	
 	if ( buf.cursize > buf.maxsize ) {
 		Com_Error (ERR_DROP, "CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN");
 	}
@@ -503,19 +524,20 @@ void CL_ReadDemoMessage( void ) {
 		return;
 	}
 	
-	// skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
-	r = FS_Read (&length_backward, 4, clc.demofile);
-	if ( r != 4 ) {
-		CL_DemoCompleted ();
-		return;
-	}
-	// now, check demo file format !!! /* holblin */
-	length_backward = LittleLong( length_backward );
-	if ( length_backward != buf.cursize ){
-		CL_DemoCompleted ();
-		return;
-	}
-	
+	#ifndef USE_DEMO_FORMAT_42
+		// skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
+		r = FS_Read (&length_backward, 4, clc.demofile);
+		if ( r != 4 ) {
+			CL_DemoCompleted ();
+			return;
+		}
+		// now, check demo file format !!! /* holblin */
+		length_backward = LittleLong( length_backward );
+		if ( length_backward != buf.cursize ){
+			CL_DemoCompleted ();
+			return;
+		}
+	#endif
 
 	clc.lastPacketTime = cls.realtime;
 	buf.readcount = 0;
@@ -530,12 +552,31 @@ CL_WalkDemoExt
 static void CL_WalkDemoExt(char *arg, char *name, int *demofile)
 {
 	*demofile = 0;
-	Com_sprintf (name, MAX_OSPATH, "demos/%s.urtdemo", arg );
-	FS_FOpenFileRead( name, demofile, qtrue );
-	if (*demofile)
-		Com_Printf("Demo file: %s\n", name);
-	else
-		Com_Printf("Not found: %s\n", name);
+	#ifdef USE_DEMO_FORMAT_42
+		Com_sprintf (name, MAX_OSPATH, "demos/%s.urtdemo", arg );
+		FS_FOpenFileRead( name, demofile, qtrue );
+		if (*demofile)
+			Com_Printf("Demo file: %s\n", name);
+		else
+			Com_Printf("Not found: %s\n", name);
+	#else
+		int i = 0;
+
+		while(demo_protocols[i])
+		{
+			Com_sprintf (name, MAX_OSPATH, "demos/%s.dm_%d", arg, demo_protocols[i]);
+			FS_FOpenFileRead( name, demofile, qtrue );
+			if (*demofile)
+			{
+				Com_Printf("Demo file: %s\n", name);
+				break;
+			}
+			else
+				Com_Printf("Not found: %s\n", name);
+
+			i++;
+		}
+	#endif
 }
 
 /*
@@ -549,7 +590,11 @@ demo <demoname>
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH];
 	char		*arg, *ext_test;
-
+	#ifndef USE_DEMO_FORMAT_42
+		int      protocol, i;
+		char    retry[MAX_OSPATH];
+	#endif
+	
 	if (Cmd_Argc() != 2) {
 		Com_Printf ("playdemo <demoname>\n");
 		return;
@@ -564,15 +609,41 @@ void CL_PlayDemo_f( void ) {
 	// open the demo file
 	arg = Cmd_Argv(1);
 	
-	// check for an extension .urtdemo
-	ext_test = arg + strlen(arg) - 8;
-	if ((strlen(arg) > 8) && (ext_test[0] == '.')	&& ((ext_test[1] == 'u') || (ext_test[1] == 'U'))	&& ((ext_test[2] == 'r') || (ext_test[2] == 'R'))
-													&& ((ext_test[3] == 't') || (ext_test[3] == 'T'))	&& ((ext_test[4] == 'd') || (ext_test[4] == 'D'))
-													&& ((ext_test[5] == 'e') || (ext_test[5] == 'E'))	&& ((ext_test[6] == 'm') || (ext_test[6] == 'M'))
-													&& ((ext_test[7] == 'o') || (ext_test[7] == 'O'))	)
-	{
-		Com_sprintf (name, sizeof(name), "demos/%s", arg);
-		FS_FOpenFileRead( name, &clc.demofile, qtrue );
+	#ifdef USE_DEMO_FORMAT_42	
+		// check for an extension .urtdemo
+		ext_test = arg + strlen(arg) - 8;
+		if ((strlen(arg) > 8) && (ext_test[0] == '.')	&& ((ext_test[1] == 'u') || (ext_test[1] == 'U'))	&& ((ext_test[2] == 'r') || (ext_test[2] == 'R'))
+														&& ((ext_test[3] == 't') || (ext_test[3] == 'T'))	&& ((ext_test[4] == 'd') || (ext_test[4] == 'D'))
+														&& ((ext_test[5] == 'e') || (ext_test[5] == 'E'))	&& ((ext_test[6] == 'm') || (ext_test[6] == 'M'))
+														&& ((ext_test[7] == 'o') || (ext_test[7] == 'O'))	)
+		{
+			Com_sprintf (name, sizeof(name), "demos/%s", arg);
+			FS_FOpenFileRead( name, &clc.demofile, qtrue );
+	#else
+		// check for an extension .dm_?? (?? is protocol)
+		ext_test = arg + strlen(arg) - 6;
+
+		if ((strlen(arg) > 6) && (ext_test[0] == '.') && ((ext_test[1] == 'd') || (ext_test[1] == 'D')) && ((ext_test[2] == 'm') || (ext_test[2] == 'M')) && (ext_test[3] == '_'))
+		{
+			protocol = atoi(ext_test+4);
+			i=0;
+			while(demo_protocols[i])
+			{
+				if (demo_protocols[i] == protocol)
+					break;
+				i++;
+			}
+			if (demo_protocols[i])
+			{
+				Com_sprintf (name, sizeof(name), "demos/%s", arg);
+				FS_FOpenFileRead( name, &clc.demofile, qtrue );
+			} else {
+				Com_Printf("Protocol %d not supported for demos\n", protocol);
+				Q_strncpyz(retry, arg, sizeof(retry));
+				retry[strlen(retry)-6] = 0;
+				CL_WalkDemoExt( retry, name, &clc.demofile );
+			}
+	#endif
 	} else {
 		CL_WalkDemoExt( arg, name, &clc.demofile );
 	}
@@ -586,7 +657,8 @@ void CL_PlayDemo_f( void ) {
 	Con_Close();
 
 	/* HOLBLIN TODO entete demo */ 
-		
+	#ifdef USE_DEMO_FORMAT_42	
+
 		char *s1, *s2;
 		int			r, len;
 		
@@ -646,7 +718,7 @@ void CL_PlayDemo_f( void ) {
 			CL_DemoCompleted ();
 			return;
 		}
-		
+	#endif
 	/* END HOLBLIN entete demo */ 
 	
 	
