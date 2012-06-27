@@ -2904,7 +2904,7 @@ static void UI_LoadDemos( void ) {
 	char	*demoname;
 	int		i, len;
 
-	#ifndef USE_DEMO_FORMAT_42
+	#ifdef USE_DEMO_FORMAT_42
 		Com_sprintf(demoExt, sizeof(demoExt), "urtdemo");
 	#else
 		Com_sprintf(demoExt, sizeof(demoExt), "dm_%d", (int)trap_Cvar_VariableValue("protocol"));
@@ -2912,7 +2912,7 @@ static void UI_LoadDemos( void ) {
 
 	uiInfo.demoCount = trap_FS_GetFileList( "demos", demoExt, demolist, 4096 );
 
-	#ifndef USE_DEMO_FORMAT_42
+	#ifdef USE_DEMO_FORMAT_42
 		Com_sprintf(demoExt, sizeof(demoExt), ".urtdemo");
 	#else
 		Com_sprintf(demoExt, sizeof(demoExt), ".dm_%d", (int)trap_Cvar_VariableValue("protocol"));
