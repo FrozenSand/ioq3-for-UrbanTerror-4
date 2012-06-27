@@ -143,7 +143,6 @@ typedef struct {
 	int			animationTime;		// time when the first frame of the animation will be exact
 } lerpFrame_t;
 
-
 typedef struct {
 	lerpFrame_t		legs, torso, flag;
 	int				painTime;

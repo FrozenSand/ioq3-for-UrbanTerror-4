@@ -837,6 +837,28 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 	// create the demo file and write the necessary header
 	file = FS_FOpenFileWrite(path);
 	assert(file != 0);
+	
+	/* File_write_header_demo // ADD this fx */
+	/* HOLBLIN  entete demo */ 
+	#ifdef USE_DEMO_FORMAT_42
+		char *s;
+		// s = CG_ConfigString( CS_GAME_VERSION ); // is egal to next line
+		s = Cvar_VariableString("g_modversion");
+	
+		int size = strlen( s );
+		len = LittleLong( size );
+		FS_Write( &len, 4, file );
+		FS_Write( s , size ,  file );
+		
+		int v = LittleLong( PROTOCOL_VERSION );
+		FS_Write ( &v, 4 , file );
+		
+		len = 0;
+		len = LittleLong( len );
+		FS_Write ( &len, 4 , file );
+		FS_Write ( &len, 4 , file );
+	#endif
+	/* END HOLBLIN  entete demo */ 
 
 	MSG_Init(&msg, buffer, sizeof(buffer));
 	MSG_Bitstream(&msg); // XXX server code doesn't do this, client code does
@@ -877,6 +899,11 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 	len = LittleLong (msg.cursize);
 	FS_Write(&len, 4, file);
 	FS_Write(msg.data, msg.cursize, file);
+
+	#ifdef USE_DEMO_FORMAT_42
+		// add size of packet in the end for backward play /* holblin */
+		FS_Write(&len, 4, file);
+	#endif
 
 	FS_Flush(file);
 
@@ -919,6 +946,12 @@ void SVD_WriteDemoFile(const client_t *client, const msg_t *msg)
 	FS_Write(&len, 4, file);
 
 	FS_Write(cmsg.data, cmsg.cursize, file); // XXX don't use len!
+	
+	#ifdef USE_DEMO_FORMAT_42
+		// add size of packet in the end for backward play /* holblin */
+		FS_Write(&len, 4, file);
+	#endif
+	
 	FS_Flush(file);
 }
 
@@ -996,19 +1029,36 @@ static void SV_NameServerDemo(char *filename, int length, const client_t *client
 	if (fn != NULL) {
 		Q_strncpyz(demoName, fn, sizeof(demoName));
 		
-		Q_snprintf(filename, length-1, "%s/%s.dm_%d", sv_demofolder->string, demoName, PROTOCOL_VERSION);
-		if (FS_FileExists(filename)) {
-			Q_snprintf(filename, length-1, "%s/%s_%d.dm_%d", sv_demofolder->string, demoName, Sys_Milliseconds(), PROTOCOL_VERSION);
-		}
+		#ifdef USE_DEMO_FORMAT_42
+			Q_snprintf(filename, length-1, "%s/%s.urtdemo", sv_demofolder->string, demoName );
+			if (FS_FileExists(filename)) {
+				Q_snprintf(filename, length-1, "%s/%s_%d.urtdemo", sv_demofolder->string, demoName, Sys_Milliseconds() );
+			}
+		#else
+			Q_snprintf(filename, length-1, "%s/%s.dm_%d", sv_demofolder->string, demoName , PROTOCOL_VERSION );
+			if (FS_FileExists(filename)) {
+				Q_snprintf(filename, length-1, "%s/%s_%d.dm_%d", sv_demofolder->string, demoName, Sys_Milliseconds() , PROTOCOL_VERSION );
+			}		
+		#endif
 	} else {
-		Q_snprintf(
-			filename, length-1, "%s/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
-			sv_demofolder->string, time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
-			time.tm_hour, time.tm_min, time.tm_sec,
-			playername,
-			Sys_Milliseconds(),
-			PROTOCOL_VERSION
-		);
+		#ifdef USE_DEMO_FORMAT_42
+			Q_snprintf(
+				filename, length-1, "%s/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.urtdemo",
+				sv_demofolder->string, time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
+				time.tm_hour, time.tm_min, time.tm_sec,
+				playername,
+				Sys_Milliseconds()
+			);
+		#else
+			Q_snprintf(
+				filename, length-1, "%s/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
+				sv_demofolder->string, time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
+				time.tm_hour, time.tm_min, time.tm_sec,
+				playername,
+				Sys_Milliseconds(),
+				PROTOCOL_VERSION
+			);
+		#endif
 		filename[length-1] = '\0';
 		
 		if (FS_FileExists(filename)) {
@@ -1109,7 +1159,7 @@ static void SV_StopRecordAll(void)
 SV_StartServerDemo_f
 
 Record a server-side demo for given player/slot. The demo
-will be called "YYYY-MM-DD_hh-mm-ss_playername_id.dm_proto",
+will be called "YYYY-MM-DD_hh-mm-ss_playername_id.urtdemo",
 in the "demos" directory under your game directory. Note
 that "startserverdemo all" will start demos for all players
 currently in the server. Players who join later require a

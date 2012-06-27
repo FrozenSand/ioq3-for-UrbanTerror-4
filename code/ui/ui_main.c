@@ -2904,11 +2904,19 @@ static void UI_LoadDemos( void ) {
 	char	*demoname;
 	int		i, len;
 
-	Com_sprintf(demoExt, sizeof(demoExt), "dm_%d", (int)trap_Cvar_VariableValue("protocol"));
+	#ifndef USE_DEMO_FORMAT_42
+		Com_sprintf(demoExt, sizeof(demoExt), "urtdemo");
+	#else
+		Com_sprintf(demoExt, sizeof(demoExt), "dm_%d", (int)trap_Cvar_VariableValue("protocol"));
+	#endif
 
 	uiInfo.demoCount = trap_FS_GetFileList( "demos", demoExt, demolist, 4096 );
 
-	Com_sprintf(demoExt, sizeof(demoExt), ".dm_%d", (int)trap_Cvar_VariableValue("protocol"));
+	#ifndef USE_DEMO_FORMAT_42
+		Com_sprintf(demoExt, sizeof(demoExt), ".urtdemo");
+	#else
+		Com_sprintf(demoExt, sizeof(demoExt), ".dm_%d", (int)trap_Cvar_VariableValue("protocol"));
+	#endif
 
 	if (uiInfo.demoCount) {
 		if (uiInfo.demoCount > MAX_DEMOS) {
