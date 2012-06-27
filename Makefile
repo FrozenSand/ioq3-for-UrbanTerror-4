@@ -762,7 +762,7 @@ ifeq ($(USE_CCACHE),1)
 endif
 
 #Barbatos
-ifdef USE_AUTH
+ifeq ($(USE_AUTH),1)
   BASE_CFLAGS += -DUSE_AUTH=1
 endif
 
