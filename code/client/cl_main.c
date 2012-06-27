@@ -281,6 +281,10 @@ void CL_Record_f( void ) {
 	entityState_t	*ent;
 	entityState_t	nullstate;
 	char		*s;
+#ifdef USE_DEMO_FORMAT_42
+	char		*s2;
+	int			size, v;
+#endif
 
 	if ( Cmd_Argc() > 2 ) {
 		Com_Printf ("record <demoname>\n");
@@ -342,22 +346,21 @@ void CL_Record_f( void ) {
 	
 	/* HOLBLIN entete demo */ 
 	#ifdef USE_DEMO_FORMAT_42
-	
-		char *s2;
-		s2 = Cvar_VariableString("g_modversion");
 
-		int size = strlen( s2 );
-		len = LittleLong( size );
-		FS_Write( &len, 4, clc.demofile );
-		FS_Write( s2 , size ,  clc.demofile );
+	s2 = Cvar_VariableString("g_modversion");
+
+	size = strlen( s2 );
+	len = LittleLong( size );
+	FS_Write( &len, 4, clc.demofile );
+	FS_Write( s2 , size ,  clc.demofile );
 		
-		int v = LittleLong( PROTOCOL_VERSION );
-		FS_Write ( &v, 4 , clc.demofile );
+	v = LittleLong( PROTOCOL_VERSION );
+	FS_Write ( &v, 4 , clc.demofile );
 		
-		len = 0;
-		len = LittleLong( len );
-		FS_Write ( &len, 4 , clc.demofile );
-		FS_Write ( &len, 4 , clc.demofile );
+	len = 0;
+	len = LittleLong( len );
+	FS_Write ( &len, 4 , clc.demofile );
+	FS_Write ( &len, 4 , clc.demofile );
 		
 	#endif
 	/* END HOLBLIN entete demo */ 
@@ -592,10 +595,13 @@ demo <demoname>
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH];
 	char		*arg, *ext_test;
-	#ifndef USE_DEMO_FORMAT_42
-		int      protocol, i;
-		char    retry[MAX_OSPATH];
-	#endif
+#ifndef USE_DEMO_FORMAT_42
+	int			protocol, i;
+	char		retry[MAX_OSPATH];
+#else
+	int			r, len, v1, v2;
+	char		*s1, *s2;
+#endif
 	
 	if (Cmd_Argc() != 2) {
 		Com_Printf ("playdemo <demoname>\n");
@@ -660,66 +666,63 @@ void CL_PlayDemo_f( void ) {
 
 	/* HOLBLIN TODO entete demo */ 
 	#ifdef USE_DEMO_FORMAT_42	
-
-		char *s1, *s2;
-		int			r, len;
 		
-		s1 = Cvar_VariableString("g_modversion");
+	s1 = Cvar_VariableString("g_modversion");
 	
 	
-		r = FS_Read( &len, 4, clc.demofile );
-		if ( r != 4 ) {
-			CL_DemoCompleted ();
-			return;
-		}
+	r = FS_Read( &len, 4, clc.demofile );
+	if ( r != 4 ) {
+		CL_DemoCompleted ();
+		return;
+	}
 		
-		len = LittleLong( len );
+	len = LittleLong( len );
 		
-		s2 = malloc( len + 1 );
-		FS_Read( s2 , len ,  clc.demofile );
-		if ( r != len ) {
-			CL_DemoCompleted ();
-			free(s2);
-			return;
-		}
-		s2[len] = '\0';
-		
-		int v1 = LittleLong( PROTOCOL_VERSION ) , v2;
-		r = FS_Read ( &v2, 4 , clc.demofile );
-		if ( r != 4 ) {
-			CL_DemoCompleted ();
-			free(s2);
-			return;
-		}
-		
-		
-		if ( strcmp(s1, s2) ){
-			Com_Printf("Game version %s not supported for demos\n", s2);
-			free(s2);
-			CL_DemoCompleted ();
-			return;
-		}
+	s2 = malloc( len + 1 );
+	FS_Read( s2 , len ,  clc.demofile );
+	if ( r != len ) {
+		CL_DemoCompleted ();
 		free(s2);
+		return;
+	}
+	s2[len] = '\0';
 		
-		if ( v1 != v2 ){
-			Com_Printf("Protocol %d not supported for demos\n", v2);
-			CL_DemoCompleted ();
-			return;
-		}
+	v1 = LittleLong( PROTOCOL_VERSION );
+	r = FS_Read ( &v2, 4 , clc.demofile );
+	if ( r != 4 ) {
+		CL_DemoCompleted ();
+		free(s2);
+		return;
+	}
+		
+		
+	if ( strcmp(s1, s2) ){
+		Com_Printf("Game version %s not supported for demos\n", s2);
+		free(s2);
+		CL_DemoCompleted ();
+		return;
+	}
+	free(s2);
+		
+	if ( v1 != v2 ){
+		Com_Printf("Protocol %d not supported for demos\n", v2);
+		CL_DemoCompleted ();
+		return;
+	}
 
-		r = FS_Read( &len, 4, clc.demofile );
-		len = LittleLong( len );
-		if ( r != 4 || len != 0) {
-			CL_DemoCompleted ();
-			return;
-		}
+	r = FS_Read( &len, 4, clc.demofile );
+	len = LittleLong( len );
+	if ( r != 4 || len != 0) {
+		CL_DemoCompleted ();
+		return;
+	}
 		
-		r = FS_Read( &len, 4, clc.demofile );
-		len = LittleLong( len );
-		if ( r != 4 || len != 0) {
-			CL_DemoCompleted ();
-			return;
-		}
+	r = FS_Read( &len, 4, clc.demofile );
+	len = LittleLong( len );
+	if ( r != 4 || len != 0) {
+		CL_DemoCompleted ();
+		return;
+	}
 	#endif
 	/* END HOLBLIN entete demo */ 
 	
