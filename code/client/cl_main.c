@@ -2906,7 +2906,7 @@ void CL_Init( void ) {
 	
 	#ifdef USE_AUTH
 	//@Barbatos
-	cl_authChallenge = Cvar_Get( "cl_authChallenge", "", CVAR_ARCHIVE | CVAR_USERINFO);
+	cl_authChallenge = Cvar_Get( "cl_authChallenge", "0", CVAR_TEMP | CVAR_USERINFO);
 	#endif
 	
 	// userinfo
