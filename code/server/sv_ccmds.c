@@ -830,6 +830,10 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 	msg_t		msg;
 	byte		buffer[MAX_MSGLEN];
 	fileHandle_t	file;
+#ifdef USE_DEMO_FORMAT_42
+	char		*s;
+	int			v, size;
+#endif
 
 	Com_DPrintf("SVD_StartDemoFile\n");
 	assert(!client->demo_recording);
@@ -841,16 +845,15 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 	/* File_write_header_demo // ADD this fx */
 	/* HOLBLIN  entete demo */ 
 	#ifdef USE_DEMO_FORMAT_42
-		char *s;
 		// s = CG_ConfigString( CS_GAME_VERSION ); // is egal to next line
 		s = Cvar_VariableString("g_modversion");
 	
-		int size = strlen( s );
+		size = strlen( s );
 		len = LittleLong( size );
 		FS_Write( &len, 4, file );
 		FS_Write( s , size ,  file );
 		
-		int v = LittleLong( PROTOCOL_VERSION );
+		v = LittleLong( PROTOCOL_VERSION );
 		FS_Write ( &v, 4 , file );
 		
 		len = 0;
