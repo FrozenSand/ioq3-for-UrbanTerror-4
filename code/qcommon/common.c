@@ -3178,8 +3178,12 @@ static void Field_CompleteCommand( char *cmd,
 			else if( !Q_stricmp( baseCmd, "demo" ) && completionArgument == 2 )
 			{
 				char demoExt[ 16 ];
-
-				Com_sprintf( demoExt, sizeof( demoExt ), ".dm_%d", PROTOCOL_VERSION );
+				
+				#ifdef USE_DEMO_FORMAT_42	
+					Com_sprintf( demoExt, sizeof( demoExt ), ".urtdemo" );
+				#else
+					Com_sprintf( demoExt, sizeof( demoExt ), ".dm_%d", PROTOCOL_VERSION );
+				#endif
 				Field_CompleteFilename( "demos", demoExt, qtrue );
 			}
 			else if( !Q_stricmp( baseCmd, "rcon" ) && completionArgument == 2 )
