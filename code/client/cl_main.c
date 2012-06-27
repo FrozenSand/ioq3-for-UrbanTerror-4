@@ -551,6 +551,8 @@ CL_WalkDemoExt
 */
 static void CL_WalkDemoExt(char *arg, char *name, int *demofile)
 {
+	int i;
+
 	*demofile = 0;
 	#ifdef USE_DEMO_FORMAT_42
 		Com_sprintf (name, MAX_OSPATH, "demos/%s.urtdemo", arg );
@@ -560,7 +562,7 @@ static void CL_WalkDemoExt(char *arg, char *name, int *demofile)
 		else
 			Com_Printf("Not found: %s\n", name);
 	#else
-		int i = 0;
+		i = 0;
 
 		while(demo_protocols[i])
 		{
