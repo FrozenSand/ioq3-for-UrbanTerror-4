@@ -206,7 +206,7 @@ void CL_WriteDemoMessage ( msg_t *msg, int headerBytes ) {
 	FS_Write (&swlen, 4, clc.demofile);
 	FS_Write ( msg->data + headerBytes, len, clc.demofile );
 
-	#ifndef USE_DEMO_FORMAT_42
+	#ifdef USE_DEMO_FORMAT_42
 		// add size of packet in the end for backward play /* holblin */
 		FS_Write (&swlen, 4, clc.demofile);
 	#endif
@@ -477,7 +477,7 @@ void CL_ReadDemoMessage( void ) {
 	byte		bufData[ MAX_MSGLEN ];
 	int			s;
 	
-	#ifndef USE_DEMO_FORMAT_42
+	#ifdef USE_DEMO_FORMAT_42
 		// skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
 		int length_backward;
 	#endif
@@ -527,7 +527,7 @@ void CL_ReadDemoMessage( void ) {
 		return;
 	}
 	
-	#ifndef USE_DEMO_FORMAT_42
+	#ifdef USE_DEMO_FORMAT_42
 		// skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
 		r = FS_Read (&length_backward, 4, clc.demofile);
 		if ( r != 4 ) {
@@ -595,12 +595,12 @@ demo <demoname>
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH];
 	char		*arg, *ext_test;
-#ifndef USE_DEMO_FORMAT_42
-	int			protocol, i;
-	char		retry[MAX_OSPATH];
-#else
+#ifdef USE_DEMO_FORMAT_42
 	int			r, len, v1, v2;
 	char		*s1, *s2;
+#else
+	int			protocol, i;
+	char		retry[MAX_OSPATH];
 #endif
 	
 	if (Cmd_Argc() != 2) {

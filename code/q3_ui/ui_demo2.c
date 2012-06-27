@@ -224,7 +224,7 @@ static void Demos_MenuInit( void ) {
 	s_demos.list.width				= 16;
 	s_demos.list.height				= 14;
 	
-	#ifndef USE_DEMO_FORMAT_42
+	#ifdef USE_DEMO_FORMAT_42
 		Com_sprintf(extension, sizeof(extension), "urtdemo" );
 	#else
 		Com_sprintf(extension, sizeof(extension), "dm_%d", (int)trap_Cvar_VariableValue( "protocol" ) );
