@@ -347,7 +347,11 @@ void CL_Record_f( void ) {
 	/* HOLBLIN entete demo */ 
 	#ifdef USE_DEMO_FORMAT_42
 
-	s2 = Cvar_VariableString("g_modversion");
+	// s2 = Cvar_VariableString("g_modversion");
+	// s2 = CG_ConfigString( CS_GAME_VERSION );
+	s2 = malloc( 2 );
+	s2[0] = 'H'; // urg
+	s2[1] = '\0'; // urg
 
 	size = strlen( s2 );
 	len = LittleLong( size );
@@ -667,7 +671,13 @@ void CL_PlayDemo_f( void ) {
 	/* HOLBLIN TODO entete demo */ 
 	#ifdef USE_DEMO_FORMAT_42	
 		
-	s1 = Cvar_VariableString("g_modversion");
+
+		
+	// s1 = Cvar_VariableString("g_modversion");
+	// s1 = CG_ConfigString( CS_GAME_VERSION );
+	s1 = malloc( 2 );
+	s1[0] = 'H'; // urg
+	s1[1] = '\0'; // urg
 	
 	
 	r = FS_Read( &len, 4, clc.demofile );
@@ -679,7 +689,7 @@ void CL_PlayDemo_f( void ) {
 	len = LittleLong( len );
 		
 	s2 = malloc( len + 1 );
-	FS_Read( s2 , len ,  clc.demofile );
+	r = FS_Read( s2 , len ,  clc.demofile );
 	if ( r != len ) {
 		CL_DemoCompleted ();
 		free(s2);
