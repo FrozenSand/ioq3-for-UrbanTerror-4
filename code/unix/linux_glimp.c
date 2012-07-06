@@ -1524,7 +1524,7 @@ void GLimp_Init( void )
     }
 
     if (!success)
-      ri.Error( ERR_FATAL, "GLimp_Init() - could not load OpenGL subsystem\n" );
+      ri.Error( ERR_FATAL, "GLimp_Init() - could not load OpenGL subsystem - get help on the official website: http://www.urbanterror.info/support/manual/faq/\n" );
 
   }
 
