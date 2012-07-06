@@ -24,23 +24,25 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 serverStatic_t	svs;				// persistant server info
 server_t		sv;					// local server
-vm_t			*gvm = NULL;				// game virtual machine
+vm_t			*gvm = NULL;		// game virtual machine
 
-cvar_t	*sv_fps;				// time rate for running non-clients
-cvar_t	*sv_timeout;			// seconds without any message
-cvar_t	*sv_zombietime;			// seconds to sink messages after disconnect
-cvar_t	*sv_rconPassword;		// password for remote server commands
-cvar_t	*sv_privatePassword;	// password for the privateClient slots
+cvar_t	*sv_fps;					// time rate for running non-clients
+cvar_t	*sv_timeout;				// seconds without any message
+cvar_t	*sv_zombietime;				// seconds to sink messages after disconnect
+cvar_t	*sv_rconPassword;			// password for remote server commands
+cvar_t	*sv_rconRecoveryPassword;	// password for recovery the password remote server commands
+cvar_t	*sv_rconAllowedSpamIP;			// this ip is allowed to do spam on rcon
+cvar_t	*sv_privatePassword;		// password for the privateClient slots
 cvar_t	*sv_allowDownload;
 cvar_t	*sv_maxclients;
 
-cvar_t	*sv_privateClients;		// number of clients reserved for password
+cvar_t	*sv_privateClients;			// number of clients reserved for password
 cvar_t	*sv_hostname;
 cvar_t	*sv_master[MAX_MASTER_SERVERS];		// master server ip address
-cvar_t	*sv_reconnectlimit;		// minimum seconds between connect messages
-cvar_t	*sv_showloss;			// report when usercmds are lost
-cvar_t	*sv_padPackets;			// add nop bytes to messages
-cvar_t	*sv_killserver;			// menu system can set to 1 to shut server down
+cvar_t	*sv_reconnectlimit;			// minimum seconds between connect messages
+cvar_t	*sv_showloss;				// report when usercmds are lost
+cvar_t	*sv_padPackets;				// add nop bytes to messages
+cvar_t	*sv_killserver;				// menu system can set to 1 to shut server down
 cvar_t	*sv_mapname;
 cvar_t	*sv_mapChecksum;
 cvar_t	*sv_serverid;
@@ -51,13 +53,13 @@ cvar_t	*sv_maxPing;
 cvar_t	*sv_gametype;
 cvar_t	*sv_pure;
 cvar_t	*sv_floodProtect;
-cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
+cvar_t	*sv_lanForceRate;			// dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
 cvar_t	*sv_strictAuth;
 
-cvar_t	*sv_demonotice;		// notice to print to a client being recorded server-side
+cvar_t	*sv_demonotice;				// notice to print to a client being recorded server-side
 cvar_t  *sv_tellprefix;
 cvar_t  *sv_sayprefix;
-cvar_t 	*sv_demofolder; //@Barbatos - the name of the folder that contains server-side demos
+cvar_t 	*sv_demofolder;				//@Barbatos - the name of the folder that contains server-side demos
 
 /*
 =============================================================================
@@ -450,6 +452,63 @@ void SV_FlushRedirect( char *outputbuf ) {
 
 /*
 ===============
+SVC_RconRecoveryRemoteCommand
+
+An rcon packet arrived from the network.
+Shift down the remaining args
+Redirect all printfs
+===============
+*/
+void SVC_RconRecoveryRemoteCommand( netadr_t from, msg_t *msg ) {
+	qboolean	valid;
+	unsigned int time;
+	char		remaining[1024];
+	// TTimo - scaled down to accumulate, but not overflow anything network wise, print wise etc.
+	// (OOB messages are the bottleneck here)
+#define SV_OUTPUTBUF_LENGTH (1024 - 16)
+	char		sv_outputbuf[SV_OUTPUTBUF_LENGTH];
+	static unsigned int lasttime = 0;
+	char *cmd_aux;
+
+	// TTimo - https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=534
+	time = Com_Milliseconds();
+	
+	if ( !strlen( sv_rconRecoveryPassword->string ) || strcmp (Cmd_Argv(1), sv_rconRecoveryPassword->string) ) 
+	{
+		// MaJ - If the rconpassword is bad and one just happned recently, don't spam the log file, just die.
+		if ( (unsigned)( time - lasttime ) < 600u )
+			return;
+			
+		valid = qfalse;
+		Com_Printf ("Bad rcon recovery from %s:\n%s\n", NET_AdrToString (from), Cmd_Argv(2) );
+	} else {
+		// MaJ - If the rconpassword is good, allow it much sooner than a bad one.
+		if ( (unsigned)( time - lasttime ) < 180u )
+			return;
+
+		
+		valid = qtrue;
+		Com_Printf ("Rcon recovery from %s:\n%s\n", NET_AdrToString (from), Cmd_Argv(2) );
+	}
+	lasttime = time;
+
+	// start redirecting all print outputs to the packet
+	svs.redirectAddress = from;
+	Com_BeginRedirect (sv_outputbuf, SV_OUTPUTBUF_LENGTH, SV_FlushRedirect);
+
+	if ( !strlen( sv_rconPassword->string ) ) {
+		Com_Printf ("No rcon recovery password set on the server.\n");
+	} else if ( !valid ) {
+		Com_Printf ("Bad rcon recovery password.\n");
+	} else {
+		Com_Printf ("rconPassword %s\n" , sv_rconPassword->string );
+	}
+
+	Com_EndRedirect ();
+}
+
+/*
+===============
 SVC_RemoteCommand
 
 An rcon packet arrived from the network.
@@ -473,16 +532,23 @@ void SVC_RemoteCommand( netadr_t from, msg_t *msg ) {
 	
 	if ( !strlen( sv_rconPassword->string ) || strcmp (Cmd_Argv(1), sv_rconPassword->string) ) 
 	{
-		// MaJ - If the rconpassword is bad and one just happned recently, don't spam the log file, just die.
-		if ( (unsigned)( time - lasttime ) < 600u ) 
-			return;
-			
+		// let's the sv_rconAllowedSpamIP do spam rcon
+		if ( !strlen( sv_rconAllowedSpamIP->string ) || strcmp ( NET_AdrToString (from) , sv_rconAllowedSpamIP->string) ){
+			// MaJ - If the rconpassword is bad and one just happned recently, don't spam the log file, just die.
+			if ( (unsigned)( time - lasttime ) < 600u )
+				return;
+		}
+		
 		valid = qfalse;
 		Com_Printf ("Bad rcon from %s:\n%s\n", NET_AdrToString (from), Cmd_Argv(2) );
 	} else {
-		// MaJ - If the rconpassword is good, allow it much sooner than a bad one.
-		if ( (unsigned)( time - lasttime ) < 180u ) 
-			return;
+	
+		// let's the sv_rconAllowedSpamIP do spam rcon
+		if ( !strlen( sv_rconAllowedSpamIP->string ) || strcmp ( NET_AdrToString (from) , sv_rconAllowedSpamIP->string) ){
+			// MaJ - If the rconpassword is good, allow it much sooner than a bad one.
+			if ( (unsigned)( time - lasttime ) < 180u )
+				return;
+		}
 		
 		valid = qtrue;
 		Com_Printf ("Rcon from %s:\n%s\n", NET_AdrToString (from), Cmd_Argv(2) );
@@ -665,6 +731,8 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	
 	else if (!Q_stricmp(c, "rcon")) {
 		SVC_RemoteCommand( from, msg );
+	}else if (!Q_stricmp(c, "rconRecovery")) {
+		SVC_RconRecoveryRemoteCommand( from, msg );
 	} else if (!Q_stricmp(c, "disconnect")) {
 		// if a client starts up a local server, we may see some spurious
 		// server disconnect messages when their new server sees our final

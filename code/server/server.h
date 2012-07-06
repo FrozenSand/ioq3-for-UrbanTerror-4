@@ -269,6 +269,8 @@ extern	cvar_t	*sv_fps;
 extern	cvar_t	*sv_timeout;
 extern	cvar_t	*sv_zombietime;
 extern	cvar_t	*sv_rconPassword;
+extern	cvar_t	*sv_rconRecoveryPassword;
+extern	cvar_t	*sv_rconAllowedSpamIP;
 extern	cvar_t	*sv_privatePassword;
 extern	cvar_t	*sv_allowDownload;
 extern	cvar_t	*sv_maxclients;
