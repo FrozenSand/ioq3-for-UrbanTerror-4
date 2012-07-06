@@ -1368,14 +1368,14 @@ static void GLW_StartOpenGL( void )
 				{
 					if ( !GLW_LoadOpenGL( OPENGL_DRIVER_NAME ) )
 					{
-						ri.Error( ERR_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem\n" );
+						ri.Error( ERR_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem - get help on the official website: http://www.urbanterror.info/support/manual/faq/\n" );
 					}
 					ri.Cvar_Set( "r_glDriver", OPENGL_DRIVER_NAME );
 					r_glDriver->modified = qfalse;
 				}
 				else
 				{
-					ri.Error( ERR_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem\n" );
+					ri.Error( ERR_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem - get help on the official website: http://www.urbanterror.info/support/manual/faq/\n" );
 				}
 			}
 		}
@@ -1389,7 +1389,7 @@ static void GLW_StartOpenGL( void )
 			}
 			else
 			{
-				ri.Error( ERR_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem\n" );
+				ri.Error( ERR_FATAL, "GLW_StartOpenGL() - could not load OpenGL subsystem - get help on the official website: http://www.urbanterror.info/support/manual/faq/\n" );
 			}
 		}
 	}
