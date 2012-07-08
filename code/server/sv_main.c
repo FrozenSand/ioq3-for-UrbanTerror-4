@@ -728,7 +728,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	} 
 	//@Barbatos
 	#ifdef USE_AUTH
-	else if (!Q_stricmp(c, "4X:AUTH:IP")) 
+	else if (!Q_stricmp(c, "AUTH:IP")) 
 	{
 		NET_StringToAdr(sv_authServerIP->string, &authServerIP);
 		
@@ -739,7 +739,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		VM_Call(gvm, GAME_AUTH_IP);
 		
 	} 
-	else if ( (!Q_stricmp(c, "4X:AUTH:NAME")) || (!Q_stricmp(c, "4X:AUTH:MSG"))) 
+	else if ( (!Q_stricmp(c, "AUTH:NAME")) || (!Q_stricmp(c, "AUTH:MSG"))) 
 	{
 		NET_StringToAdr(sv_authServerIP->string, &authServerIP);
 		

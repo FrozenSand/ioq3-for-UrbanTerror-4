@@ -2240,7 +2240,7 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 
 	#ifdef USE_AUTH
 	//@Barbatos
-	if ( !Q_stricmp(c, "4X:AUTH:CLIENT") ) {
+	if (strstr(c, "AUTH:CLIENT") ) {
 		VM_Call( uivm, UI_AUTHANSWER, from);
 		return;
 	}
