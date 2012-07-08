@@ -190,8 +190,106 @@ static client_t *SV_GetPlayerByNum( void ) {
 	return cl;
 }
 
-//=========================================================
+#ifdef USE_AUTH
+/*
+==================
+SV_PP_Cmd_Argc_to_idnum
 
+@Barbatos: wow this one looks horrible, FIXME!
+==================
+*/
+static int SV_Argc_to_idnum( int arg_num ) {
+	client_t	*cl;
+	int			idnum;
+	int			i, k, f, g;
+	int			len, nlen, slen;
+	int			count;
+	char		*search;
+	char		*name;
+
+	// make sure server is running
+	if ( !com_sv_running->integer ) {
+		return -1;
+	}
+
+	if ( Cmd_Argc() < 1 ) {
+		Com_Printf( "No player specified.\n" );
+		return -1;
+	}
+
+	search = Cmd_Argv( arg_num );
+	
+	if(strlen( search ) < 3 )
+	{
+		for (i = 0; search[i]; i++) {
+			if (search[i] < '0' || search[i] > '9') {
+				Com_Printf( "Bad slot number: \"%s\".\n", search);
+				return -1;
+			}
+		}
+		idnum = atoi( search );
+		if ( idnum < 0 || idnum >= sv_maxclients->integer ) {
+			Com_Printf( "Bad client slot: %i.\n", idnum );
+			return -1;
+		}
+
+		cl = &svs.clients[idnum];
+		if ( !cl->state ) {
+			Com_Printf( "Client %i is not active.\n", idnum );
+			return -1;
+		}
+		return idnum;
+	}
+	else
+	{
+		f = 0; g = 0;
+		count = 0;
+		idnum = -1;
+		slen = strlen(search);
+		for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++) {
+			if ( cl->state >= CS_CONNECTED ) {
+				name = cl->name;
+				nlen = strlen(name);
+				len = nlen - slen;
+				if(len>=0) {
+					for (k=0; k<=len; k++, name++) {
+						if( toupper(name[0])==toupper(search[0]) ) {
+							for (g=1,f=1; search[f] && name[g]; g++) {
+								if( Q_IsColorString( &name[g] ) ) {
+									g++;
+								} else {
+									if( toupper(name[g])!=toupper(search[f]) ) break;
+									f++;
+								}
+							}
+							if (f==slen) { 
+								count++; 
+								idnum = i; 
+								break; 
+							}
+						}
+					}
+				}
+			}
+		}
+		if( count == 1 ) { 
+			return idnum;
+		}
+		if( count > 0 ) { 
+			Com_Printf( "Too many players found for \"%s\".\n", search );
+			return -1;
+		}
+		if( count == 0 ) { 
+			Com_Printf( "No player found for \"%s\".\n", search );
+			return -1;
+		}
+	}
+	
+	return -1;
+}
+#endif
+
+//=========================================================
 
 /*
 ==================
@@ -1264,6 +1362,45 @@ static void SV_CompleteMapName( char *args, int argNum ) {
 	}
 }
 
+//@Barbatos
+#ifdef USE_AUTH
+/*
+==================
+SV_Auth_Whois_f
+
+Get user infos
+==================
+*/
+static void SV_Auth_Whois_f( void ) {
+	client_t	*cl;
+	int		idnum = -1;
+	
+	// make sure server is running
+	if ( !com_sv_running->integer ) {
+		Com_Printf( "Server is not running.\n" );
+		return;
+	}
+	
+	if ( Cmd_Argc() < 2 ) {
+		Com_Printf ("Usage: auth-whois <client number|name>\n");
+		return;
+	}
+		
+	idnum = SV_Argc_to_idnum( 1 );
+	
+	if( idnum == -1 ) 
+		return;
+		
+	cl = &svs.clients[idnum];
+	
+	if ( !cl ) 
+		return;
+		
+	VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
+}
+#endif
+
+
 /*
 ==================
 SV_AddOperatorCommands
@@ -1300,6 +1437,11 @@ void SV_AddOperatorCommands( void ) {
 		Cmd_AddCommand ("tell", SV_ConTell_f);
 		Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
 		Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);
+		
+		//@Barbatos: auth system commands
+		#ifdef USE_AUTH
+		Cmd_AddCommand ("auth-whois", SV_Auth_Whois_f);
+		#endif
 	}
 }
 

@@ -299,6 +299,10 @@ extern  cvar_t  *sv_sayprefix;
 extern  cvar_t  *sv_tellprefix;
 extern  cvar_t  *sv_demofolder;
 
+#ifdef USE_AUTH
+extern	cvar_t	*sv_authServerIP;
+#endif
+
 //===========================================================
 
 //

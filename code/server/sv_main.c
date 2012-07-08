@@ -59,6 +59,11 @@ cvar_t  *sv_tellprefix;
 cvar_t  *sv_sayprefix;
 cvar_t 	*sv_demofolder; //@Barbatos - the name of the folder that contains server-side demos
 
+//@Barbatos
+#ifdef USE_AUTH
+cvar_t	*sv_authServerIP;
+#endif
+
 /*
 =============================================================================
 
@@ -625,6 +630,9 @@ connectionless packets.
 void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	char	*s;
 	char	*c;
+	#ifdef USE_AUTH
+	netadr_t	authServerIP;
+	#endif
 
 	MSG_BeginReadingOOB( msg );
 	MSG_ReadLong( msg );		// skip the -1 marker
@@ -654,13 +662,27 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	} 
 	//@Barbatos
 	#ifdef USE_AUTH
-	else if (!Q_stricmp(c, "4X:AUTH:IP")) {
+	else if (!Q_stricmp(c, "4X:AUTH:IP")) 
+	{
+		NET_StringToAdr(sv_authServerIP->string, &authServerIP);
+		
+		if ( !NET_CompareBaseAdr( from, authServerIP ) ) {
+			Com_Printf( "AUTH:IP: not from the Auth Server\n" );
+			return;
+		}
 		VM_Call(gvm, GAME_AUTH_IP);
-	} else if (!Q_stricmp(c, "4X:AUTH:NAME")) {
+		
+	} 
+	else if ( (!Q_stricmp(c, "4X:AUTH:NAME")) || (!Q_stricmp(c, "4X:AUTH:MSG"))) 
+	{
+		NET_StringToAdr(sv_authServerIP->string, &authServerIP);
+		
+		if ( !NET_CompareBaseAdr( from, authServerIP ) ) {
+			Com_Printf( "AUTH:IP: not from the Auth Server\n" );
+			return;
+		}
 		VM_Call(gvm, GAME_AUTH_CLIENT);
-	} else if (!Q_stricmp(c, "4X:AUTH:MSG")) {
-		VM_Call(gvm, GAME_AUTH_CLIENT);
-	}
+	} 
 	#endif
 	
 	else if (!Q_stricmp(c, "rcon")) {
