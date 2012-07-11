@@ -1371,6 +1371,127 @@ char *Sys_BinName( const char *arg0 )
   return dst;
 }
 
+
+/*
+==================
+Sys_DoStartProcess
+actually forks and starts a process
+
+UGLY HACK:
+  Sys_StartProcess works with a command line only
+  if this command line is actually a binary with command line parameters,
+  the only way to do this on unix is to use a system() call
+  but system doesn't replace the current process, which leads to a situation like:
+  wolf.x86--spawned_process.x86
+  in the case of auto-update for instance, this will cause write access denied on wolf.x86:
+  wolf-beta/2002-March/000079.html
+  we hack the implementation here, if there are no space in the command line, assume it's a straight process and use execl
+  otherwise, use system ..
+  The clean solution would be Sys_StartProcess and Sys_StartProcess_Args..
+==================
+*/
+void Sys_DoStartProcess( char *cmdline ) {
+	switch ( fork() )
+	{
+	case - 1:
+		// main thread
+		break;
+	case 0:
+		if ( strchr( cmdline, ' ' ) ) {
+			system( cmdline );
+		} else {
+			execl( cmdline, cmdline, NULL );
+			printf( "execl failed: %s\n", strerror( errno ) );
+		}
+		_exit( 0 );
+		break;
+	}
+}
+
+/*
+==================
+Sys_StartProcess
+if !doexit, start the process asap
+otherwise, push it for execution at exit
+(i.e. let complete shutdown of the game and freeing of resources happen)
+NOTE: might even want to add a small delay?
+==================
+*/
+void Sys_StartProcess( char *cmdline, qboolean doexit ) {
+
+	if ( doexit ) {
+		Com_DPrintf( "Sys_StartProcess %s (delaying to final exit)\n", cmdline );
+		Q_strncpyz( exit_cmdline, cmdline, MAX_CMD );
+		Cbuf_ExecuteText( EXEC_APPEND, "quit\n" );
+		return;
+	}
+
+	Com_DPrintf( "Sys_StartProcess %s\n", cmdline );
+	Sys_DoStartProcess( cmdline );
+}
+
+/*
+=================
+Sys_OpenURL
+=================
+*/
+void Sys_OpenURL( const char *url, qboolean doexit ) {
+	char *basepath, *homepath, *pwdpath;
+	char fname[20];
+	char fn[MAX_OSPATH];
+	char cmdline[MAX_CMD];
+
+	static qboolean doexit_spamguard = qfalse;
+
+	if ( doexit_spamguard ) {
+		Com_DPrintf( "Sys_OpenURL: already in a doexit sequence, ignoring %s\n", url );
+		return;
+	}
+
+	Com_Printf( "Open URL: %s\n", url );
+	// opening an URL on *nix can mean a lot of things ..
+	// just spawn a script instead of deciding for the user :-)
+
+	// do the setup before we fork
+	// search for an openurl.sh script
+	// search procedure taken from Sys_LoadDll
+	Q_strncpyz( fname, "openurl.sh", 20 );
+
+	pwdpath = Sys_Cwd();
+	Com_sprintf( fn, MAX_OSPATH, "%s/%s", pwdpath, fname );
+	if ( access( fn, X_OK ) == -1 ) {
+		Com_DPrintf( "%s not found\n", fn );
+		// try in home path
+		homepath = Cvar_VariableString( "fs_homepath" );
+		Com_sprintf( fn, MAX_OSPATH, "%s/%s", homepath, fname );
+		if ( access( fn, X_OK ) == -1 ) {
+			Com_DPrintf( "%s not found\n", fn );
+			// basepath, last resort
+			basepath = Cvar_VariableString( "fs_basepath" );
+			Com_sprintf( fn, MAX_OSPATH, "%s/%s", basepath, fname );
+			if ( access( fn, X_OK ) == -1 ) {
+				Com_DPrintf( "%s not found\n", fn );
+				Com_Printf( "Can't find script '%s' to open requested URL (use +set developer 1 for more verbosity)\n", fname );
+				// we won't quit
+				return;
+			}
+		}
+	}
+
+	// show_bug.cgi?id=612
+	if ( doexit ) {
+		doexit_spamguard = qtrue;
+	}
+
+	Com_DPrintf( "URL script: %s\n", fn );
+
+	// build the command line
+	Com_sprintf( cmdline, MAX_CMD, "%s '%s' &", fn, url );
+
+	Sys_StartProcess( cmdline, doexit );
+
+}
+
 void Sys_ParseArgs( int argc, char* argv[] ) {
 
   if ( argc==2 )

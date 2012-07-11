@@ -233,6 +233,7 @@ typedef enum {
 	#ifdef USE_AUTH
 	G_NET_STRINGTOADR,
 	G_NET_SENDPACKET,
+	G_SYS_STARTPROCESS,
 	#endif
 
 	BOTLIB_SETUP = 200,				// ( void );
