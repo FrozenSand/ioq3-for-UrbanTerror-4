@@ -1430,6 +1430,8 @@ void Sys_StartProcess( char *cmdline, qboolean doexit ) {
 	Sys_DoStartProcess( cmdline );
 }
 
+#if 0
+//@Barbatos: not using it for now
 /*
 =================
 Sys_OpenURL
@@ -1491,6 +1493,8 @@ void Sys_OpenURL( const char *url, qboolean doexit ) {
 	Sys_StartProcess( cmdline, doexit );
 
 }
+
+#endif
 
 void Sys_ParseArgs( int argc, char* argv[] ) {
 
