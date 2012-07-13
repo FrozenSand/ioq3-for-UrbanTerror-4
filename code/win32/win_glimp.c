@@ -1461,11 +1461,11 @@ void GLimp_Init( void )
 		if ( strstr( buf, "voodoo graphics/1 tmu/2 mb" ) )
 		{
 			ri.Cvar_Set( "r_picmip", "2" );
-			ri.Cvar_Get( "r_picmip", "1", CVAR_ARCHIVE | CVAR_LATCH );
+			ri.Cvar_Get( "r_picmip", "0", CVAR_ARCHIVE | CVAR_LATCH );
 		}
 		else
 		{
-			ri.Cvar_Set( "r_picmip", "1" );
+			ri.Cvar_Set( "r_picmip", "0" ); //@Barbatos: defaulted to 0
 
 			if ( strstr( buf, "rage 128" ) || strstr( buf, "rage128" ) )
 			{
