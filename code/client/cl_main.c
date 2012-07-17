@@ -284,6 +284,7 @@ void CL_Record_f( void ) {
 #ifdef USE_DEMO_FORMAT_42
 	char		*s2;
 	int			size, v;
+	const char  *serverInfo;
 #endif
 
 	if ( Cmd_Argc() > 2 ) {
@@ -347,11 +348,9 @@ void CL_Record_f( void ) {
 	/* HOLBLIN entete demo */ 
 	#ifdef USE_DEMO_FORMAT_42
 
-	// s2 = Cvar_VariableString("g_modversion");
-	// s2 = CG_ConfigString( CS_GAME_VERSION );
-	s2 = malloc( 2 );
-	s2[0] = 'H'; // urg
-	s2[1] = '\0'; // urg
+	//@Barbatos: get the mod version from the server
+	serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+	s2 = Info_ValueForKey(serverInfo, "g_modversion");
 
 	size = strlen( s2 );
 	len = LittleLong( size );
@@ -602,6 +601,7 @@ void CL_PlayDemo_f( void ) {
 #ifdef USE_DEMO_FORMAT_42
 	int			r, len, v1, v2;
 	char		*s1, *s2;
+	const char  *serverInfo;
 #else
 	int			protocol, i;
 	char		retry[MAX_OSPATH];
@@ -673,11 +673,9 @@ void CL_PlayDemo_f( void ) {
 		
 
 		
-	// s1 = Cvar_VariableString("g_modversion");
-	// s1 = CG_ConfigString( CS_GAME_VERSION );
-	s1 = malloc( 2 );
-	s1[0] = 'H'; // urg
-	s1[1] = '\0'; // urg
+	//@Barbatos: get the mod version from the server
+	serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+	s1 = Info_ValueForKey(serverInfo, "g_modversion");
 	
 	
 	r = FS_Read( &len, 4, clc.demofile );
