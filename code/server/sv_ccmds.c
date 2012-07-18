@@ -944,8 +944,7 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 	/* HOLBLIN  entete demo */ 
 	#ifdef USE_DEMO_FORMAT_42
 		//@Barbatos: get the mod version from the server
-		serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
-		s = Info_ValueForKey(serverInfo, "g_modversion");
+		s = Cvar_VariableString("g_modversion");
 	
 		size = strlen( s );
 		len = LittleLong( size );
@@ -1396,6 +1395,7 @@ static void SV_Auth_Whois_f( void ) {
 		
 	VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
 }
+
 #endif
 
 
