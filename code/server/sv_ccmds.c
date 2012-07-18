@@ -943,11 +943,9 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 	/* File_write_header_demo // ADD this fx */
 	/* HOLBLIN  entete demo */ 
 	#ifdef USE_DEMO_FORMAT_42
-		// s = CG_ConfigString( CS_GAME_VERSION ); // is egal to next line
-		// s = Cvar_VariableString("g_modversion");	
-		s = malloc( 2 );
-		s[0] = 'H'; // urg
-		s[1] = '\0'; // urg
+		//@Barbatos: get the mod version from the server
+		serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+		s = Info_ValueForKey(serverInfo, "g_modversion");
 	
 		size = strlen( s );
 		len = LittleLong( size );
