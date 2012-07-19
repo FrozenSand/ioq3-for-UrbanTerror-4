@@ -199,7 +199,7 @@ typedef enum {
 	
 	#ifdef USE_AUTH
 	//@Barbatos @Kalish
-	UI_AUTHSERVER_PACKET,
+	UI_AUTHSERVER_PACKET
 	#endif
 	
 // if !overlay, the background will be drawn, otherwise it will be
