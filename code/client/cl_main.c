@@ -2237,9 +2237,9 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	}
 
 	#ifdef USE_AUTH
-	//@Barbatos
-	if (strstr(c, "AUTH:CLIENT") ) {
-		VM_Call( uivm, UI_AUTHANSWER, from);
+	//@Barbatos @Kalish
+	if (strstr(c, "AUTH:CL") ) {
+		VM_Call( uivm, UI_AUTHSERVER_PACKET, from);
 		return;
 	}
 	#endif

@@ -197,9 +197,9 @@ typedef enum {
 //	void	UI_DrawConnectScreen( qboolean overlay );
 	UI_HASUNIQUECDKEY,
 	
-	//@Barbatos
 	#ifdef USE_AUTH
-	UI_AUTHANSWER
+	//@Barbatos @Kalish
+	UI_AUTHSERVER_PACKET
 	#endif
 	
 // if !overlay, the background will be drawn, otherwise it will be

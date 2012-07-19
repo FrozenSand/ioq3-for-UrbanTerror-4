@@ -726,28 +726,17 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	} else if (!Q_stricmp(c, "ipAuthorize")) {
 		SV_AuthorizeIpPacket( from );
 	} 
-	//@Barbatos
 	#ifdef USE_AUTH
-	else if (!Q_stricmp(c, "AUTH:IP")) 
+	// @Barbatos @Kalish
+	else if ( (!Q_stricmp(c, "AUTH:SV"))) 
 	{
 		NET_StringToAdr(sv_authServerIP->string, &authServerIP);
 		
 		if ( !NET_CompareBaseAdr( from, authServerIP ) ) {
-			Com_Printf( "AUTH:IP: not from the Auth Server\n" );
+			Com_Printf( "AUTH not from the Auth Server\n" );
 			return;
 		}
-		VM_Call(gvm, GAME_AUTH_IP);
-		
-	} 
-	else if ( (!Q_stricmp(c, "AUTH:NAME")) || (!Q_stricmp(c, "AUTH:MSG"))) 
-	{
-		NET_StringToAdr(sv_authServerIP->string, &authServerIP);
-		
-		if ( !NET_CompareBaseAdr( from, authServerIP ) ) {
-			Com_Printf( "AUTH:IP: not from the Auth Server\n" );
-			return;
-		}
-		VM_Call(gvm, GAME_AUTH_CLIENT);
+		VM_Call(gvm, GAME_AUTHSERVER_PACKET);
 	} 
 	#endif
 	
