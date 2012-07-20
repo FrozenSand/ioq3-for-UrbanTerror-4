@@ -1393,7 +1393,72 @@ static void SV_Auth_Whois_f( void ) {
 	if ( !cl ) 
 		return;
 		
-	VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
+	if ( Cvar_VariableValue("auth_enable") >= 1 ) 
+	{
+		VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
+	}
+	else
+	{
+		Com_Printf( "Auth services disabled\n" );
+		return;
+	}
+}
+
+/*
+==================
+SV_Auth_Ban_f
+
+Ban a user from the server 
+and the group
+==================
+*/
+static void SV_Auth_Ban_f( void ) {
+	client_t	*cl;
+	client_t	*rconcl;
+	int		idnum = -1;
+	char	*days;
+	char	*hours;
+	char	*mins;
+	char	s[MAX_STRING_TOKENS];
+	
+	if ( !com_sv_running->integer ) {
+		Com_Printf( "Server is not running.\n" );
+		return;
+	}
+	
+	days = Cmd_Argv( 2 ); 
+	hours = Cmd_Argv( 3 );
+	mins = Cmd_Argv( 4 );
+	
+	if ( Cmd_Argc() < 5 ) {
+		Com_Printf ("Usage: auth-ban <client number|name> <days> <hours> <mins>\n");
+		return;
+	}
+	
+	idnum = SV_Argc_to_idnum( 1 );
+	
+	if( idnum == -1 ) 
+		return;
+		
+	cl = &svs.clients[idnum];
+	
+	if ( !cl ) 
+		return;
+	
+	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
+		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot ban host players.\n");
+		return;
+	}
+
+	if ( Cvar_VariableValue("auth_enable") >= 1 ) 
+	{
+		VM_Call(gvm, "GAME_AUTH_BAN", idnum, days, hours, mins);
+	}
+	else
+	{
+		Com_Printf( "Auth services disabled\n" );
+		return;
+	}
 }
 
 #endif
@@ -1439,6 +1504,7 @@ void SV_AddOperatorCommands( void ) {
 		//@Barbatos: auth system commands
 		#ifdef USE_AUTH
 		Cmd_AddCommand ("auth-whois", SV_Auth_Whois_f);
+		Cmd_AddCommand ("auth-ban", SV_Auth_Ban_f);
 		#endif
 	}
 }
