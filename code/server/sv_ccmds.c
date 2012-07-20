@@ -1414,8 +1414,8 @@ and the group
 */
 static void SV_Auth_Ban_f( void ) {
 	client_t	*cl;
-	client_t	*rconcl;
 	int		idnum = -1;
+	int 	d, h, m;
 	char	*days;
 	char	*hours;
 	char	*mins;
@@ -1458,7 +1458,8 @@ static void SV_Auth_Ban_f( void ) {
 
 	if ( Cvar_VariableValue("auth_enable") >= 1 ) 
 	{
-		VM_Call(gvm, "GAME_AUTH_BAN", idnum, atoi(days), atoi(hours), atoi(mins));
+		d = atoi(days);
+		VM_Call(gvm, GAME_AUTH_BAN, idnum, atoi(days), atoi(hours), atoi(mins));
 	}
 	else
 	{
