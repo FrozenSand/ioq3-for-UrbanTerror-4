@@ -1438,12 +1438,18 @@ static void SV_Auth_Ban_f( void ) {
 	idnum = SV_Argc_to_idnum( 1 );
 	
 	if( idnum == -1 ) 
+	{
+		Com_Printf("Client not found\n");
 		return;
+	}
 		
 	cl = &svs.clients[idnum];
 	
 	if ( !cl ) 
+	{
+		Com_Printf("Client not found\n");
 		return;
+	}
 	
 	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
 		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot ban host players.\n");
