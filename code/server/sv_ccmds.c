@@ -1458,7 +1458,7 @@ static void SV_Auth_Ban_f( void ) {
 
 	if ( Cvar_VariableValue("auth_enable") >= 1 ) 
 	{
-		VM_Call(gvm, "GAME_AUTH_BAN", idnum, days, hours, mins);
+		VM_Call(gvm, "GAME_AUTH_BAN", idnum, atoi(days), atoi(hours), atoi(mins));
 	}
 	else
 	{
