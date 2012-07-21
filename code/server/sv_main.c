@@ -428,7 +428,7 @@ void SVC_Info( netadr_t from ) {
 	
 	//@Barbatos
 	#ifdef USE_AUTH
-	Info_SetValueForKey( infostring, "auth_status", Cvar_VariableString("auth_status") );
+	Info_SetValueForKey( infostring, "auth_enable", Cvar_VariableString("auth_enable") );
 	#endif
 
 	if( sv_minPing->integer ) {
