@@ -200,9 +200,20 @@ void CG_DrawInformation( void ) {
 		// pure server
 		s = Info_ValueForKey( sysInfo, "sv_pure" );
 		if ( s[0] == '1' ) {
-			UI_DrawProportionalString( 320, y, "Pure Server",
-				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
+			
+			//@Barbatos: draw if the auth system is activated
+			s = Info_ValueForKey( sysInfo, "auth_enable");
+			if( s[0] == '1')
+			{
+				UI_DrawProportionalString( 320, y, "Pure Server - AUTH SYSTEM ENABLED", UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
+			}
+			
+			else
+			{
+				UI_DrawProportionalString( 320, y, "Pure Server",UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
+			}
 			y += PROP_HEIGHT;
+			
 		}
 
 		// server-specific message of the day

@@ -431,6 +431,10 @@ void SVC_Info( netadr_t from ) {
 	Info_SetValueForKey( infostring, "auth_enable", Cvar_VariableString("auth_enable") );
 	#endif
 
+	//@Barbatos: if it's a passworded server, let the client know (for the server browser)
+	if(Cvar_VariableValue("g_needpass") == 1)
+		Info_SetValueForKey( infostring, "password", va("%i", 1));
+		
 	if( sv_minPing->integer ) {
 		Info_SetValueForKey( infostring, "minPing", va("%i", sv_minPing->integer) );
 	}

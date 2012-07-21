@@ -258,6 +258,8 @@ typedef struct {
 	int			ping;
 	qboolean	visible;
 	int			punkbuster;
+	int			auth_enable; //@Barbatos: auth system
+	int			password; //@Barbatos: passworded server?
 } serverInfo_t;
 
 typedef struct {
