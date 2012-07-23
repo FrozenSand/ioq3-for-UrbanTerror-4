@@ -30,9 +30,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef SVN_VERSION
   #define SVN_VERSION Q3_VERSION
 #endif
-#define CLIENT_WINDOW_TITLE   "ioUrbanTerror"
+#define CLIENT_WINDOW_TITLE   "Quake3-UrT"
 #define CLIENT_WINDOW_ICON    "iourbanterror"
-#define CONSOLE_WINDOW_TITLE  "ioUrbanTerror console"
+#define CONSOLE_WINDOW_TITLE  "Quake3-UrT console"
 #define CONSOLE_WINDOW_ICON   "iourbanterror console"
 // 1.32 released 7-10-2002
 

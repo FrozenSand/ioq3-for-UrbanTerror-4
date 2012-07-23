@@ -225,7 +225,7 @@ void CON_Init( void )
 	GetConsoleScreenBufferInfo( qconsole_hout, &info );
 	qconsole_attrib = info.wAttributes;
 
-	SetConsoleTitle("ioUrbanTerror Dedicated Server Console");
+	SetConsoleTitle("Quake3-UrT Dedicated Server Console");
 
 	// make cursor invisible
 	GetConsoleCursorInfo( qconsole_hout, &qconsole_orig_cursorinfo );
