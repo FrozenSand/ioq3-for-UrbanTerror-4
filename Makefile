@@ -39,12 +39,11 @@ USE_CURL         =1
 USE_CODEC_VORBIS =0
 
 # Barbatos - Urban Terror 4.2 auth system
-# You're not forced to use it. Off by default.
-USE_AUTH		=0 
+# You're not forced to use it.
+USE_AUTH		 =1 
 
 # Holblin - Urban Terror 4.2 file demo system
-# You're not forced to use it. Off by default.
-USE_DEMO_FORMAT_42	=0 
+USE_DEMO_FORMAT_42	=1
 
 ifeq ($(V),1)
 echo_cmd=@:
