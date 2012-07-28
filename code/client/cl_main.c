@@ -703,13 +703,14 @@ void CL_PlayDemo_f( void ) {
 		return;
 	}
 		
-		
-	if ( strcmp(s1, s2) ){
+	//@Barbatos: FIXME
+	/*if ( strcmp(s1, s2) ){
 		Com_Printf("Game version %s not supported for demos\n", s2);
 		free(s2);
 		CL_DemoCompleted ();
 		return;
 	}
+	*/
 	free(s2);
 		
 	if ( v1 != v2 ){
