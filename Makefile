@@ -141,6 +141,10 @@ ifndef USE_LOCAL_HEADERS
 USE_LOCAL_HEADERS=1
 endif
 
+ifeq ($(PLATFORM),darwin)
+  BUILD_MACOSX_UB=i386
+endif
+
 #############################################################################
 
 BD=$(BUILD_DIR)/debug-$(PLATFORM)-$(ARCH)
