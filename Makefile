@@ -40,7 +40,7 @@ USE_CODEC_VORBIS =0
 
 # Barbatos - Urban Terror 4.2 auth system
 # You're not forced to use it.
-USE_AUTH		 =1 
+USE_AUTH		=1
 
 # Holblin - Urban Terror 4.2 file demo system
 USE_DEMO_FORMAT_42	=1
@@ -139,6 +139,10 @@ endif
 
 ifndef USE_LOCAL_HEADERS
 USE_LOCAL_HEADERS=1
+endif
+
+ifeq ($(PLATFORM),darwin)
+  BUILD_MACOSX_UB=i386
 endif
 
 #############################################################################
