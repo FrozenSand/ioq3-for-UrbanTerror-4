@@ -674,7 +674,7 @@ qboolean SV_CheckDRDoS(netadr_t from)
 	}
 	if (specificCount >= 3) { // Already sent 3 to this IP in last 2 seconds.
 		if (lastSpecificLogTime + 1000 <= svs.time) { // Limit one log every second.
-			Com_Printf("Possible DRDoS attack to address %i.%i.%i.%i, ignoring getinfo/getstatus connectionless packet\n",
+			Com_DPrintf("Possible DRDoS attack to address %i.%i.%i.%i, ignoring getinfo/getstatus connectionless packet\n",
 					exactFrom.ip[0], exactFrom.ip[1], exactFrom.ip[2], exactFrom.ip[3]);
 			lastSpecificLogTime = svs.time;
 		}
