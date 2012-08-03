@@ -381,6 +381,7 @@ extern	cvar_t	*cl_altTab;
 
 #ifdef USE_AUTH
 extern cvar_t	*cl_auth_engine;
+extern cvar_t   *cl_auth;
 #endif
 
 //=================================================
