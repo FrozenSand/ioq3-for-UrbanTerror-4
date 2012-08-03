@@ -83,6 +83,7 @@ cvar_t	*cl_altTab;
 #ifdef USE_AUTH
 cvar_t  *cl_auth_engine;
 cvar_t  *cl_auth;
+cvar_t  *authc;
 #endif
 
 clientActive_t		cl;
@@ -2920,6 +2921,7 @@ void CL_Init( void ) {
 	//@Barbatos
 	cl_auth_engine = Cvar_Get( "cl_auth_engine", "1", CVAR_TEMP | CVAR_ROM);
 	cl_auth = Cvar_Get("cl_auth", "0", CVAR_TEMP | CVAR_ROM);
+	authc = Cvar_Get("authc", "0", CVAR_TEMP | CVAR_USERINFO);
 	#endif
 	
 	// userinfo
