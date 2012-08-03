@@ -380,10 +380,7 @@ extern	cvar_t	*cl_autoRecordDemo;
 extern	cvar_t	*cl_altTab;
 
 #ifdef USE_AUTH
-extern cvar_t	*cl_auth_challenge;
-extern cvar_t   *cl_auth_key;
-extern cvar_t   *cl_auth_login;
-extern cvar_t   *cl_auth_notoriety;
+extern cvar_t	*cl_auth_engine;
 #endif
 
 //=================================================

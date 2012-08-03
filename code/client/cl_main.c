@@ -81,10 +81,7 @@ cvar_t	*cl_altTab;
 
 //@Barbatos
 #ifdef USE_AUTH
-cvar_t	*cl_auth_challenge;
-cvar_t  *cl_auth_key;
-cvar_t  *cl_auth_login;
-cvar_t  *cl_auth_notoriety;
+cvar_t  *cl_auth_engine;
 #endif
 
 clientActive_t		cl;
@@ -2920,10 +2917,7 @@ void CL_Init( void ) {
 	
 	#ifdef USE_AUTH
 	//@Barbatos
-	cl_auth_challenge = Cvar_Get( "cl_auth_challenge", "0", CVAR_TEMP | CVAR_USERINFO);
-	cl_auth_key = Cvar_Get("cl_auth_key", "", CVAR_TEMP | CVAR_ROM);
-	cl_auth_login = Cvar_Get("cl_auth_login", "", CVAR_TEMP | CVAR_ROM);
-	cl_auth_notoriety = Cvar_Get("cl_auth_notoriety", "", CVAR_TEMP | CVAR_ROM);
+	cl_auth_engine = Cvar_Get( "cl_auth_engine", "1", CVAR_TEMP | CVAR_ROM);
 	#endif
 	
 	// userinfo
