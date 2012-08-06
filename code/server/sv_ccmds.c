@@ -886,7 +886,7 @@ static void SV_DumpUser_f( void ) {
 	}
 
 	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: info <userid>\n");
+		Com_Printf ("Usage: dumpuser <userid>\n");
 		return;
 	}
 
