@@ -668,7 +668,7 @@ char *Sys_ConsoleInput(void)
     FD_SET(0, &fdset); // stdin
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
-    if (select (1, &fdset, NULL, NULL, &timeout) == -1 || !FD_ISSET(0, &fdset))
+    if (select(1, &fdset, NULL, NULL, &timeout) == -1 || !FD_ISSET(0, &fdset))
     {
       return NULL;
     }
