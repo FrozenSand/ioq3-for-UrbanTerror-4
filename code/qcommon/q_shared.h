@@ -742,6 +742,8 @@ void	QDECL Com_Error( int level, const char *error, ... ) __attribute__ ((format
 void	QDECL Com_Printf( const char *msg, ... ) __attribute__ ((format (printf, 1, 2)));
 
 
+void Field_CompleteFilename( const char *dir, const char *ext, qboolean stripExt );
+
 /*
 ==========================================================
 

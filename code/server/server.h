@@ -374,6 +374,8 @@ void SV_WriteFrameToClient (client_t *client, msg_t *msg);
 void SV_SendMessageToClient( msg_t *msg, client_t *client );
 void SV_SendClientMessages( void );
 void SV_SendClientSnapshot( client_t *client );
+void SV_CheckClientUserinfoTimer( void );
+void SV_UpdateUserinfo_f( client_t *cl );
 
 //
 // sv_game.c

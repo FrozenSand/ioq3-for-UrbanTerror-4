@@ -1353,13 +1353,13 @@ static void SV_StopServerDemo_f(void)
 SV_CompleteMapName
 ==================
 */
+/*@Barbatos: unused for now
 static void SV_CompleteMapName( char *args, int argNum ) {
 	if ( argNum == 2 ) {
 		Field_CompleteFilename( "maps", "bsp", qtrue, qfalse );
 	}
-}
+}*/
 
-//@Barbatos
 #ifdef USE_AUTH
 /*
 ==================
