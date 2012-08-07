@@ -246,6 +246,7 @@ static	cvar_t		*fs_homepath;
 static  cvar_t          *fs_apppath;
 #endif
 
+
 static	cvar_t		*fs_basepath;
 static	cvar_t		*fs_basegame;
 static	cvar_t		*fs_gamedirvar;
@@ -2720,18 +2721,25 @@ FS_Startup
 */
 static void FS_Startup( const char *gameName )
 {
-	const char *homePath;
-	cvar_t	*fs;
+	const char	*homePath = "";
+	cvar_t		*fs_use_defaultHomePath;
+	cvar_t		*fs;
 
 	Com_Printf( "----- FS_Startup -----\n" );
 
 	fs_debug = Cvar_Get( "fs_debug", "0", 0 );
 	fs_basepath = Cvar_Get ("fs_basepath", Sys_DefaultInstallPath(), CVAR_INIT );
 	fs_basegame = Cvar_Get ("fs_basegame", "", CVAR_INIT );
-	homePath = Sys_DefaultHomePath();
+	
+	fs_use_defaultHomePath = Cvar_Get ("use_defaultHomePath", "1", CVAR_INIT|CVAR_SYSTEMINFO );
+	if ( fs_use_defaultHomePath->integer ) {
+		homePath = Sys_DefaultHomePath();
+	}
+	
 	if (!homePath || !homePath[0]) {
 		homePath = fs_basepath->string;
 	}
+	
 	fs_homepath = Cvar_Get ("fs_homepath", homePath, CVAR_INIT );
 	fs_gamedirvar = Cvar_Get ("fs_game", "q3ut4", CVAR_INIT|CVAR_SYSTEMINFO );
 
