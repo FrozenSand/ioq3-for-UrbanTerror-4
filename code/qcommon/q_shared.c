@@ -1259,11 +1259,11 @@ qboolean Info_Validate( const char *s ) {
 	char *tmp_s, old_s = '\0';
 	int nb = 0;
 	
-	for ( tmp_s = s ; tmp_s != '\0' || ( s - tmp_s > MAX_INFO_STRING )  ; tmp_s++ ) {
-		if ( tmp_s < 32 || tmp_s > 126 || tmp_s == ';' || ( old_s == '\\' && tmp_s == '"' ) )
+	for ( tmp_s = s ; *tmp_s != '\0' || ( s - tmp_s > MAX_INFO_STRING )  ; tmp_s++ ) {
+		if ( *tmp_s < 32 || *tmp_s > 126 || *tmp_s == ';' || ( old_s == '\\' && *tmp_s == '"' ) )
 			return qfalse;
 		nb = 1 - nb;
-		old_s = tmp_s;
+		old_s = *tmp_s;
 	}
 	
 	if ( s - tmp_s > MAX_INFO_STRING )

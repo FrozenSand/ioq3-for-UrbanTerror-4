@@ -559,7 +559,9 @@ CL_WalkDemoExt
 */
 static void CL_WalkDemoExt(char *arg, char *name, int *demofile)
 {
-	int i;
+	#ifndef USE_DEMO_FORMAT_42
+		int i;
+	#endif
 
 	*demofile = 0;
 	#ifdef USE_DEMO_FORMAT_42

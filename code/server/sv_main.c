@@ -471,13 +471,11 @@ Redirect all printfs
 void SVC_RconRecoveryRemoteCommand( netadr_t from, msg_t *msg ) {
 	qboolean	valid;
 	unsigned int time;
-	char		remaining[1024];
 	// TTimo - scaled down to accumulate, but not overflow anything network wise, print wise etc.
 	// (OOB messages are the bottleneck here)
 #define SV_OUTPUTBUF_LENGTH (1024 - 16)
 	char		sv_outputbuf[SV_OUTPUTBUF_LENGTH];
 	static unsigned int lasttime = 0;
-	char *cmd_aux;
 
 	// TTimo - https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=534
 	time = Com_Milliseconds();

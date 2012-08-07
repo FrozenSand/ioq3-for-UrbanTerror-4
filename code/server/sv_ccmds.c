@@ -1415,11 +1415,9 @@ and the group
 static void SV_Auth_Ban_f( void ) {
 	client_t	*cl;
 	int		idnum = -1;
-	int 	d, h, m;
 	char	*days;
 	char	*hours;
 	char	*mins;
-	char	s[MAX_STRING_TOKENS];
 	
 	if ( !com_sv_running->integer ) {
 		Com_Printf( "Server is not running.\n" );
@@ -1458,7 +1456,6 @@ static void SV_Auth_Ban_f( void ) {
 
 	if ( Cvar_VariableValue("auth_enable") >= 1 ) 
 	{
-		d = atoi(days);
 		VM_Call(gvm, GAME_AUTH_BAN, idnum, atoi(days), atoi(hours), atoi(mins));
 	}
 	else
