@@ -1047,9 +1047,11 @@ void NET_Sleep( int msec ) {
 
 	FD_ZERO(&fdset);
 
-	FD_SET(fileno(stdin), &fdset);
-	highestfd = fileno(stdin) + 1;
-
+	#ifndef __linux__
+		FD_SET(fileno(stdin), &fdset);
+		highestfd = fileno(stdin) + 1;
+	#endif
+	
 	if(ip_socket)
 	{
 		FD_SET(ip_socket, &fdset); // network socket
@@ -1071,6 +1073,13 @@ void NET_Sleep( int msec ) {
 			select(highestfd, &fdset, NULL, NULL, NULL);
 		}
 	}
+	#ifdef __linux__
+    else{
+        if ( msec < 0 )
+            msec = 2;
+        usleep( msec * 1000);
+    }
+	#endif
 }
 
 

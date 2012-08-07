@@ -488,7 +488,7 @@ void Sys_Sleep( int msec )
 	{
 		// With nothing to select() on, we can't wait indefinitely
 		if( msec < 0 )
-			msec = 10;
+			msec = 2;
 
 		usleep( msec * 1000 );
 	}
