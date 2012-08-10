@@ -1259,19 +1259,19 @@ qboolean Info_Validate( const char *s ) {
 	char *tmp_s, old_s = '\0';
 	int nb = 0;
 	
-	for ( tmp_s = (char *)s ; *tmp_s != '\0' || ( (int)(s - tmp_s) > MAX_INFO_STRING )  ; tmp_s ++ ) {
+	for ( tmp_s = (char *)s ; *tmp_s != '\0' || ( s - tmp_s > MAX_INFO_STRING )  ; tmp_s ++ ) {
 		if ( *tmp_s < 32 || *tmp_s > 126 || *tmp_s == ';' || ( old_s == '\\' && *tmp_s == '"' ) )
 			return qfalse;
-		nb = 1 - nb;
+		if ( *tmp_s == '\\' )
+			nb = 1 - nb;
 		old_s = *tmp_s;
 	}
 	
-	if ( (int)(s - tmp_s) > MAX_INFO_STRING  )
+	if ( s - tmp_s > MAX_INFO_STRING  )
 		return qfalse;
 	
-	// Barbatos - FIXME!
-	//if ( nb != 0 )
-	//	return qfalse;
+	if ( nb != 0 )
+		return qfalse;
 		
 	return qtrue;
 }
