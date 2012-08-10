@@ -1402,7 +1402,7 @@ static void SV_Auth_Whois_f( void ) {
 				if (cl->state != CS_ACTIVE) 
 					continue;
 
-				VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
+				VM_Call(gvm, GAME_AUTH_WHOIS, (int)(cl - svs.clients));
 			}
 
 			return;
@@ -1445,7 +1445,7 @@ static void SV_Auth_Ban_f( void ) {
 		Com_Printf( "Auth services disabled\n" );
 		return;
 	}
-	
+
 	days = Cmd_Argv( 2 ); 
 	hours = Cmd_Argv( 3 );
 	mins = Cmd_Argv( 4 );
