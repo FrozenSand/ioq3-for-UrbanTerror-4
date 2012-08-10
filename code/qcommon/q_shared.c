@@ -1269,8 +1269,9 @@ qboolean Info_Validate( const char *s ) {
 	if ( (int)(s - tmp_s) > MAX_INFO_STRING  )
 		return qfalse;
 	
-	if ( nb != 0 )
-		return qfalse;
+	// Barbatos - FIXME!
+	//if ( nb != 0 )
+	//	return qfalse;
 		
 	return qtrue;
 }

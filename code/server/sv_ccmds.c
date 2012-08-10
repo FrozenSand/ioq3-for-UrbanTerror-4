@@ -1371,6 +1371,7 @@ Get user infos
 static void SV_Auth_Whois_f( void ) {
 	client_t	*cl;
 	int		idnum = -1;
+	int 	slot;
 	
 	// make sure server is running
 	if ( !com_sv_running->integer ) {
@@ -1379,29 +1380,44 @@ static void SV_Auth_Whois_f( void ) {
 	}
 	
 	if ( Cmd_Argc() < 2 ) {
-		Com_Printf ("Usage: auth-whois <client number|name>\n");
+		Com_Printf ("Usage: auth-whois <client number|name|all>\n");
 		return;
 	}
 		
-	idnum = SV_Argc_to_idnum( 1 );
-	
-	if( idnum == -1 ) 
-		return;
-		
-	cl = &svs.clients[idnum];
-	
-	if ( !cl ) 
-		return;
-		
-	if ( Cvar_VariableValue("auth_enable") >= 1 ) 
-	{
-		VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
-	}
-	else
+	if ( ! (Cvar_VariableValue("auth_enable") >= 1 ) )
 	{
 		Com_Printf( "Auth services disabled\n" );
 		return;
 	}
+
+	idnum = SV_Argc_to_idnum( 1 );
+	
+	// Couldn't find a client so check if we want to whois all of the clients
+	if( idnum == -1 ) 
+	{
+		if(!Q_stricmp(Cmd_Argv(1), "all"))
+		{
+			for (slot=0, cl=svs.clients; slot < sv_maxclients->integer; slot++, cl++) 
+			{
+				if (cl->state != CS_ACTIVE) 
+					continue;
+
+				VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
+			}
+
+			return;
+		}
+
+		else
+			return;
+	}
+	
+	cl = &svs.clients[idnum];
+
+	if ( !cl ) 
+		return;
+
+	VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
 }
 
 /*
@@ -1421,6 +1437,12 @@ static void SV_Auth_Ban_f( void ) {
 	
 	if ( !com_sv_running->integer ) {
 		Com_Printf( "Server is not running.\n" );
+		return;
+	}
+	
+	if ( ! (Cvar_VariableValue("auth_enable") >= 1 ) )
+	{
+		Com_Printf( "Auth services disabled\n" );
 		return;
 	}
 	
@@ -1454,15 +1476,7 @@ static void SV_Auth_Ban_f( void ) {
 		return;
 	}
 
-	if ( Cvar_VariableValue("auth_enable") >= 1 ) 
-	{
-		VM_Call(gvm, GAME_AUTH_BAN, idnum, atoi(days), atoi(hours), atoi(mins));
-	}
-	else
-	{
-		Com_Printf( "Auth services disabled\n" );
-		return;
-	}
+	VM_Call(gvm, GAME_AUTH_BAN, idnum, atoi(days), atoi(hours), atoi(mins));
 }
 
 #endif
