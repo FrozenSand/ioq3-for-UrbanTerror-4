@@ -951,7 +951,7 @@ static void SVD_StartDemoFile(client_t *client, const char *path)
 		FS_Write( &len, 4, file );
 		FS_Write( s , size ,  file );
 		
-		v = LittleLong( PROTOCOL_VERSION );
+		v = LittleLong( DEMO_VERSION );
 		FS_Write ( &v, 4 , file );
 		
 		len = 0;

@@ -359,7 +359,7 @@ void CL_Record_f( void ) {
 	FS_Write( &len, 4, clc.demofile );
 	FS_Write( s2 , size ,  clc.demofile );
 		
-	v = LittleLong( PROTOCOL_VERSION );
+	v = LittleLong( DEMO_VERSION );
 	FS_Write ( &v, 4 , clc.demofile );
 		
 	len = 0;
@@ -699,7 +699,7 @@ void CL_PlayDemo_f( void ) {
 	}
 	s2[len] = '\0';
 		
-	v1 = LittleLong( PROTOCOL_VERSION );
+	v1 = LittleLong( DEMO_VERSION );
 	r = FS_Read ( &v2, 4 , clc.demofile );
 	if ( r != 4 ) {
 		CL_DemoCompleted ();

@@ -223,10 +223,12 @@ PROTOCOL
 
 ==============================================================
 */
+#define	PROTOCOL_VERSION	68
+
 #ifdef USE_DEMO_FORMAT_42
-	#define	PROTOCOL_VERSION	70
+	#define	DEMO_VERSION	70
 #else
-	#define	PROTOCOL_VERSION	68
+	#define	DEMO_VERSION	68
 #endif
 // 1.31 - 67
 
