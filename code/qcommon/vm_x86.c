@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* need this on NX enabled systems (i386 with PAE kernel or
  * noexec32=on x86_64) */
-#ifdef __linux__
+#ifdef __unix__
 #define VM_X86_MMAP
 #endif
 
@@ -1079,7 +1079,7 @@ void VM_Compile( vm_t *vm, vmHeader_t *header ) {
 	// copy to an exact size buffer on the hunk
 	vm->codeLength = compiledOfs;
 #ifdef VM_X86_MMAP
-	vm->codeBase = mmap(NULL, compiledOfs, PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+	vm->codeBase = mmap(NULL, compiledOfs, PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
 	if(vm->codeBase == (void*)-1)
 		Com_Error(ERR_DROP, "VM_CompileX86: can't mmap memory");
 #elif _WIN32
