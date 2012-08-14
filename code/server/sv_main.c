@@ -64,6 +64,7 @@ cvar_t 	*sv_demofolder;				//@Barbatos - the name of the folder that contains se
 //@Barbatos
 #ifdef USE_AUTH
 cvar_t	*sv_authServerIP;
+cvar_t  *sv_auth_engine;
 #endif
 
 /*

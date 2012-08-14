@@ -303,6 +303,7 @@ extern  cvar_t  *sv_demofolder;
 
 #ifdef USE_AUTH
 extern	cvar_t	*sv_authServerIP;
+extern  cvar_t  *sv_auth_engine;
 #endif
 
 //===========================================================
