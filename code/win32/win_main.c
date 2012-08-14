@@ -94,6 +94,8 @@ qboolean Sys_LowPhysicalMemory() {
 	return (stat.dwTotalPhys <= MEM_THRESHOLD) ? qtrue : qfalse;
 }
 
+//@Barbatos - turned off for now
+#if 0
 /*
 ==================
 Sys_StartProcess
@@ -162,6 +164,7 @@ void Sys_OpenURL( const char *url, qboolean doexit ) {
 		Cbuf_ExecuteText( EXEC_APPEND, "quit\n" );
 	}
 }
+#endif
 
 /*
 ==================

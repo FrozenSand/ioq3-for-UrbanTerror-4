@@ -1375,7 +1375,8 @@ char *Sys_BinName( const char *arg0 )
   return dst;
 }
 
-
+//@Barbatos: turned off for now
+#if 0
 /*
 ==================
 Sys_DoStartProcess
@@ -1434,7 +1435,7 @@ void Sys_StartProcess( char *cmdline, qboolean doexit ) {
 	Sys_DoStartProcess( cmdline );
 }
 
-#if 0
+
 //@Barbatos: not using it for now
 /*
 =================
