@@ -825,9 +825,9 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		}
 		return 0;
 	
-	case G_SYS_STARTPROCESS:
-		Sys_StartProcess( VMA(1), VMA(2) );
-		return 0;
+	//case G_SYS_STARTPROCESS:
+	//	Sys_StartProcess( VMA(1), VMA(2) );
+	//	return 0;
 		
 	#endif
 	

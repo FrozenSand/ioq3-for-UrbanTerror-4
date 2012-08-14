@@ -1135,9 +1135,9 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_COPYSTRING:
 		return CopyString(VMA(1));
 
-	case UI_SYS_STARTPROCESS:
-		Sys_StartProcess( VMA(1), VMA(2) );
-		return 0;
+	//case UI_SYS_STARTPROCESS:
+	//	Sys_StartProcess( VMA(1), VMA(2) );
+	//	return 0;
 		
 	#endif
 	
