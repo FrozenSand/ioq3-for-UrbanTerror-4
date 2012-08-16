@@ -78,10 +78,13 @@ void SV_GetChallenge( netadr_t from ) {
 		challenge->firstTime = svs.time;
 		challenge->time = svs.time;
 		challenge->connected = qfalse;
+		challenge->pingTime = -1;
 		i = oldest;
 	}
 
-		challenge->pingTime = svs.time;
+		if (challenge->pingTime == -1) 
+			challenge->pingTime = svs.time;
+
 		NET_OutOfBandPrint( NS_SERVER, from, "challengeResponse %i", challenge->challenge );
 		return;
 }
@@ -119,7 +122,9 @@ void SV_AuthorizeIpPacket( netadr_t from ) {
 	}
 
 	// send a packet back to the original client
-	svs.challenges[i].pingTime = svs.time;
+	if (svs.challenges[i].pingTime == -1)
+		svs.challenges[i].pingTime = svs.time; 
+
 	s = Cmd_Argv( 2 );
 	r = Cmd_Argv( 3 );			// reason
 
@@ -245,9 +250,16 @@ void SV_DirectConnect( netadr_t from ) {
 			return;
 		}
 
-		ping = svs.time - svs.challenges[i].pingTime;
-		Com_Printf( "Client %i connecting with %i challenge ping\n", i, ping );
-		svs.challenges[i].connected = qtrue;
+		if (!svs.challenges[i].connected) {
+			ping = svs.time - svs.challenges[i].pingTime;
+			svs.challenges[i].challengePing = ping;
+ 			Com_Printf("Client %i connecting with %i challenge ping\n", i, ping);
+ 		}
+
+ 		else {
+			ping = svs.challenges[i].challengePing;
+ 			Com_DPrintf("Client %i connecting again with %i challenge ping\n", i, ping);
+ 		}
 
 		// never reject a LAN client based on ping
 		if ( !Sys_IsLANAddress( from ) ) {
@@ -263,6 +275,7 @@ void SV_DirectConnect( netadr_t from ) {
 			if ( sv_maxPing->value && ping > sv_maxPing->value ) {
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for low pings only\n" );
 				Com_DPrintf ("Client %i rejected on a too high ping\n", i);
+				svs.challenges[i].adr.port = 0;
 				return;
 			}
 		}
