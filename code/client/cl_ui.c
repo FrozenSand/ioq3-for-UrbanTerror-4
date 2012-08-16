@@ -328,8 +328,9 @@ static void LAN_GetServerInfo( int source, int n, char *buf, int buflen ) {
 		Info_SetValueForKey( info, "nettype", va("%i",server->netType));
 		Info_SetValueForKey( info, "addr", NET_AdrToString(server->adr));
 		Info_SetValueForKey( info, "punkbuster", va("%i", server->punkbuster));
-		Info_SetValueForKey( info, "auth_enable", va("%i", server->auth_enable));
+		Info_SetValueForKey( info, "auth", va("%i", server->auth));
 		Info_SetValueForKey( info, "password", va("%i", server->password));
+		Info_SetValueForKey( info, "modversion", server->modversion);
 		Q_strncpyz(buf, info, buflen);
 	} else {
 		if (buf) {

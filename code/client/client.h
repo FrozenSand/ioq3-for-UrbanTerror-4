@@ -258,8 +258,9 @@ typedef struct {
 	int			ping;
 	qboolean	visible;
 	int			punkbuster;
-	int			auth_enable; //@Barbatos: auth system
+	int			auth; //@Barbatos: auth system
 	int			password; //@Barbatos: passworded server?
+	char 		modversion[MAX_NAME_LENGTH]; //@Barbatos - g_modversion
 } serverInfo_t;
 
 typedef struct {

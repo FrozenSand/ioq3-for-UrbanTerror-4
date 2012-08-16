@@ -2006,8 +2006,9 @@ void CL_InitServerInfo( serverInfo_t *server, serverAddress_t *address ) {
 	server->game[0] = '\0';
 	server->gameType = 0;
 	server->netType = 0;
-	server->auth_enable = 0;
+	server->auth = 0;
 	server->password = 0;
+	server->modversion[0] = '\0';
 }
 
 #define MAX_SERVERSPERPACKET	256
@@ -3068,8 +3069,9 @@ static void CL_SetServerInfo(serverInfo_t *server, const char *info, int ping) {
 			server->minPing = atoi(Info_ValueForKey(info, "minping"));
 			server->maxPing = atoi(Info_ValueForKey(info, "maxping"));
 			server->punkbuster = atoi(Info_ValueForKey(info, "punkbuster"));
-			server->auth_enable = atoi(Info_ValueForKey(info, "auth_enable"));
+			server->auth = atoi(Info_ValueForKey(info, "auth"));
 			server->password = atoi(Info_ValueForKey(info, "password"));
+			Q_strncpyz(server->modversion, Info_ValueForKey(info, "modversion"), MAX_NAME_LENGTH);
 		}
 		server->ping = ping;
 	}
@@ -3195,8 +3197,9 @@ void CL_ServerInfoPacket( netadr_t from, msg_t *msg ) {
 	cls.localServers[i].gameType = 0;
 	cls.localServers[i].netType = from.type;
 	cls.localServers[i].punkbuster = 0;
-	cls.localServers[i].auth_enable = 0;
+	cls.localServers[i].auth = 0;
 	cls.localServers[i].password = 0;
+	cls.localServers[i].modversion[0] = '\0';
 									 
 	Q_strncpyz( info, MSG_ReadString( msg ), MAX_INFO_STRING );
 	if (strlen(info)) {
