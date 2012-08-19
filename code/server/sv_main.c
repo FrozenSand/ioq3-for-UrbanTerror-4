@@ -429,7 +429,7 @@ void SVC_Info( netadr_t from ) {
 	
 	//@Barbatos
 	#ifdef USE_AUTH
-	Info_SetValueForKey( infostring, "auth_enable", Cvar_VariableString("auth_enable") );
+	Info_SetValueForKey( infostring, "auth", Cvar_VariableString("auth") );
 	#endif
 
 	//@Barbatos: if it's a passworded server, let the client know (for the server browser)
