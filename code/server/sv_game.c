@@ -375,10 +375,13 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case G_DROP_CLIENT:
 		SV_GameDropClient( args[1], VMA(2) );
 		return 0;
+
 #ifdef USE_AUTH
+	case G_AUTH_DROP_CLIENT:
 		SV_Auth_GameDropClient( args[1], VMA(2), VMA(3) );
 		return 0;
 #endif
+		
 	case G_SEND_SERVER_COMMAND:
 		SV_GameSendServerCommand( args[1], VMA(2) );
 		return 0;

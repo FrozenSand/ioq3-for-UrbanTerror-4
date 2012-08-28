@@ -234,6 +234,7 @@ typedef enum {
 	G_NET_STRINGTOADR,
 	G_NET_SENDPACKET,
 	G_SYS_STARTPROCESS,
+	G_AUTH_DROP_CLIENT,
 	#endif
 
 	BOTLIB_SETUP = 200,				// ( void );
