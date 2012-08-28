@@ -356,6 +356,10 @@ void SV_UserinfoChanged( client_t *cl );
 void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd );
 void SV_DropClient( client_t *drop, const char *reason );
 
+#ifdef USE_AUTH
+void SV_Auth_DropClient( client_t *drop, const char *reason );
+#endif
+
 void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK );
 void SV_ClientThink (client_t *cl, usercmd_t *cmd);
 

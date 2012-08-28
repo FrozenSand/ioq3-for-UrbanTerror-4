@@ -108,6 +108,21 @@ void SV_GameDropClient( int clientNum, const char *reason ) {
 	SV_DropClient( svs.clients + clientNum, reason );	
 }
 
+#ifdef USE_AUTH
+/*
+===============
+SV_Auth_GameDropClient
+
+Disconnects the client with a public reason and private message
+===============
+*/
+void SV_Auth_GameDropClient( int clientNum, const char *reason, const char *message ) {
+	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
+		return;
+	}
+	SV_Auth_DropClient( svs.clients + clientNum, reason, message );	
+}
+#endif
 
 /*
 =================
@@ -360,6 +375,10 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case G_DROP_CLIENT:
 		SV_GameDropClient( args[1], VMA(2) );
 		return 0;
+#ifdef USE_AUTH
+		SV_Auth_GameDropClient( args[1], VMA(2), VMA(3) );
+		return 0;
+#endif
 	case G_SEND_SERVER_COMMAND:
 		SV_GameSendServerCommand( args[1], VMA(2) );
 		return 0;
