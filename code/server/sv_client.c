@@ -538,7 +538,7 @@ void SV_Auth_DropClient( client_t *drop, const char *reason, const char *message
 	SV_CloseDownload( drop );
 
 	// tell everyone why they got dropped
-	SV_SendServerCommand( NULL, "print \"%s" S_COLOR_WHITE " %s\n\"", drop->name, reason );
+	if( strlen( reason ) > 0 ) SV_SendServerCommand( NULL, "print \"%s\n\"", reason );
 
 
 	if (drop->download)	{
