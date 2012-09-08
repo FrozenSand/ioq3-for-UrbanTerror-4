@@ -1447,6 +1447,76 @@ static void SV_FastRestart_f(void) {
 
 /*
 ==================
+SV_Teleport_f
+- used mickaels code
+- added messages
+==================
+*/
+static void SV_Teleport_f(void)
+{
+    client_t *cl;
+    playerState_t *ps;
+	
+    // make sure server is running
+    if (!com_sv_running->integer)
+    {
+        Com_Printf("Server is not running.\n");
+        return;
+    }
+	
+    if (Cmd_Argc() != 2 && Cmd_Argc() != 3 && Cmd_Argc() != 5)
+    {
+        Com_Printf
+		("Usage: teleport <player name> [<x> <y> <z> | <player name (src)>]\n");
+        return;
+    }
+	
+    if (!(cl = SV_GetPlayerByHandle()))
+        return;
+	
+    ps = SV_GameClientNum(cl - svs.clients);
+	
+    if (Cmd_Argc() == 2)        // print a player's position
+    {
+        //Com_Printf("(%f %f %f)\n", ps->origin[0], ps->origin[1], ps->origin[2]);
+		Com_Printf("Position: (%f %f %f)\n", ps->origin[0], ps->origin[1], ps->origin[2]);
+        return;
+    }
+	
+    else if (Cmd_Argc() == 3)   // teleport a player to another player's location
+    {
+        client_t *cl_src;
+        playerState_t *ps_src;
+		
+        Cmd_TokenizeString(Cmd_Args()); // ugly hack for SV_GetPlayerByHandle()
+		
+        if (!(cl_src = SV_GetPlayerByHandle()))
+            return;
+		
+		if (cl_src == cl) {
+			Com_Printf("You cant't teleport a player to himself\n");
+			return;
+		}
+		
+        ps_src = SV_GameClientNum(cl_src - svs.clients);
+        VectorCopy(ps_src->origin, ps->origin);
+		SV_SendServerCommand(cl, "print \"You (%s^7) wer teleported to %s^7\n\"",cl->name, cl_src->name);
+		SV_SendServerCommand(cl_src, "print \"%s^7 was teleported to You (%s^7)\n\"",cl->name, cl_src->name);
+    }
+    else                        // teleport a player to the specified x, y, z coordinates
+    {
+        int i;
+        for (i = 0; i < 3; ++i) {
+            ps->origin[i] = atof(Cmd_Argv(i + 2));
+		}
+		SV_SendServerCommand(cl, "print \"You (%s^7) were teleported to x: %f y: %f z: %f^7\n\"",cl->name, ps->origin[0], ps->origin[1], ps->origin[2]);
+    }
+	
+    VectorClear(ps->velocity);
+}
+
+/*
+==================
 SV_CompleteMapName
 ==================
 */
@@ -1616,12 +1686,14 @@ void SV_AddOperatorCommands( void ) {
 		Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
 		Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);
 
-		//@Gh0sT: Private Bigtext, Rename , Fast Restart
+		//@Gh0sT: Private Bigtext, Rename , Fast Restart, Teleport
 		Cmd_AddCommand ("privatebigtext", SV_PrivateBigtext_f);
 		Cmd_AddCommand ("pbigtext", SV_PrivateBigtext_f);
 		Cmd_AddCommand ("rename", SV_Rename_f);
     		Cmd_AddCommand ("frestart", SV_FastRestart_f);
     		Cmd_AddCommand ("fastrestart", SV_FastRestart_f);
+		Cmd_AddCommand ("teleport", SV_Teleport_f);
+		Cmd_AddCommand ("tp", SV_Teleport_f);
 		
 		//@Barbatos: auth system commands
 		#ifdef USE_AUTH
