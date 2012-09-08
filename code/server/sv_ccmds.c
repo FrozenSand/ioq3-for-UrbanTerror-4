@@ -1426,6 +1426,27 @@ static void SV_Rename_f(void)
 
 /*
 ==================
+SV_FastRestart_f
+==================
+*/
+static void SV_FastRestart_f(void) {	
+
+	// Make sure server is running.
+	if (!com_sv_running->integer) {
+		Com_Printf("Server is not running.\n");
+		return;
+	}
+
+	if (Cmd_Argc() < 1 || strlen(Cmd_Argv(0)) == 0) {
+		Com_Printf("Usage: fastrestart\n");
+		return;
+	}
+	Cbuf_AddText( "map_restart 0\n" );
+
+}
+
+/*
+==================
 SV_CompleteMapName
 ==================
 */
@@ -1595,12 +1616,12 @@ void SV_AddOperatorCommands( void ) {
 		Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
 		Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);
 
-		//@Gh0sT: Private Bigtext
+		//@Gh0sT: Private Bigtext, Rename , Fast Restart
 		Cmd_AddCommand ("privatebigtext", SV_PrivateBigtext_f);
 		Cmd_AddCommand ("pbigtext", SV_PrivateBigtext_f);
-		
-		//@Gh0sT: Rename
 		Cmd_AddCommand ("rename", SV_Rename_f);
+    		Cmd_AddCommand ("frestart", SV_FastRestart_f);
+    		Cmd_AddCommand ("fastrestart", SV_FastRestart_f);
 		
 		//@Barbatos: auth system commands
 		#ifdef USE_AUTH
