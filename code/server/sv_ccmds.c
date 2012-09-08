@@ -1388,6 +1388,43 @@ static void SV_PrivateBigtext_f(void)
 }
 
 /*
+=================
+SV_Rename_f
+=================
+*/
+
+static void SV_Rename_f(void)
+{   
+
+
+    client_t *cl;
+    char *newname;
+
+    if (!com_sv_running->integer)
+    {
+        Com_Printf("Server is not running.\n");
+        return;
+    }
+	
+    if (Cmd_Argc() < 3 || strlen(Cmd_Argv(2)) == 0)
+    {
+        Com_Printf("Usage: rename <player number> <new name>\n");
+        return;
+    }
+
+    if (!(cl = SV_GetPlayerByHandle()))
+        return;
+
+    newname = Cmd_Argv(2);
+
+    Info_SetValueForKey(cl->userinfo, "name", newname);
+    SV_UserinfoChanged(cl);
+    VM_Call(gvm, GAME_CLIENT_USERINFO_CHANGED, cl - svs.clients);
+    
+    return;
+}
+
+/*
 ==================
 SV_CompleteMapName
 ==================
@@ -1561,6 +1598,9 @@ void SV_AddOperatorCommands( void ) {
 		//@Gh0sT: Private Bigtext
 		Cmd_AddCommand ("privatebigtext", SV_PrivateBigtext_f);
 		Cmd_AddCommand ("pbigtext", SV_PrivateBigtext_f);
+		
+		//@Gh0sT: Rename
+		Cmd_AddCommand ("rename", SV_Rename_f);
 		
 		//@Barbatos: auth system commands
 		#ifdef USE_AUTH
