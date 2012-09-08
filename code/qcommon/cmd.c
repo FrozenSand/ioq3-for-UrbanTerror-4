@@ -380,6 +380,107 @@ char	*Cmd_Argv( int arg ) {
 
 /*
 ============
+Cmd_ArgsFromRaw
+
+============
+*/
+char *
+Cmd_ArgsFromRaw(int arg)
+{
+    static char cmd_args_raw[BIG_INFO_STRING];
+    char *remaining_text;
+    int argc = 0;
+    qboolean ignoreQuotes = qfalse;
+
+    cmd_args_raw[0] = 0;
+    if (arg < 0)
+    {
+        arg = 0;
+    }
+    remaining_text = cmd_cmd;
+
+    while (qtrue)
+    {
+        while (qtrue)
+        {
+            while (*remaining_text && *remaining_text <= ' ')
+            {
+                remaining_text++;
+            }
+            if (!*remaining_text)
+            {
+                return cmd_args_raw;
+            }
+            if (remaining_text[0] == '/' && remaining_text[1] == '/')
+            {
+                return cmd_args_raw;
+            }
+            if (remaining_text[0] == '/' && remaining_text[1] == '*')
+            {
+                while (*remaining_text &&
+                       (remaining_text[0] != '*' || remaining_text[1] != '/'))
+                {
+                    remaining_text++;
+                }
+                if (!*remaining_text)
+                {
+                    return cmd_args_raw;
+                }
+                remaining_text += 2;
+            }
+            else
+            {
+                break;
+            }
+        }
+        if (argc == arg)
+        {
+            break;
+        }
+        if (!ignoreQuotes && *remaining_text == '"')
+        {
+            argc++;
+            remaining_text++;
+            while (*remaining_text && *remaining_text != '"')
+            {
+                remaining_text++;
+            }
+            if (!*remaining_text)
+            {
+                return cmd_args_raw;
+            }
+            remaining_text++;
+            continue;
+        }
+        argc++;
+        while (*remaining_text > ' ')
+        {
+            if (!ignoreQuotes && *remaining_text == '"')
+            {
+                break;
+            }
+            if (remaining_text[0] == '/' && remaining_text[1] == '/')
+            {
+                break;
+            }
+            if (remaining_text[0] == '/' && remaining_text[1] == '*')
+            {
+                break;
+            }
+            remaining_text++;
+        }
+        if (!*remaining_text)
+        {
+            return cmd_args_raw;
+        }
+    }
+
+    Q_strncpyz(cmd_args_raw, remaining_text, sizeof (cmd_args_raw));
+    return cmd_args_raw;
+}
+
+/*
+============
 Cmd_ArgvBuffer
 
 The interpreted versions use this because
