@@ -1780,14 +1780,20 @@ void SV_AddOperatorCommands( void ) {
 		Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
 		Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);
 
-		//@Gh0sT: Private Bigtext, Rename , Fast Restart, Teleport, mute temp
+		//@PtitBigorneau: Private Bigtext, Rename
 		Cmd_AddCommand ("privatebigtext", SV_PrivateBigtext_f);
 		Cmd_AddCommand ("pbigtext", SV_PrivateBigtext_f);
 		Cmd_AddCommand ("rename", SV_Rename_f);
-    		Cmd_AddCommand ("frestart", SV_FastRestart_f);
-    		Cmd_AddCommand ("fastrestart", SV_FastRestart_f);
+		
+		//@LuxXx: Fast restart
+    	Cmd_AddCommand ("frestart", SV_FastRestart_f);
+    	Cmd_AddCommand ("fastrestart", SV_FastRestart_f);
+		
+		//@Mickael9: Teleport
 		Cmd_AddCommand ("teleport", SV_Teleport_f);
 		Cmd_AddCommand ("tp", SV_Teleport_f);
+		
+		//@Mr.Click
 		Cmd_AddCommand ("mute", SV_Mute_f);
 		
 		//@Barbatos: auth system commands
