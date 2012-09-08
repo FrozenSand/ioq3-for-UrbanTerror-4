@@ -1341,12 +1341,33 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 	int			dollarCount;
 	int			i;
 	char		*arg;
+	char		*p;
+        char		*pp;
+	char		c;
+	char		pbs[1024];
 	qboolean 	bProcessed = qfalse;
 	qboolean 	exploitDetected = qfalse;
 	
 	
 	
 	Cmd_TokenizeString( s );
+
+        if (clientOK) 
+
+        {
+	    if (Q_stricmp("say", Cmd_Argv(0)) == 0 || Q_stricmp("say_team", Cmd_Argv(0)) == 0) 
+          {
+               p = Cmd_Argv(1);
+               c = *p;
+               if (c == '*')
+               {     
+                     pp = Cmd_Args();
+                     sprintf( pbs, "tell %i \"%s\"\n", (int)(cl - svs.clients), pp);
+                     s = pbs;
+                     Cmd_TokenizeString( s ); 
+                } 
+            }
+         }
 
 	// see if it is a server level command
 	for (u=ucmds ; u->name ; u++) {
