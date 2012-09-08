@@ -1517,6 +1517,100 @@ static void SV_Teleport_f(void)
 
 /*
 ==================
+SV_Mute_f
+Mute a player by blocking all future say, say_team, tell, ut_radio
+==================
+*/
+static void SV_Mute_f(void) {
+    
+    client_t *cl;
+    int i, tm, msec;
+    char *s, *t;
+
+    // Make sure server is running.
+	if (!com_sv_running->integer) {
+		Com_Printf("Server is not running.\n");
+		return;
+	}
+
+    if ((Cmd_Argc() != 2) && (Cmd_Argc() != 3)) {
+        Com_Printf("Usage: mute <player> [<duration>]\n");
+        return;
+    }
+   
+    cl = SV_GetPlayerByHandle();
+    if (!cl) {
+        Com_Printf ("Unable to find specified player.\n");
+        return;
+    }
+    
+    if (Cmd_Argc() == 3) {
+        
+        // the admin specified a duration for the mute command
+        // we are going to check if he specified a numeric value
+        s = Cmd_Argv(2);
+        for (i = 0; isdigit(s[i]); i++);
+        
+        if(!s[i]) {
+            tm = atoi(s);
+            if (tm > 0) {
+                // specified a positive duration value
+                // we are going to mute the player and set the expire time
+                // in order to have a correct unmute issued by SV_Frame_f
+                msec = tm * 1000;
+                cl->muteExpireTime = svs.time + msec;
+                cl->muted = qtrue; // ensure to have a correct mute
+                
+                if (tm < 60) {
+                    // displaying seconds
+                    if (tm == 1) { t = "second"; }
+                    else { t = "seconds"; }
+                }
+                else {
+                    // displaying minutes
+                    tm = (int)ceil(tm/60);
+                    if (tm == 1) { t = "minute"; }
+                    else { t = "minutes"; }
+                }
+                
+                // displaying the text on the screen
+                SV_SendServerCommand(NULL, "print \"%s has been ^1muted ^7by the admin for ^1%i ^7%s.\n\"", Q_CleanStr(cl->name), tm, t);
+                return;
+            }
+            else {
+                // specified 0 or negative value (mostly 0)
+                // that means we have to unmute this player
+                // we will se the expireTime to 0 to bypasse the unmute issued by SV_Frame_f
+                cl->muteExpireTime = 0;
+                cl->muted = qfalse; // ensure to have a correct unmute
+                SV_SendServerCommand(NULL, "print \"%s has been ^2unmuted ^7by the admin.\n\"", Q_CleanStr(cl->name));
+                return;
+            }
+        }
+        else {
+            Com_Printf("Usage: mute <player> [<duration>]\n");
+            return;
+        }
+    }
+   
+    // duration not specified
+    // we have just to switch the mute flag here
+    // and set expireTime to 0
+    cl->muted = !cl->muted;
+   cl->muteExpireTime = 0;
+    if (cl->muted) { 
+        // the player has been muted
+        SV_SendServerCommand(NULL, "print \"%s has been ^1muted ^7by the admin.\n\"", Q_CleanStr(cl->name)); 
+    }
+    else { 
+        // the player has been unmuted
+        SV_SendServerCommand(NULL, "print \"%s has been ^2unmuted ^7by the admin.\n\"", Q_CleanStr(cl->name)); 
+    }
+    
+}
+
+/*
+==================
 SV_CompleteMapName
 ==================
 */
@@ -1686,7 +1780,7 @@ void SV_AddOperatorCommands( void ) {
 		Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
 		Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);
 
-		//@Gh0sT: Private Bigtext, Rename , Fast Restart, Teleport
+		//@Gh0sT: Private Bigtext, Rename , Fast Restart, Teleport, mute temp
 		Cmd_AddCommand ("privatebigtext", SV_PrivateBigtext_f);
 		Cmd_AddCommand ("pbigtext", SV_PrivateBigtext_f);
 		Cmd_AddCommand ("rename", SV_Rename_f);
@@ -1694,6 +1788,7 @@ void SV_AddOperatorCommands( void ) {
     		Cmd_AddCommand ("fastrestart", SV_FastRestart_f);
 		Cmd_AddCommand ("teleport", SV_Teleport_f);
 		Cmd_AddCommand ("tp", SV_Teleport_f);
+		Cmd_AddCommand ("mute", SV_Mute_f);
 		
 		//@Barbatos: auth system commands
 		#ifdef USE_AUTH

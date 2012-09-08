@@ -378,6 +378,36 @@ void SVC_Status( netadr_t from ) {
 }
 
 /*
+==================
+SV_UnmutePlayers
+
+Unmute all the players that expired the muting time
+==================
+*/
+static void SV_UnmutePlayers(void) {
+    
+    int i;
+    client_t *cl;
+
+    for (i=0, cl=svs.clients; i<sv_maxclients->integer; i++,cl++) {
+       
+		if (cl->state != CS_ACTIVE) { continue; }
+        if ((cl->muteExpireTime != 0) && (cl->muteExpireTime < svs.time)) {
+            // muting time expired
+            // checking if the player is still muted (prevent bugs)
+            if (cl-> muted) {
+                // the player is still muted
+                // we are going to ensure an unmute
+                // we also have to set expireTime to 0 to bypass the next Frame occurrence
+                cl->muted = qfalse;
+                cl->muteExpireTime = 0;
+                SV_SendServerCommand(NULL, "print \"%s has been ^2unmuted ^7by the admin.\n\"", Q_CleanStr(cl->name));
+            }
+        }
+	}
+}
+
+/*
 ================
 SVC_Info
 
@@ -1090,6 +1120,9 @@ void SV_Frame( int msec ) {
 
 	// send a heartbeat to the master if needed
 	SV_MasterHeartbeat();
+
+	// unmute all the player who expired the mute time
+	SV_UnmutePlayers();
 }
 
 //============================================================================

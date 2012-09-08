@@ -1357,6 +1357,20 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 		}
 	}
 
+    if ((!Q_stricmp("callvote", Cmd_Argv(0))) || 
+        (!Q_stricmp("vote", Cmd_Argv(0))) || 
+        (!Q_stricmp("ut_radio", Cmd_Argv(0))) ||
+        (!Q_stricmp("say", Cmd_Argv(0))) || 
+        (!Q_stricmp("say_team", Cmd_Argv(0))) || 
+        (!Q_stricmp("tell", Cmd_Argv(0)))) {
+        
+        // Mutefix
+        if (cl->muted) {
+            SV_SendServerCommand(cl,"print \"You are currently ^1muted ^7and you may not perform this action.\n\"");
+            return;
+         }
+	}
+
 	if (clientOK) {
 		// pass unknown strings to the game
 		if (!u->name && sv.state == SS_GAME) {

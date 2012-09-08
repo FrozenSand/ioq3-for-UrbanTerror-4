@@ -176,7 +176,11 @@ typedef struct client_s {
 	int		demo_deltas;	// how many delta frames did we let through so far?
 	
 	int				oldServerTime;
-	qboolean			csUpdated[MAX_CONFIGSTRINGS+1];	
+	qboolean			csUpdated[MAX_CONFIGSTRINGS+1];
+
+	qboolean muted;                             // qtrue => the player is muted
+	int muteExpireTime;                         // If != 0 define the time when the player is going to be unmuted
+
 } client_t;
 
 //=============================================================================
