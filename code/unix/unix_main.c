@@ -354,7 +354,7 @@ void Sys_Exit( int ex ) {
 #else
 
   // Give me a backtrace on error exits.
-  assert( ex == 0 );
+  //  assert( ex == 0 );
   exit(ex);
 #endif
 }

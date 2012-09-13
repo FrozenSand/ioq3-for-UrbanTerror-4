@@ -106,7 +106,7 @@ typedef struct {
 typedef enum {
 	//============== general Quake services ==================
 
-	G_PRINT,		// ( const char *string );
+	G_PRINT = 0,		// ( const char *string );
 	// print message on the local console
 
 	G_ERROR,		// ( const char *string );
@@ -390,7 +390,7 @@ typedef enum {
 
 	//@Barbatos
 #ifdef USE_AUTH
-	G_NET_STRINGTOADR,
+	G_NET_STRINGTOADR = 600,
 	G_NET_SENDPACKET,
 	G_SYS_STARTPROCESS,
 	G_AUTH_DROP_CLIENT

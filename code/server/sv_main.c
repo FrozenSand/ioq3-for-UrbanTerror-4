@@ -253,6 +253,7 @@ void SV_MasterHeartbeat( void ) {
 
 
 	#ifdef USE_AUTH
+    Com_Printf( "server GAME_AUTHSERVER_HEARTBEAT\n" );
 	VM_Call( gvm, GAME_AUTHSERVER_HEARTBEAT );
 	#endif
 	
@@ -313,6 +314,7 @@ void SV_MasterShutdown( void ) {
 	// it will be removed from the list
 	
 	#ifdef USE_AUTH
+    Com_Printf( "server GAME_AUTHSERVER_SHUTDOWN\n" );
 	VM_Call( gvm, GAME_AUTHSERVER_SHUTDOWN );
 	#endif
 }
@@ -741,6 +743,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 			Com_Printf( "AUTH not from the Auth Server\n" );
 			return;
 		}
+        Com_Printf( "server GAME_AUTHSERVER_PACKET\n" );
 		VM_Call(gvm, GAME_AUTHSERVER_PACKET);
 	} 
 	#endif
