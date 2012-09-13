@@ -334,7 +334,6 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		Cvar_Register( VMA(1), VMA(2), VMA(3), args[4] ); 
 		return 0;
 	case G_CVAR_UPDATE:
-      //      Com_Printf( "server G_CVAR_UPDATE\n" );
 		Cvar_Update( VMA(1) );
 		return 0;
 	case G_CVAR_SET:

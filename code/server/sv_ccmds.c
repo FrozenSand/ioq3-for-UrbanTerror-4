@@ -1402,7 +1402,6 @@ static void SV_Auth_Whois_f( void ) {
 				if (cl->state != CS_ACTIVE) 
 					continue;
 
-                Com_Printf( "server GAME_AUTH_WHOIS\n" );
 				VM_Call(gvm, GAME_AUTH_WHOIS, (int)(cl - svs.clients));
 			}
 
@@ -1418,7 +1417,6 @@ static void SV_Auth_Whois_f( void ) {
 	if ( !cl ) 
 		return;
 
-    Com_Printf( "server GAME_AUTH_WHOIS\n" );
 	VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
 }
 
@@ -1478,7 +1476,6 @@ static void SV_Auth_Ban_f( void ) {
 		return;
 	}
 
-    Com_Printf( "server GAME_AUTH_BAN\n" );
 	VM_Call(gvm, GAME_AUTH_BAN, idnum, atoi(days), atoi(hours), atoi(mins));
 }
 
