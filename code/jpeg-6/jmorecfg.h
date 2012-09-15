@@ -158,7 +158,7 @@ typedef short INT16;
 /* INT32 must hold at least signed 32-bit values. */
 
 /* MinGW basetsd.h defines INT32 - don't redefine it */
-#if !defined(XMD_H) && !defined(_BASETSD_H) 
+#if !defined(XMD_H) && !defined(_BASETSD_H_)
 typedef long INT32;
 #endif
 
