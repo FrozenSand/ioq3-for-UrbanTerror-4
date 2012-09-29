@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>Quake3-UrT.i386</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Quake3-UrT 4.2.002</string>
+	<key>NSHumanReadableCopyright</key>
+	<string></string>
+	<key>CFBundleIconFile</key>
+	<string>quake3-urt.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.frozensand.quake3-urt</string>
+	<key>CFBundleName</key>
+	<string>Quake3-UrT</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>Q3URT</string>
+	<key>CFBundleShortVersionString</key>
+	<string>4.2.002</string>
+	<key>CFBundleVersion</key>
+	<string>4.2.002</string>
+	<key>NSExtensions</key>
+	<dict/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+</dict>
+</plist>
