@@ -1858,7 +1858,7 @@ Resend a connect message if the last one has timed out
 */
 void CL_CheckForResend( void ) {
 	int		port, i;
-	char	data[ MAX_INFO_STRING + 10 ];
+	char	data[ MAX_INFO_STRING + 11 ];
 	char	*info = &data[9];
 
 	// don't send anything if playing back a demo
@@ -1905,8 +1905,8 @@ void CL_CheckForResend( void ) {
 		
 	i = strlen(info);
 	
-	data[ 8 + i ] = '"';
-	data[ 9 + i ] = '\0';
+	data[ 9 + i ] = '"';
+	data[ 10 + i ] = '\0';
 
 	
     // NOTE TTimo don't forget to set the right data length!
