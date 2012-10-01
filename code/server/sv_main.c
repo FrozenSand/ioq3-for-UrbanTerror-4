@@ -530,6 +530,7 @@ void SVC_RemoteCommand( netadr_t from, msg_t *msg ) {
 	qboolean	valid;
 	unsigned int time;
 	char		remaining[1024];
+	netadr_t	allowedSpamIPAdress;
 	// TTimo - scaled down to accumulate, but not overflow anything network wise, print wise etc.
 	// (OOB messages are the bottleneck here)
 #define SV_OUTPUTBUF_LENGTH (1024 - 16)
@@ -540,10 +541,14 @@ void SVC_RemoteCommand( netadr_t from, msg_t *msg ) {
 	// TTimo - https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=534
 	time = Com_Milliseconds();
 	
+	
+	NET_StringToAdr( sv_rconAllowedSpamIP->string , &allowedSpamIPAdress);
+	
+	
 	if ( !strlen( sv_rconPassword->string ) || strcmp (Cmd_Argv(1), sv_rconPassword->string) ) 
 	{
 		// let's the sv_rconAllowedSpamIP do spam rcon
-		if ( !strlen( sv_rconAllowedSpamIP->string ) || strcmp ( NET_AdrToString (from) , sv_rconAllowedSpamIP->string) ){
+		if ( !strlen( sv_rconAllowedSpamIP->string ) || !NET_CompareBaseAdr( from , allowedSpamIPAdress ) || !NET_IsLocalAddress(from) ){
 			// MaJ - If the rconpassword is bad and one just happned recently, don't spam the log file, just die.
 			if ( (unsigned)( time - lasttime ) < 600u )
 				return;
@@ -554,7 +559,7 @@ void SVC_RemoteCommand( netadr_t from, msg_t *msg ) {
 	} else {
 	
 		// let's the sv_rconAllowedSpamIP do spam rcon
-		if ( !strlen( sv_rconAllowedSpamIP->string ) || strcmp ( NET_AdrToString (from) , sv_rconAllowedSpamIP->string) ){
+		if ( !strlen( sv_rconAllowedSpamIP->string ) || !NET_CompareBaseAdr( from , allowedSpamIPAdress ) || !NET_IsLocalAddress(from) ){
 			// MaJ - If the rconpassword is good, allow it much sooner than a bad one.
 			if ( (unsigned)( time - lasttime ) < 180u )
 				return;
