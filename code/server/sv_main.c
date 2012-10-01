@@ -548,7 +548,7 @@ void SVC_RemoteCommand( netadr_t from, msg_t *msg ) {
 	if ( !strlen( sv_rconPassword->string ) || strcmp (Cmd_Argv(1), sv_rconPassword->string) ) 
 	{
 		// let's the sv_rconAllowedSpamIP do spam rcon
-		if ( !strlen( sv_rconAllowedSpamIP->string ) || !NET_CompareBaseAdr( from , allowedSpamIPAdress ) || !NET_IsLocalAddress(from) ){
+		if ( !strlen( sv_rconAllowedSpamIP->string ) || ( !NET_CompareBaseAdr( from , allowedSpamIPAdress ) && !NET_IsLocalAddress(from) ) ){
 			// MaJ - If the rconpassword is bad and one just happned recently, don't spam the log file, just die.
 			if ( (unsigned)( time - lasttime ) < 600u )
 				return;
@@ -559,7 +559,7 @@ void SVC_RemoteCommand( netadr_t from, msg_t *msg ) {
 	} else {
 	
 		// let's the sv_rconAllowedSpamIP do spam rcon
-		if ( !strlen( sv_rconAllowedSpamIP->string ) || !NET_CompareBaseAdr( from , allowedSpamIPAdress ) || !NET_IsLocalAddress(from) ){
+		if ( !strlen( sv_rconAllowedSpamIP->string ) || ( !NET_CompareBaseAdr( from , allowedSpamIPAdress ) && !NET_IsLocalAddress(from) ) ){
 			// MaJ - If the rconpassword is good, allow it much sooner than a bad one.
 			if ( (unsigned)( time - lasttime ) < 180u )
 				return;
