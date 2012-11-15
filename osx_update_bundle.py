@@ -1,4 +1,23 @@
+#!/usr/bin/env python
 
+import sys, shutil, os, re
+
+MODVERSION_FILE='code/qcommon/q_shared.h'
+INFO_PATH='binaries/Quake3-UrT.app/Contents/Info.plist'
+ENGINE_PATH='binaries/Quake3-UrT.app/Contents/MacOS'
+
+if ( __name__ == '__main__' ):
+    build_dir = sys.argv[1]
+    engine_exe = sys.argv[2].lstrip('/')
+    engine_path = os.path.join( build_dir, engine_exe )
+    print( '%s -> %s' % ( repr( engine_path ), repr( ENGINE_PATH ) ) )
+    shutil.copy( engine_path, ENGINE_PATH )
+
+    l = filter( lambda l : l.find( '#define Q3_VERSION ' ) == 0, file( MODVERSION_FILE ).readlines() )[0]
+    version = re.match( '.*"(.*)"', l ).groups()[0]
+
+    info_plist = file( INFO_PATH, 'w' )
+    info_plist.write( '''
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -10,7 +29,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Quake3-UrT.i386</string>
 	<key>CFBundleGetInfoString</key>
-	<string>ioQ3 1.35 urt 4.2.007</string>
+	<string>%s</string>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
 	<key>CFBundleIconFile</key>
@@ -24,12 +43,13 @@
 	<key>CFBundleSignature</key>
 	<string>Q3URT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>ioQ3 1.35 urt 4.2.007</string>
+	<string>%s</string>
 	<key>CFBundleVersion</key>
-	<string>ioQ3 1.35 urt 4.2.007</string>
+	<string>%s</string>
 	<key>NSExtensions</key>
 	<dict/>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 </dict>
 </plist>
+''' % ( version, version, version ) )

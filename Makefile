@@ -849,6 +849,10 @@ debug:
 
 release:
 	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(RELEASE_CFLAGS)" V=$(V)
+ifeq ($(PLATFORM),darwin)
+	@echo "Updating OSX bundle"
+	./osx_update_bundle.py "$(BR)" $(TARGETS)
+endif
 
 # Create the build directories and tools, print out
 # an informational message, then start building
@@ -1753,15 +1757,6 @@ toolsclean:
 
 distclean: clean toolsclean
 	@rm -rf $(BUILD_DIR)
-
-installer: release
-	@$(MAKE) VERSION=$(VERSION) -C $(LOKISETUPDIR) V=$(V)
-
-dist:
-	rm -rf ioUrbanTerror-$(SVN_VERSION)
-	svn export . ioUrbanTerror-$(SVN_VERSION)
-	tar --owner=root --group=root --force-local -cjf ioUrbanTerror-$(SVN_VERSION).tar.bz2 ioUrbanTerror-$(SVN_VERSION)
-	rm -rf ioUrbanTerror-$(SVN_VERSION)
 
 #############################################################################
 # DEPENDENCIES
