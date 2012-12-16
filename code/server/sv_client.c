@@ -73,20 +73,21 @@ void SV_GetChallenge( netadr_t from ) {
 		// this is the first time this client has asked for a challenge
 		challenge = &svs.challenges[oldest];
 
-		challenge->challenge = ( (rand() << 16) ^ rand() ) ^ svs.time;
 		challenge->adr = from;
 		challenge->firstTime = svs.time;
-		challenge->time = svs.time;
 		challenge->connected = qfalse;
-		challenge->pingTime = -1;
 		i = oldest;
 	}
 
-		if (challenge->pingTime == -1) 
-			challenge->pingTime = svs.time;
+	// always generate a new challenge number, so the client cannot circumvent sv_maxping
+    challenge->challenge = ( (rand() << 16) ^ rand() ) ^ svs.time;
+    challenge->wasrefused = qfalse;
+    challenge->time = svs.time;
 
-		NET_OutOfBandPrint( NS_SERVER, from, "challengeResponse %i", challenge->challenge );
-		return;
+    challenge->pingTime = svs.time;
+
+	NET_OutOfBandPrint( NS_SERVER, from, "challengeResponse %i", challenge->challenge );
+	return;
 }
 
 /*
@@ -250,6 +251,10 @@ void SV_DirectConnect( netadr_t from ) {
 			return;
 		}
 
+		// Return silently, so that error messages written by the server keep being displayed.
+		if(svs.challenges[i].wasrefused)
+			return;
+
 		if (!svs.challenges[i].connected) {
 			ping = svs.time - svs.challenges[i].pingTime;
 			svs.challenges[i].challengePing = ping;
@@ -270,12 +275,14 @@ void SV_DirectConnect( netadr_t from ) {
 				// reset the address otherwise their ping will keep increasing
 				// with each connect message and they'd eventually be able to connect
 				svs.challenges[i].adr.port = 0;
+				svs.challenges[i].wasrefused = qtrue;
 				return;
 			}
 			if ( sv_maxPing->value && ping > sv_maxPing->value ) {
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for low pings only\n" );
 				Com_DPrintf ("Client %i rejected on a too high ping\n", i);
 				svs.challenges[i].adr.port = 0;
+				svs.challenges[i].wasrefused = qtrue;
 				return;
 			}
 		}
