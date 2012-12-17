@@ -569,10 +569,11 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 {
 	Uint16 table[3][256];
 	int i, j;
-//	float g;
+    //	float g;
 
-	if(r_ignorehwgamma->integer)
+	if ( r_ignorehwgamma->integer ) {
 		return;
+    }
 
 	// taken from win_gamma.c:
 	for (i = 0; i < 256; i++)
@@ -592,10 +593,22 @@ void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned 
 		}
 	}
 
-	SDL_SetGammaRamp(table[0], table[1], table[2]);
-
-//	g  = Cvar_Get("r_gamma", "1.0", 0)->value;
-//	SDL_SetGamma(g, g, g);
+#if 1
+    Com_Printf( "SDL_SetGammaRamp: " );
+	if ( SDL_SetGammaRamp( table[0], table[1], table[2] ) < 0 ) {
+        Com_Printf( "failed\n" );
+    } else {
+        Com_Printf( "success\n" );
+    }
+#else
+	g = Cvar_Get( "r_gamma", "1.0", 0 )->value;
+    Com_Printf( "SDL_SetGamma %f: ", g );
+	if ( SDL_SetGamma( g, g, g ) ) {
+        Com_Printf( "failed\n" );
+    } else {
+        Com_Printf( "success\n" );
+    }    
+#endif
 }
 
 /*
