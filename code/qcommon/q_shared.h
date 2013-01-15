@@ -917,7 +917,9 @@ typedef enum {
 // per-level limits
 //
 #define	MAX_CLIENTS			64		// absolute limit
-#define MAX_LOCATIONS		64
+
+//@Barbatos - previously 64 - was too low, some custom jump maps have like 200 locations (!!)
+#define MAX_LOCATIONS		360
 
 #define	GENTITYNUM_BITS		10		// don't need to send any more
 #define	MAX_GENTITIES		(1<<GENTITYNUM_BITS)
