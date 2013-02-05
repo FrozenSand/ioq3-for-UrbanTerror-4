@@ -1919,6 +1919,7 @@ void CL_CheckForResend( void ) {
 
 	default:
 		Com_Error( ERR_FATAL, "CL_CheckForResend: bad cls.state" );
+		break;
 	}
 }
 
