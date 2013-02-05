@@ -1256,9 +1256,9 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 
 		CL_AddKeyUpCommands( key, kb, time );
 
-		if ( cls.keyCatchers & KEYCATCH_UI && uivm ) {
+		if ( (cls.keyCatchers & KEYCATCH_UI) && uivm ) {
 			VM_Call( uivm, UI_KEY_EVENT, key, down );
-		} else if ( cls.keyCatchers & KEYCATCH_CGAME && cgvm ) {
+		} else if ( (cls.keyCatchers & KEYCATCH_CGAME) && cgvm ) {
 			VM_Call( cgvm, CG_KEY_EVENT, key, down );
 		} 
 
