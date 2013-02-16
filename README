@@ -115,6 +115,9 @@ New cvars
   cl_autoRecordDemo                 - record a new demo on each map change
   cl_aviFrameRate                   - the framerate to use when capturing video
   cl_aviMotionJpeg                  - use the mjpeg codec when capturing video
+  cl_mouseAccelStyle                - Set to 1 for QuakeLive mouse acceleration
+                                      behaviour, 0 for standard q3
+  cl_mouseAccelOffset               - Tuning the acceleration curve, see below
 
   s_useOpenAL                       - use the OpenAL sound backend if available
   s_alPrecache                      - cache OpenAL sounds before use
@@ -189,6 +192,53 @@ Using Demo Data Files
   Please bear in mind that you will not be able to play online using the demo
   data, nor is it something that we like to spend much time maintaining or
   supporting.
+
+
+QuakeLive mouse acceleration (patch and this text written by TTimo from id)
+  I've been using an experimental mouse acceleration code for a while, and
+  decided to make it available to everyone. Don't be too worried if you don't
+  understand the explanations below, this is mostly intended for advanced
+  players:
+  To enable it, set cl_mouseAccelStyle 1 (0 is the default/legacy behavior)
+
+  New style is controlled with 3 cvars:
+
+  sensitivity
+  cl_mouseAccel
+  cl_mouseAccelOffset
+
+  The old code (cl_mouseAccelStyle 0) can be difficult to calibrate because if
+  you have a base sensitivity setup, as soon as you set a non zero acceleration
+  your base sensitivity at low speeds will change as well. The other problem
+  with style 0 is that you are stuck on a square (power of two) acceleration
+  curve.
+
+  The new code tries to solve both problems:
+
+  Once you setup your sensitivity to feel comfortable and accurate enough for
+  low mouse deltas with no acceleration (cl_mouseAccel 0), you can start
+  increasing cl_mouseAccel and tweaking cl_mouseAccelOffset to get the
+  amplification you want for high deltas with little effect on low mouse deltas.
+
+  cl_mouseAccel is a power value. Should be >= 1, 2 will be the same power curve
+  as style 0. The higher the value, the faster the amplification grows with the
+  mouse delta.
+
+  cl_mouseAccelOffset sets how much base mouse delta will be doubled by
+  acceleration. The closer to zero you bring it, the more acceleration will
+  happen at low speeds. This is also very useful if you are changing to a new
+  mouse with higher dpi, if you go from 500 to 1000 dpi, you can divide your
+  cl_mouseAccelOffset by two to keep the same overall 'feel' (you will likely
+  gain in precision when you do that, but that is not related to mouse
+  acceleration).
+
+  Mouse acceleration is tricky to configure, and when you do you'll have to
+  re-learn your aiming. But you will find that it's very much forth it in the
+  long run.
+
+  If you try the new acceleration code and start using it, I'd be very
+  interested by your feedback.
+
 
 64bit mods
   If you wish to compile external mods as shared libraries on a 64bit platform,

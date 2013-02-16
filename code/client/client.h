@@ -381,10 +381,13 @@ extern	cvar_t	*cl_autoRecordDemo;
 extern	cvar_t	*cl_altTab;
 
 #ifdef USE_AUTH
-extern cvar_t	*cl_auth_engine;
-extern cvar_t   *cl_auth;
-extern cvar_t   *authc;
+extern  cvar_t	*cl_auth_engine;
+extern  cvar_t  *cl_auth;
+extern  cvar_t  *authc;
 #endif
+
+extern  cvar_t  *cl_mouseAccelOffset;
+extern  cvar_t  *cl_mouseAccelStyle;
 
 //=================================================
 
