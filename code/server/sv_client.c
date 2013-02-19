@@ -1350,6 +1350,7 @@ Also called by bot code
 ==================
 */
 void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
+
 	ucmd_t		*u;
 	int			argsFromOneMaxlen;
 	int			charCount;
@@ -1358,8 +1359,6 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 	char		*arg;
 	qboolean 	bProcessed = qfalse;
 	qboolean 	exploitDetected = qfalse;
-	
-	
 	
 	Cmd_TokenizeString( s );
 
@@ -1373,8 +1372,9 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 	}
 
 	if (clientOK) {
+
 		// pass unknown strings to the game
-		if (!u->name && sv.state == SS_GAME) {
+		if ((!u->name) && (sv.state == SS_GAME) && (cl->state == CS_ACTIVE)) {
 			Cmd_Args_Sanitize();
 
 			argsFromOneMaxlen = -1;
