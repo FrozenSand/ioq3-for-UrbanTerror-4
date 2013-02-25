@@ -116,6 +116,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #else
   #ifndef _MSC_VER
     #include <stdint.h>
+    #define Q_vsnprintf vsnprintf
   #else
     #include <io.h>
     typedef __int64 int64_t;
@@ -126,6 +127,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
     typedef unsigned __int32 uint32_t;
     typedef unsigned __int16 uint16_t;
     typedef unsigned __int8 uint8_t;
+
+    int Q_vsnprintf(char *str, size_t size, const char *format, va_list ap);
   #endif
 #endif
 
