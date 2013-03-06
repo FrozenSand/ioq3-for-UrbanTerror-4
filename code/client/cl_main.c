@@ -615,7 +615,7 @@ void CL_PlayDemo_f( void ) {
 #endif
 	
 	if (Cmd_Argc() != 2) {
-		Com_Printf ("playdemo <demoname>\n");
+		Com_Printf ("demo <demoname>\n");
 		return;
 	}
 
@@ -631,10 +631,7 @@ void CL_PlayDemo_f( void ) {
 	#ifdef USE_DEMO_FORMAT_42	
 		// check for an extension .urtdemo
 		ext_test = arg + strlen(arg) - 8;
-		if ((strlen(arg) > 8) && (ext_test[0] == '.')	&& ((ext_test[1] == 'u') || (ext_test[1] == 'U'))	&& ((ext_test[2] == 'r') || (ext_test[2] == 'R'))
-														&& ((ext_test[3] == 't') || (ext_test[3] == 'T'))	&& ((ext_test[4] == 'd') || (ext_test[4] == 'D'))
-														&& ((ext_test[5] == 'e') || (ext_test[5] == 'E'))	&& ((ext_test[6] == 'm') || (ext_test[6] == 'M'))
-														&& ((ext_test[7] == 'o') || (ext_test[7] == 'O'))	)
+		if(!strcmp(ext_test, ".urtdemo") || !strcmp(ext_test, ".URTDEMO"))
 		{
 			Com_sprintf (name, sizeof(name), "demos/%s", arg);
 			FS_FOpenFileRead( name, &clc.demofile, qtrue );
