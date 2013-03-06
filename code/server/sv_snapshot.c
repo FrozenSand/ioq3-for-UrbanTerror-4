@@ -316,15 +316,14 @@ SV_AddEntitiesVisibleFromPoint
 */
 static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *frame, 
 									snapshotEntityNumbers_t *eNums, qboolean portal ) {
-	int		e, i;
-	sharedEntity_t *ent;
-	svEntity_t	*svEnt;
-	int		l;
-	int		clientarea, clientcluster;
-	int		leafnum;
-	int		c_fullsend;
-	byte	*clientpvs;
-	byte	*bitvector;
+	int		        e, i;
+	sharedEntity_t  *ent;
+	svEntity_t	    *svEnt;
+	int		        l;
+	int		        clientarea, clientcluster;
+	int		        leafnum;
+	byte	        *clientpvs;
+	byte	        *bitvector;
 
 	// during an error shutdown message we may need to transmit
 	// the shutdown message after the server has shutdown, so
@@ -341,8 +340,6 @@ static void SV_AddEntitiesVisibleFromPoint( vec3_t origin, clientSnapshot_t *fra
 	frame->areabytes = CM_WriteAreaBits( frame->areabits, clientarea );
 
 	clientpvs = CM_ClusterPVS (clientcluster);
-
-	c_fullsend = 0;
 
 	for ( e = 0 ; e < sv.num_entities ; e++ ) {
 		ent = SV_GentityNum(e);
