@@ -262,7 +262,6 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	int			i;
 	struct stat st;
 
-	int			extLen;
 
 	if (filter) {
 
@@ -291,8 +290,6 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		extension = "";
 		dironly = qtrue;
 	}
-
-	extLen = strlen( extension );
 	
 	// search
 	nfiles = 0;

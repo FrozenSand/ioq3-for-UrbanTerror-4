@@ -919,7 +919,7 @@ void *Z_TagMallocDebug( int size, int tag, char *label, char *file, int line ) {
 #else
 void *Z_TagMalloc( int size, int tag ) {
 #endif
-	int		extra, allocSize;
+	int		extra;
 	memblock_t	*start, *rover, *new, *base;
 	memzone_t *zone;
 
@@ -934,7 +934,6 @@ void *Z_TagMalloc( int size, int tag ) {
 		zone = mainzone;
 	}
 
-	allocSize = size;
 	//
 	// scan through the block list looking for the first free block
 	// of sufficient size
@@ -2690,11 +2689,10 @@ Com_Frame
 */
 void Com_Frame( void ) {
 
-	int		msec, minMsec;
-	static int	lastTime;
-	int key;
+	int		      msec, minMsec;
+	static int	  lastTime;
  
-	int		timeBeforeFirstEvents;
+	int		      timeBeforeFirstEvents;
 	int           timeBeforeServer;
 	int           timeBeforeEvents;
 	int           timeBeforeClient;
@@ -2718,7 +2716,7 @@ void Com_Frame( void ) {
 
 
 	// old net chan encryption key
-	key = 0x87243987;
+	// key = 0x87243987;
 
 	// write config file if anything changed
 	Com_WriteConfiguration(); 
@@ -2854,7 +2852,7 @@ void Com_Frame( void ) {
 	}
 
 	// old net chan encryption key
-	key = lastTime * 0x87243987;
+	// key = lastTime * 0x87243987;
 
 	com_frameNumber++;
 }

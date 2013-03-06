@@ -302,13 +302,13 @@ copied out.
 =================
 */
 qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
+
 	int			sequence;
-	int			qport;
 	int			fragmentStart, fragmentLength;
 	qboolean	fragmented;
 
 	// XOR unscramble all data in the packet after the header
-//	Netchan_UnScramblePacket( msg );
+    // Netchan_UnScramblePacket( msg );
 
 	// get sequence numbers		
 	MSG_BeginReadingOOB( msg );
@@ -324,7 +324,7 @@ qboolean Netchan_Process( netchan_t *chan, msg_t *msg ) {
 
 	// read the qport if we are a server
 	if ( chan->sock == NS_SERVER ) {
-		qport = MSG_ReadShort( msg );
+		MSG_ReadShort( msg );
 	}
 
 	// read the fragment information

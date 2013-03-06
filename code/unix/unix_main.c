@@ -1224,7 +1224,7 @@ static int tty_colorTableSize =
 
 void Sys_ANSIColorify( const char *msg, char *buffer, int bufferSize )
 {
-  int   msgLength, pos;
+  int   msgLength;
   int   i, j;
   char  *escapeCode;
   char  tempBuffer[ 7 ];
@@ -1233,7 +1233,6 @@ void Sys_ANSIColorify( const char *msg, char *buffer, int bufferSize )
     return;
 
   msgLength = strlen( msg );
-  pos = 0;
   i = 0;
   buffer[ 0 ] = '\0';
 
