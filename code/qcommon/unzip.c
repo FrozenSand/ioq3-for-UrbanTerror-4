@@ -2060,9 +2060,9 @@ extern int unzReadCurrentFile  (unzFile file, void *buf, unsigned len)
 			uTotalOutAfter = pfile_in_zip_read_info->stream.total_out;
 			uOutThis = uTotalOutAfter-uTotalOutBefore;
 			
-			pfile_in_zip_read_info->crc32 =
-                crc32(pfile_in_zip_read_info->crc32,bufBefore,
-                        (uInt)(uOutThis));
+			// pfile_in_zip_read_info->crc32 =
+            //    crc32(pfile_in_zip_read_info->crc32,bufBefore,
+            //            (uInt)(uOutThis));
 
 			pfile_in_zip_read_info->rest_read_uncompressed -=
                 uOutThis;
