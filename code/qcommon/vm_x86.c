@@ -1070,7 +1070,9 @@ void VM_Compile( vm_t *vm, vmHeader_t *header ) {
 			break;
 		default:
 			Com_Error( ERR_DROP, "VM_CompileX86: bad opcode %i at offset %i", op, pc );
+			break;
 		}
+
 		pop0 = pop1;
 		pop1 = op;
 	}

@@ -157,6 +157,7 @@ void Cbuf_ExecuteText (int exec_when, const char *text)
 		break;
 	default:
 		Com_Error (ERR_FATAL, "Cbuf_ExecuteText: bad exec_when");
+		break;
 	}
 }
 
@@ -293,10 +294,14 @@ void Cmd_PVstr_f( void ) {
 			break;
 		default:
 			Com_Printf("Cmd_PVstr_f: unexpected leading character '%c'\n", Cmd_Argv( 0 )[0]);
+			break;
+
 	}
+
 	if (v) {
 		Cbuf_InsertText( va("%s\n", v ) );
 	}
+
 }
 
 /*
