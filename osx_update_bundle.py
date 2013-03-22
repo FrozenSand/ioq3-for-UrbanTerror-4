@@ -53,3 +53,5 @@ if ( __name__ == '__main__' ):
 </dict>
 </plist>
 ''' % ( version, version, version ) )
+
+    print( 'OSX binary is ready: %s' % version )
