@@ -377,7 +377,7 @@ ifeq ($(PLATFORM),darwin)
   BASE_CFLAGS += -fno-strict-aliasing -DMACOS_X -fno-common -pipe
 
   # Always include debug symbols...you can strip the binary later...
-  BASE_CFLAGS += -gfull
+  #BASE_CFLAGS += -gfull //@Barbatos removed them
 
   ifeq ($(USE_OPENAL),1)
     BASE_CFLAGS += -DUSE_OPENAL=1
