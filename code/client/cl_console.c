@@ -673,7 +673,7 @@ void Con_DrawSolidConsole( float frac ) {
 			}
 
 			if ( ( (text[x]>>8)&7 ) != currentColor ) {
-				currentColor = (text[x]>>8)%7;
+				currentColor = (text[x] >> 8) % 10;
 				re.SetColor( g_color_table[currentColor] );
 			}
 			SCR_DrawSmallChar(  con.xadjust + (x+1)*SMALLCHAR_WIDTH, y, text[x] & 0xff );
