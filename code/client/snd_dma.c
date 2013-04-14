@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "snd_local.h"
 #include "snd_codec.h"
 #include "client.h"
+#include "snd_dmahd.h"
 
 void S_Play_f(void);
 void S_SoundList_f(void);
@@ -60,14 +61,14 @@ channel_t   s_channels[MAX_CHANNELS];
 channel_t   loop_channels[MAX_CHANNELS];
 int			numLoopChannels;
 
-static int	s_soundStarted;
-static		qboolean	s_soundMuted;
+int			s_soundStarted = 0;
+qboolean	s_soundMuted = qfalse;
 
 dma_t		dma;
 
-static int			listener_number;
-static vec3_t		listener_origin;
-static vec3_t		listener_axis[3];
+int			listener_number = 0;
+vec3_t		listener_origin;
+vec3_t		listener_axis[3];
 
 int			s_soundtime;		// sample PAIRS
 int   		s_paintedtime; 		// sample PAIRS
@@ -87,7 +88,7 @@ cvar_t		*s_show;
 cvar_t		*s_mixahead;
 cvar_t		*s_mixPreStep;
 
-static loopSound_t		loopSounds[MAX_GENTITIES];
+loopSound_t		loopSounds[MAX_GENTITIES];
 static	channel_t		*freelist = NULL;
 
 int						s_rawend;
@@ -485,16 +486,19 @@ void S_Base_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t
 //	Com_Printf("playing %s\n", sfx->soundName);
 	// pick a channel to play on
 
-	allowed = 4;
+	allowed = 16;
 	if (entityNum == listener_number) {
-		allowed = 8;
+		allowed = 32;
 	}
 
 	ch = s_channels;
 	inplay = 0;
-	for ( i = 0; i < MAX_CHANNELS ; i++, ch++ ) {		
-		if (ch[i].entnum == entityNum && ch[i].thesfx == sfx) {
-			if (time - ch[i].allocTime < 50) {
+	for ( i = 0; i < MAX_CHANNELS ; i++, ch++ ) 
+	{
+		if (ch[i].entnum == entityNum && ch[i].thesfx == sfx)
+		{
+			if (time - ch[i].allocTime < 30)
+			{
 //				if (Cvar_VariableValue( "cg_showmiss" )) {
 //					Com_Printf("double sound start\n");
 //				}
@@ -504,7 +508,7 @@ void S_Base_StartSound(vec3_t origin, int entityNum, int entchannel, sfxHandle_t
 		}
 	}
 
-	if (inplay>allowed) {
+	if (inplay > allowed) {
 		return;
 	}
 
@@ -585,7 +589,7 @@ void S_Base_StartLocalSound( sfxHandle_t sfxHandle, int channelNum ) {
 	S_Base_StartSound (NULL, listener_number, channelNum, sfxHandle );
 }
 
-#define Snd_Memset Com_Memset
+
 /*
 ==================
 S_ClearSoundBuffer
@@ -1342,7 +1346,7 @@ void S_UpdateBackgroundTrack( void ) {
 		bufferSamples = MAX_RAW_SAMPLES - (s_rawend - s_soundtime);
 
 		// decide how much data needs to be read from the file
-		fileSamples = bufferSamples * s_backgroundStream->info.rate / dma.speed;
+		fileSamples = (bufferSamples * dma.speed) / s_backgroundStream->info.rate;
 
 		// our max buffer size
 		fileBytes = fileSamples * (s_backgroundStream->info.width * s_backgroundStream->info.channels);
@@ -1494,6 +1498,10 @@ qboolean S_Base_Init( soundInterface_t *si ) {
 	si->ClearSoundBuffer = S_Base_ClearSoundBuffer;
 	si->SoundInfo = S_Base_SoundInfo;
 	si->SoundList = S_Base_SoundList;
+
+#ifndef NO_DMAHD
+	if (dmaHD_Enabled()) return dmaHD_Init(si);
+#endif
 
 	return qtrue;
 }

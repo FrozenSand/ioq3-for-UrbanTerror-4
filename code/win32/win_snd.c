@@ -38,6 +38,8 @@ static LPDIRECTSOUND pDS;
 static LPDIRECTSOUNDBUFFER pDSBuf, pDSPBuf;
 static HINSTANCE hInstDS;
 
+extern cvar_t		*s_khz;
+
 
 static const char *DSoundError( int error ) {
 	switch ( error ) {
@@ -187,14 +189,12 @@ int SNDDMA_InitDS ()
 	dma.channels = 2;
 	dma.samplebits = 16;
 
-//	if (s_khz->integer == 44)
-//		dma.speed = 44100;
-//	else if (s_khz->integer == 22)
-//		dma.speed = 22050;
-//	else
-//		dma.speed = 11025;
+	if (s_khz->integer >= 44) dma.speed = 44100;
+	else if (s_khz->integer >= 32) dma.speed = 32000;
+	else if (s_khz->integer >= 24) dma.speed = 24000;
+	else if (s_khz->integer >= 22) dma.speed = 22050;
+	else dma.speed = 11025;
 
-	dma.speed = 22050;
 	memset (&format, 0, sizeof(format));
 	format.wFormatTag = WAVE_FORMAT_PCM;
     format.nChannels = dma.channels;
