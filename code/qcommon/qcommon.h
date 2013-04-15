@@ -1004,10 +1004,14 @@ char	*Sys_GetClipboardData( void );	// note that this isn't journaled...
 
 void	Sys_Print( const char *msg );
 
+#ifdef _WIN32
 // Sys_Milliseconds should only be used for profiling purposes,
 // any game related timing information should come from event timestamps
-int		(*Sys_Milliseconds)(void);
-int		(*Sys_GetTimeStamp)(void);
+int	(*Sys_Milliseconds)(void);
+int	(*Sys_GetTimeStamp)(void);
+#else
+int	Sys_Milliseconds(void);
+#endif
 
 void	Sys_SnapVector( float *v );
 

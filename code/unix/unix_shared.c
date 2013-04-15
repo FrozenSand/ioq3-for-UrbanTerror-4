@@ -60,12 +60,7 @@ unsigned long sys_timeBase = 0;
      (which would affect the wrap period) */
 int curtime;
 
-// p5yc0runn3r: Changed to function pointer type due to high performance counter on windows.
-int Sys_Milliseconds_(void);
-int (*Sys_Milliseconds)(void) = Sys_Milliseconds_;
-int	(*Sys_GetTimeStamp)(void) = Sys_Milliseconds_;
-
-int Sys_Milliseconds_ (void)
+int Sys_Milliseconds(void)
 {
 	struct timeval tp;
 
