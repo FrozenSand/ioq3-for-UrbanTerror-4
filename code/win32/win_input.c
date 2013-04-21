@@ -205,6 +205,10 @@ DIRECT INPUT MOUSE CONTROL
 #undef DEFINE_GUID
 #endif
 
+#ifndef DIDFT_OPTIONAL
+#define DIDFT_OPTIONAL		0x80000000
+#endif
+
 #define DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
         const GUID name \
                 = { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
@@ -796,14 +800,10 @@ void IN_Frame (void) {
 	}
 
 	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
-		// temporarily deactivate if not in the game and
-		// running on the desktop
-		// voodoo always counts as full screen
-		if (Cvar_VariableValue ("r_fullscreen") == 0
-			/*&& strcmp( Cvar_VariableString("r_glDriver"), _3DFX_DRIVER_NAME)*/ )	{
-			IN_DeactivateMouse ();
-			return;
+		if ( Cvar_VariableValue ("r_fullscreen") == 0 )	{
+			IN_DeactivateMouse();
 		}
+		return;
 	}
 
 	if ( !in_appactive ) {
@@ -1225,6 +1225,13 @@ void IN_HandleRawMouseData(HRAWINPUT hndlmouse)
 	static UINT ilpbufsize = 0;
 	UINT dwSize;
 	RAWINPUT* raw;
+
+	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
+		if ( Cvar_VariableValue ("r_fullscreen") == 0 )	{
+			IN_DeactivateMouse();
+		}
+		return;
+	}
 	
 	if (GetRawInputData(hndlmouse, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER)) == (UINT)-1)
 	{
