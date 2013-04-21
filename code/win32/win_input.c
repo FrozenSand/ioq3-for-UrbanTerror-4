@@ -1232,6 +1232,9 @@ void IN_HandleRawMouseData(HRAWINPUT hndlmouse)
 		}
 		return;
 	}
+
+        // even in raw mouse mode, it is necessary to keep warping the pointer to the center to avoid the mouse sliding out in windowed mode
+	SetCursorPos( window_center_x, window_center_y );
 	
 	if (GetRawInputData(hndlmouse, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER)) == (UINT)-1)
 	{
