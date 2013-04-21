@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "snd_local.h"
 #include "snd_codec.h"
+#include "snd_dmahd.h"
 
 #define DEF_COMSOUNDMEGS "8"
 
@@ -81,7 +82,12 @@ void SND_setup(void) {
 
 	cv = Cvar_Get( "com_soundMegs", DEF_COMSOUNDMEGS, CVAR_LATCH | CVAR_ARCHIVE );
 
-	scs = (cv->integer*1536);
+	scs = (
+#ifndef NO_DMAHD
+		dmaHD_Enabled() ? (2*1536) : 
+#endif
+		(cv->integer*1536));
+
 
 	buffer = malloc(scs*sizeof(sndBuffer) );
 	// allocate the stack based hunk allocator
@@ -201,6 +207,10 @@ qboolean S_LoadSound( sfx_t *sfx )
 	short	*samples;
 	snd_info_t	info;
 //	int		size;
+
+#ifndef NO_DMAHD
+	if (dmaHD_Enabled()) return dmaHD_LoadSound(sfx);
+#endif
 
 	// player specific sounds are never directly loaded
 	if ( sfx->soundName[0] == '*') {

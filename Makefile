@@ -965,6 +965,7 @@ Q3OBJ = \
   \
   $(B)/client/snd_adpcm.o \
   $(B)/client/snd_dma.o \
+  $(B)/client/snd_dmahd.o \
   $(B)/client/snd_mem.o \
   $(B)/client/snd_mix.o \
   $(B)/client/snd_wavelet.o \

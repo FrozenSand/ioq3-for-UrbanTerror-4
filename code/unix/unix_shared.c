@@ -59,7 +59,13 @@ unsigned long sys_timeBase = 0;
    although timeval:tv_usec is an int, I'm not sure wether it is actually used as an unsigned int
      (which would affect the wrap period) */
 int curtime;
-int Sys_Milliseconds (void)
+
+// p5yc0runn3r: Changed to function pointer type due to high performance counter on windows.
+int Sys_Milliseconds_(void);
+int (*Sys_Milliseconds)(void) = Sys_Milliseconds_;
+int	(*Sys_GetTimeStamp)(void) = Sys_Milliseconds_;
+
+int Sys_Milliseconds_ (void)
 {
 	struct timeval tp;
 

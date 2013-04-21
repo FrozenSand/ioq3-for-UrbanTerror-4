@@ -43,20 +43,73 @@ WinVars_t	g_wv;
 Sys_Milliseconds
 ================
 */
-int			sys_timeBase;
-int Sys_Milliseconds (void)
+
+int Sys_Milliseconds_INIT(void);
+int (*Sys_Milliseconds)(void) = Sys_Milliseconds_INIT;
+
+int Sys_GetTimeStamp_INIT(void);
+int	(*Sys_GetTimeStamp)(void) = Sys_GetTimeStamp_INIT;
+
+qboolean g_usinghpc = qfalse;
+__int64 g_hpf;
+__int64 g_hpc_base;
+int Sys_Milliseconds_HPC(void)
 {
-	int			sys_curtime;
-	static qboolean	initialized = qfalse;
-
-	if (!initialized) {
-		sys_timeBase = timeGetTime();
-		initialized = qtrue;
-	}
-	sys_curtime = timeGetTime() - sys_timeBase;
-
-	return sys_curtime;
+	__int64 hpc_cur;
+	QueryPerformanceCounter((LARGE_INTEGER*)&hpc_cur);
+	return ((hpc_cur - g_hpc_base) / g_hpf);
 }
+int Sys_GetTimeStamp_HPC(void)
+{
+	__int64 hpc_cur;
+	QueryPerformanceCounter((LARGE_INTEGER*)&hpc_cur);
+	return (hpc_cur / g_hpf);
+}
+
+int g_sys_timeBase;
+int Sys_Milliseconds_LPC(void)
+{
+	return (timeGetTime() - g_sys_timeBase);
+}
+int Sys_GetTimeStamp_LPC(void)
+{
+	return timeGetTime();
+}
+
+int Sys_Milliseconds_INIT(void)
+{
+	if (QueryPerformanceFrequency((LARGE_INTEGER*)&g_hpf) && g_hpf >= 1000) 
+	{
+		g_hpf /= 1000; g_usinghpc = qtrue;
+		Com_Printf("Using High Performance Timer.\n");
+		QueryPerformanceCounter((LARGE_INTEGER*)&g_hpc_base);
+		Sys_Milliseconds = Sys_Milliseconds_HPC;
+		Sys_GetTimeStamp = Sys_GetTimeStamp_HPC;
+	}
+	else
+	{
+		if (timeBeginPeriod(1) != TIMERR_NOERROR)
+			Com_Printf("Timer setup failed.");
+
+		Com_Printf("Using Normal Timer.\n");
+		g_sys_timeBase = timeGetTime();
+		Sys_Milliseconds = Sys_Milliseconds_LPC;
+		Sys_GetTimeStamp = Sys_GetTimeStamp_LPC;
+	}
+	
+	return (Sys_Milliseconds)();
+}
+
+int Sys_GetTimeStamp_INIT(void)
+{
+	(Sys_Milliseconds)();
+	return Sys_GetTimeStamp();
+}
+
+/*int Sys_Milliseconds (void)
+{
+	return fp_Sys_Milliseconds();
+}*/
 
 #ifndef __GNUC__ //see snapvectora.s
 /*

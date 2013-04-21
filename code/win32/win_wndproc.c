@@ -29,6 +29,28 @@ WinVars_t	g_wv;
 #define WM_MOUSEWHEEL (WM_MOUSELAST+1)  // message that will be supported by the OS 
 #endif
 
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL                  0x020E
+#endif
+
+#ifndef WM_XBUTTONDOWN
+#define WM_XBUTTONDOWN                  0x020B
+#endif
+
+#ifndef WM_XBUTTONUP
+#define WM_XBUTTONUP                    0x020C
+#endif
+
+#ifndef MK_XBUTTON1
+#define MK_XBUTTON1         0x0020
+#endif
+
+#ifndef MK_XBUTTON2
+#define MK_XBUTTON2         0x0040
+#endif
+
+
+
 static UINT MSH_MOUSEWHEEL;
 
 // Console variables that we need to access from this module
@@ -234,6 +256,19 @@ static int MapKey (int key)
 	}
 }
 
+static __inline void HandleMouseButtons(WPARAM wParam)
+{
+	int	temp = 0;
+
+	if (wParam & MK_LBUTTON) temp |= 1;
+	if (wParam & MK_RBUTTON) temp |= 2;
+	if (wParam & MK_MBUTTON) temp |= 4;
+	if (wParam & MK_XBUTTON1) temp |= 8;
+	if (wParam & MK_XBUTTON2) temp |= 16;
+
+	IN_MouseEvent (temp);
+}
+
 
 /*
 ====================
@@ -244,6 +279,11 @@ main window procedure
 */
 extern cvar_t *in_mouse;
 extern cvar_t *in_logitechbug;
+
+static HWND g_rawmouseinitializedhwnd = NULL;
+void IN_InitRawMouseInput(HANDLE hWnd);
+void IN_HandleRawMouseData(HRAWINPUT hndlmouse);
+
 LONG WINAPI MainWndProc (
     HWND    hWnd,
     UINT    uMsg,
@@ -253,37 +293,50 @@ LONG WINAPI MainWndProc (
 	static qboolean flip = qtrue;
 	int zDelta, i;
 
-	// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/winui/windowsuserinterface/userinput/mouseinput/aboutmouseinput.asp
-	// Windows 95, Windows NT 3.51 - uses MSH_MOUSEWHEEL
-	// only relevant for non-DI input
-	//
-	// NOTE: not sure how reliable this is anymore, might trigger double wheel events
-	if (in_mouse->integer != 1)
+	if (in_mouse->integer == 2 && g_rawmouseinitializedhwnd != hWnd)
 	{
-		if ( uMsg == MSH_MOUSEWHEEL )
-		{
-			if ( ( ( int ) wParam ) > 0 )
-			{
-				Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qtrue, 0, NULL );
-				Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELUP, qfalse, 0, NULL );
-			}
-			else
-			{
-				Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qtrue, 0, NULL );
-				Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELDOWN, qfalse, 0, NULL );
-			}
-			return DefWindowProc (hWnd, uMsg, wParam, lParam);
-		}
+		IN_InitRawMouseInput(hWnd);
+		g_rawmouseinitializedhwnd = hWnd;
 	}
 
 	switch (uMsg)
 	{
+	case WM_SETCURSOR:
+		if (in_mouse->integer == 2) SetCursor(NULL);
+		break;
+	case WM_MOUSEHWHEEL:
+		// Windows Vista and above...
+
+		if (in_mouse->integer == -1 || in_mouse->integer == 2)
+		{
+			// 120 increments, might be 240 and multiples if wheel goes too fast
+			zDelta = ( short ) HIWORD( wParam ) / 120;
+			if ( zDelta > 0 )
+			{
+				Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELRIGHT, qtrue, 0, NULL );
+				Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELRIGHT, qfalse, 0, NULL );
+			}
+			else
+			{
+				Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELLEFT, qtrue, 0, NULL );
+				Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, K_MWHEELLEFT, qfalse, 0, NULL );
+			}
+			
+			if (in_mouse->integer == -1) HandleMouseButtons(wParam);
+
+			// when an application processes the WM_MOUSEHWHEEL message, it must return zero
+			return 0;
+		}
+		break;
+		
+		
 	case WM_MOUSEWHEEL:
 		// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winui/winui/windowsuserinterface/userinput/mouseinput/aboutmouseinput.asp
 		// Windows 98/Me, Windows NT 4.0 and later - uses WM_MOUSEWHEEL
 		// only relevant for non-DI input and when console is toggled in window mode
 		//   if console is toggled in window mode (KEYCATCH_CONSOLE) then mouse is released and DI doesn't see any mouse wheel
-		if (in_mouse->integer != 1 || (!r_fullscreen->integer && (cls.keyCatchers & KEYCATCH_CONSOLE)))
+		
+		if (in_mouse->integer == -1 || (!r_fullscreen->integer && (cls.keyCatchers & KEYCATCH_CONSOLE)))
 		{
 			// 120 increments, might be 240 and multiples if wheel goes too fast
 			// NOTE Logitech: logitech drivers are screwed and send the message twice?
@@ -321,8 +374,20 @@ LONG WINAPI MainWndProc (
 					}
 				}
 			}
+		
+			HandleMouseButtons(wParam);
+
+		
+			
 			// when an application processes the WM_MOUSEWHEEL message, it must return zero
 			return 0;
+		}
+		break;
+
+	case WM_INPUT:
+		if (in_mouse->integer == 2)
+		{
+			IN_HandleRawMouseData((HRAWINPUT)lParam);
 		}
 		break;
 
@@ -423,23 +488,10 @@ LONG WINAPI MainWndProc (
 	case WM_RBUTTONUP:
 	case WM_MBUTTONDOWN:
 	case WM_MBUTTONUP:
+	case WM_XBUTTONDOWN:
+	case WM_XBUTTONUP:
 	case WM_MOUSEMOVE:
-		{
-			int	temp;
-
-			temp = 0;
-
-			if (wParam & MK_LBUTTON)
-				temp |= 1;
-
-			if (wParam & MK_RBUTTON)
-				temp |= 2;
-
-			if (wParam & MK_MBUTTON)
-				temp |= 4;
-
-			IN_MouseEvent (temp);
-		}
+		if (in_mouse->integer == -1) HandleMouseButtons(wParam);
 		break;
 
 	case WM_SYSCOMMAND:
