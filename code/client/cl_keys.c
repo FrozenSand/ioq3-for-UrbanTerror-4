@@ -106,6 +106,9 @@ keyname_t keynames[] =
 	{"MWHEELUP",	K_MWHEELUP },
 	{"MWHEELDOWN",	K_MWHEELDOWN },
 
+	{"MWHEELLEFT",	K_MWHEELLEFT },
+	{"MWHEELRIGHT",	K_MWHEELRIGHT },
+
 	{"JOY1", K_JOY1},
 	{"JOY2", K_JOY2},
 	{"JOY3", K_JOY3},

@@ -979,17 +979,23 @@ be freed by the game later.
 ================
 */
 void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr ) {
+	static qboolean silence_overflow_spam = qfalse;   
 	sysEvent_t	*ev;
 
 	ev = &eventQue[ eventHead & MASK_QUED_EVENTS ];
 	if ( eventHead - eventTail >= MAX_QUED_EVENTS ) {
-		Com_Printf("Sys_QueEvent: overflow\n");
+		if ( !silence_overflow_spam ) {
+			Com_Printf("Sys_QueEvent: overflow\n");
+			silence_overflow_spam = qtrue;
+                }
 		// we are discarding an event, but don't leak memory
 		if ( ev->evPtr ) {
 			Z_Free( ev->evPtr );
 		}
 		eventTail++;
-	}
+	} else {
+		silence_overflow_spam = qfalse;
+        }
 
 	eventHead++;
 

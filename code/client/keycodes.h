@@ -101,6 +101,9 @@ typedef enum {
 	K_MWHEELDOWN,
 	K_MWHEELUP,
 
+	K_MWHEELLEFT,
+	K_MWHEELRIGHT,
+
 	K_JOY1,
 	K_JOY2,
 	K_JOY3,
