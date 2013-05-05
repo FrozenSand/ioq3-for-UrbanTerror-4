@@ -268,7 +268,8 @@ void SV_DirectConnect( netadr_t from ) {
 
 		// never reject a LAN client based on ping
 		if ( !Sys_IsLANAddress( from ) ) {
-			if ( sv_minPing->value && ping < sv_minPing->value ) {
+
+			if ( (sv_minPing->value > 0) && ping < sv_minPing->value ) {
 				// don't let them keep trying until they get a big delay
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for high pings only\n" );
 				Com_DPrintf ("Client %i rejected on a too low ping\n", i);
@@ -278,7 +279,8 @@ void SV_DirectConnect( netadr_t from ) {
 				svs.challenges[i].wasrefused = qtrue;
 				return;
 			}
-			if ( sv_maxPing->value && ping > sv_maxPing->value ) {
+
+			if ( (sv_maxPing->value > 0) && ping > sv_maxPing->value ) {
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for low pings only\n" );
 				Com_DPrintf ("Client %i rejected on a too high ping\n", i);
 				svs.challenges[i].adr.port = 0;
