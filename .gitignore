@@ -1,2 +1,5 @@
 code/tools/*
 build/*
+.cproject
+.project
+.settings/org.eclipse.cdt.codan.core.prefs
