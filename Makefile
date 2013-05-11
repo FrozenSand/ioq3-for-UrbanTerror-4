@@ -2,7 +2,7 @@
 # Quake3 Unix Makefile
 #
 # Nov '98 by Zoid <zoid@idsoftware.com>
-#
+# My God this Code is OLD -rjc
 # Loki Hacking by Bernd Kreimeier
 #  and a little more by Ryan C. Gordon.
 #  and a little more by Rafael Barrero
@@ -238,20 +238,17 @@ ifeq ($(PLATFORM),linux)
   else
     BASE_CFLAGS += -I/usr/X11R6/include
   endif
-
-  OPTIMIZE = -O3 -ffast-math -funroll-loops -fomit-frame-pointer
-
-  ifeq ($(ARCH),x86_64)
-    OPTIMIZE = -O3 -fomit-frame-pointer -ffast-math -funroll-loops \
-      -falign-loops=2 -falign-jumps=2 -falign-functions=2 \
-      -fstrength-reduce
+ #Anything more then -O2 and *mmx *msse/2/ causes hitching with urbanterror also -march is illrelavent unless you know your target cpu
+  OPTIMIZE = -O2 -mmmx msse -msse2 
+#having x86_x64 implys having full SSE support up to SSE3 so we will use it for old cpus we don't care because anything pre Pentium 4/Althlon 1600+ won't run urt anyway no -mtune here because it misbehaves on nix
+  ifeq ($(ARCH),x86_64) 
+    OPTIMIZE = -O2 -msse  -msse -msse2 
     # experimental x86_64 jit compiler! you need GNU as
     HAVE_VM_COMPILED = true
   else
   ifeq ($(ARCH),i386)
-    OPTIMIZE = -O3 -march=i586 -fomit-frame-pointer -ffast-math \
-      -funroll-loops -falign-loops=2 -falign-jumps=2 \
-      -falign-functions=2 -fstrength-reduce
+    OPTIMIZE = -O2 -mmmx 
+
     HAVE_VM_COMPILED=true
   else
   ifeq ($(ARCH),ppc)
@@ -265,7 +262,7 @@ ifeq ($(PLATFORM),linux)
     BASE_CFLAGS += -DNO_VM_COMPILED
   endif
 
-  DEBUG_CFLAGS = $(BASE_CFLAGS) -g -O0
+  DEBUG_CFLAGS = $(BASE_CFLAGS) -g -O0 -wall
 
   RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG $(OPTIMIZE)
 
@@ -365,7 +362,7 @@ ifeq ($(PLATFORM),darwin)
   endif
 
   ifeq ($(ARCH),ppc)
-    OPTIMIZE += -faltivec -O3
+    OPTIMIZE += -faltivec -O2
   endif
   ifeq ($(ARCH),i386)
     OPTIMIZE += -march=prescott -mfpmath=sse
@@ -448,9 +445,9 @@ WINDRES=windres
 endif
 
   ARCH=x86
-
-  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes
-
+#warnings are slow and ioquake 3 1.35 throws a fucktonn of them >>disabled unless are are compiling for debug
+  BASE_CFLAGS = -w
+#eventully lose the static libs please they cause all manner of evil
   ifeq ($(USE_OPENAL),1)
     BASE_CFLAGS += -DUSE_OPENAL=1 -DUSE_OPENAL_DLOPEN=1
   endif
@@ -465,13 +462,11 @@ endif
   ifeq ($(USE_CODEC_VORBIS),1)
     BASE_CFLAGS += -DUSE_CODEC_VORBIS=1
   endif
-
-  OPTIMIZE = -O3 -march=i586 -fomit-frame-pointer -ffast-math -falign-loops=2 \
-    -funroll-loops -falign-jumps=2 -falign-functions=2 -fstrength-reduce
-
+ #NoooooOOo //MARCH FLAGS are evil and so is -mtune and state the other flags manually anything after Althon  1600+/pentium 4 should have SSE3 support in a Ideal world we would do builds for Intel and AMD cpus 
+  OPTIMIZE = -O2  -mmmx -msse -msse2 
   HAVE_VM_COMPILED = true
 
-  DEBUG_CFLAGS=$(BASE_CFLAGS) -g -O0
+  DEBUG_CFLAGS=$(BASE_CFLAGS) -g -O0 -wall
 
   RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG $(OPTIMIZE)
 
