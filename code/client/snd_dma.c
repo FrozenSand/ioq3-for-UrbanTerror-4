@@ -84,6 +84,7 @@ static	sfx_t		*sfxHash[LOOP_HASH];
 
 cvar_t		*s_testsound;
 cvar_t		*s_khz;
+cvar_t		*s_dev;
 cvar_t		*s_show;
 cvar_t		*s_mixahead;
 cvar_t		*s_mixPreStep;
@@ -1460,6 +1461,7 @@ qboolean S_Base_Init( soundInterface_t *si ) {
 	s_mixPreStep = Cvar_Get ("s_mixPreStep", "0.05", CVAR_ARCHIVE);
 	s_show = Cvar_Get ("s_show", "0", CVAR_CHEAT);
 	s_testsound = Cvar_Get ("s_testsound", "0", CVAR_CHEAT);
+	s_dev = Cvar_Get ("s_dev", "", CVAR_ARCHIVE);
 
 	r = SNDDMA_Init();
 
