@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 HRESULT (WINAPI *pDirectSoundCreate)(GUID FAR *lpGUID, LPDIRECTSOUND FAR *lplpDS, IUnknown FAR *pUnkOuter);
 #define iDirectSoundCreate(a,b,c)	pDirectSoundCreate(a,b,c)
+typedef HRESULT (WINAPI *pDirectSoundEnumerate)(LPDSENUMCALLBACK lpDSEnumCallback, LPVOID lpContext);
 
 #define SECONDARY_BUFFER_SIZE	0x10000
 
@@ -37,9 +38,10 @@ static DWORD	locksize;
 static LPDIRECTSOUND pDS;
 static LPDIRECTSOUNDBUFFER pDSBuf, pDSPBuf;
 static HINSTANCE hInstDS;
+static LPGUID g_dsguid = NULL;
 
 extern cvar_t		*s_khz;
-
+extern cvar_t		*s_dev;
 
 static const char *DSoundError( int error ) {
 	switch ( error ) {
@@ -149,6 +151,22 @@ DEFINE_GUID(CLSID_DirectSound8, 0x3901cc3f, 0x84b5, 0x4fa4, 0xba, 0x35, 0xaa, 0x
 DEFINE_GUID(IID_IDirectSound8, 0xC50A7E93, 0xF395, 0x4834, 0x9E, 0xF6, 0x7F, 0xA9, 0x9D, 0xE5, 0x09, 0x66);
 DEFINE_GUID(IID_IDirectSound, 0x279AFA83, 0x4981, 0x11CE, 0xA5, 0x21, 0x00, 0x20, 0xAF, 0x0B, 0xE5, 0x60);
 
+BOOL CALLBACK SNDDMAHD_DSEnumCallback(LPGUID lpguid, LPCSTR lpszdesc, LPCSTR lpszmod, LPVOID lpcontext)
+{
+	Com_Printf("> ^3%s", lpszdesc);
+	if (strstr(lpszdesc, s_dev->string) != NULL) 
+	{
+		Com_Printf(" ^2MATCH");
+		if (g_dsguid == NULL)
+		{
+			Com_Printf(" ^5USING");
+			g_dsguid = lpguid;
+		}
+	}
+	Com_Printf("\n");
+	return TRUE; // Continue enumerating
+}
+
 
 int SNDDMA_InitDS ()
 {
@@ -157,6 +175,21 @@ int SNDDMA_InitDS ()
 	DSBCAPS			dsbcaps;
 	WAVEFORMATEX	format;
 	int				use8;
+	HMODULE hdsounddll;
+	pDirectSoundEnumerate DSEnumerate;
+
+	if ((hdsounddll = LoadLibrary("dsound.dll")) != NULL &&
+		(DSEnumerate = (pDirectSoundEnumerate)GetProcAddress(hdsounddll, "DirectSoundEnumerateA")) != NULL &&
+		s_dev->string != NULL && s_dev->string[0] != '\0')
+	{
+		Com_Printf( "^4Looking for DirectSound Device '%s'\n", s_dev->string);
+		
+		if (FAILED(DSEnumerate(SNDDMAHD_DSEnumCallback, NULL)))
+			Com_Printf("^1Error Enumerating DirectSound Devices\n");
+		
+		if (g_dsguid == NULL)
+			Com_Printf("^1Device '%s' not found. ^2Using default driver.\n", s_dev->string);
+	}
 
 	Com_Printf( "Initializing DirectSound\n");
 
@@ -171,7 +204,7 @@ int SNDDMA_InitDS ()
 		}
 	}
 
-	hresult = pDS->lpVtbl->Initialize( pDS, NULL);
+	hresult = pDS->lpVtbl->Initialize( pDS, g_dsguid);
 
 	Com_DPrintf( "ok\n" );
 
