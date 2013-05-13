@@ -9,7 +9,7 @@
 #ifndef NO_DMAHD
 
 qboolean dmaHD_LoadSound(sfx_t *sfx);
-qboolean dmaHD_Enabled();
+qboolean dmaHD_Enabled(void);
 qboolean dmaHD_Init(soundInterface_t *si);
 
 #endif

@@ -167,6 +167,53 @@ BOOL CALLBACK SNDDMAHD_DSEnumCallback(LPGUID lpguid, LPCSTR lpszdesc, LPCSTR lps
 	return TRUE; // Continue enumerating
 }
 
+BOOL CALLBACK SNDDMAHD_DSEnumCallbackList(LPGUID lpguid, LPCSTR lpszdesc, LPCSTR lpszmod, LPVOID lpcontext)
+{
+	Com_Printf("> ^3%s\n", lpszdesc);
+	return TRUE; // Continue enumerating
+}
+
+qboolean SNDDMAHD_DSEnumSoundDevices(qboolean blistonly)
+{
+	HMODULE hdsounddll = NULL;
+	pDirectSoundEnumerate DSEnumerate;
+
+	if ((hdsounddll = LoadLibrary("dsound.dll")) != NULL &&
+		(DSEnumerate = (pDirectSoundEnumerate)GetProcAddress(hdsounddll, "DirectSoundEnumerateA")) != NULL &&
+		s_dev->string != NULL && s_dev->string[0] != '\0')
+	{
+		if (blistonly) 
+		{
+			Com_Printf( "^4List of DirectSound devices:\n");
+			if (FAILED(DSEnumerate(SNDDMAHD_DSEnumCallbackList, NULL)))
+			{
+				Com_Printf("^1Error Enumerating DirectSound Devices\n");
+				return qfalse;
+			}
+		}
+		else
+		{
+			Com_Printf( "^4Looking for DirectSound Device '%s'\n", s_dev->string);
+		
+			if (FAILED(DSEnumerate(SNDDMAHD_DSEnumCallback, NULL)))
+			{
+				Com_Printf("^1Error Enumerating DirectSound Devices\n");
+				return qfalse;
+			}
+		
+			if (g_dsguid == NULL)
+				Com_Printf("^1Device '%s' not found. ^2Using default driver.\n", s_dev->string);
+		}
+	}
+	if (hdsounddll != NULL) FreeLibrary(hdsounddll);
+	hdsounddll = NULL;
+	return qtrue;
+}
+
+qboolean SNDDMAHD_DevList(void)
+{
+	return SNDDMAHD_DSEnumSoundDevices(qtrue);
+}
 
 int SNDDMA_InitDS ()
 {
@@ -175,21 +222,9 @@ int SNDDMA_InitDS ()
 	DSBCAPS			dsbcaps;
 	WAVEFORMATEX	format;
 	int				use8;
-	HMODULE hdsounddll;
-	pDirectSoundEnumerate DSEnumerate;
-
-	if ((hdsounddll = LoadLibrary("dsound.dll")) != NULL &&
-		(DSEnumerate = (pDirectSoundEnumerate)GetProcAddress(hdsounddll, "DirectSoundEnumerateA")) != NULL &&
-		s_dev->string != NULL && s_dev->string[0] != '\0')
-	{
-		Com_Printf( "^4Looking for DirectSound Device '%s'\n", s_dev->string);
-		
-		if (FAILED(DSEnumerate(SNDDMAHD_DSEnumCallback, NULL)))
-			Com_Printf("^1Error Enumerating DirectSound Devices\n");
-		
-		if (g_dsguid == NULL)
-			Com_Printf("^1Device '%s' not found. ^2Using default driver.\n", s_dev->string);
-	}
+	
+	// Match/Choose output directsound device
+	SNDDMAHD_DSEnumSoundDevices(qfalse);
 
 	Com_Printf( "Initializing DirectSound\n");
 

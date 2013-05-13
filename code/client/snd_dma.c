@@ -124,6 +124,16 @@ void S_Base_SoundInfo(void) {
 
 /*
 =================
+S_dmaHD_devlist
+=================
+*/
+void S_dmaHD_devlist(void)
+{
+	SNDDMAHD_DevList();
+}
+
+/*
+=================
 S_Base_SoundList
 =================
 */
@@ -1442,6 +1452,7 @@ void S_Base_Shutdown( void ) {
 	s_soundStarted = 0;
 
 	Cmd_RemoveCommand("s_info");
+	Cmd_RemoveCommand("s_devlist");
 }
 
 /*
@@ -1456,13 +1467,19 @@ qboolean S_Base_Init( soundInterface_t *si ) {
 		return qfalse;
 	}
 
+#ifndef NO_DMAHD
+	s_khz = Cvar_Get ("s_khz", "44", CVAR_ARCHIVE);
+#else
 	s_khz = Cvar_Get ("s_khz", "22", CVAR_ARCHIVE);
+#endif
 	s_mixahead = Cvar_Get ("s_mixahead", "0.2", CVAR_ARCHIVE);
 	s_mixPreStep = Cvar_Get ("s_mixPreStep", "0.05", CVAR_ARCHIVE);
 	s_show = Cvar_Get ("s_show", "0", CVAR_CHEAT);
 	s_testsound = Cvar_Get ("s_testsound", "0", CVAR_CHEAT);
 	s_dev = Cvar_Get ("s_dev", "", CVAR_ARCHIVE);
 
+	Cmd_AddCommand( "s_devlist", S_dmaHD_devlist );
+	
 	r = SNDDMA_Init();
 
 	if ( r ) {
