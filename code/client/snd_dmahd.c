@@ -186,7 +186,7 @@ float g_voltable[256];
 #define SMPCLAMP(a) (((a) < -32768) ? -32768 : ((a) > 32767) ? 32767 : (a))
 #define VOLCLAMP(a) (((a) < 0) ? 0 : ((a) > 255) ? 255 : (a))
 
-void dmaHD_InitTables()
+void dmaHD_InitTables(void)
 {
 	if (!g_tablesinit)
 	{
@@ -471,7 +471,7 @@ qboolean dmaHD_LoadSound(sfx_t *sfx)
 	// Information
 	Com_DPrintf("^3Loading sound: ^7%s", sfx->soundName);
 	if (info.width == 1) 
-		Com_DPrintf(" [^28^3bit ^7-> ^216^3bit]", sfx->soundName);
+		Com_DPrintf(" [^28^3bit ^7-> ^216^3bit]");
 	if (info.rate != dma.speed) 
 		Com_DPrintf(" [^2%d^3Hz ^7-> ^2%d^3Hz]", info.rate, dma.speed);
 	Com_DPrintf("\n");
@@ -1200,7 +1200,7 @@ All sounds are on the same cycle, so any duplicates can just
 sum up the channel multipliers.
 ==================
 */
-void dmaHD_AddLoopSounds () 
+void dmaHD_AddLoopSounds (void) 
 {
 	int			i, time;
 	channel_t	*ch;
@@ -1351,10 +1351,11 @@ void dmaHD_Update_Mix(void)
 	// and start any new sounds
 	S_ScanChannelStarts();
 
-	if ((sane = thisTime - lastTime) < 1) sane = 1;
+	if ((sane = thisTime - lastTime) < 8) sane = 8; // ms since last mix (cap to 8ms @ 125fps)
+	op = (int)((float)(dma.speed * sane) * 0.001); // samples to mix based on last mix time
 	mixahead = (int)((float)dma.speed * s_mixahead->value);
-	op = (int)((float)(dma.speed * sane) * 0.01);
-	if (op < mixahead) mixahead = op;
+	
+	if (mixahead < op) mixahead = op;
 	
 	// mix ahead of current position
 	endtime = s_soundtime + mixahead;
@@ -1377,7 +1378,7 @@ void dmaHD_Update_Mix(void)
 dmaHD_Enabled
 ================
 */
-qboolean dmaHD_Enabled() 
+qboolean dmaHD_Enabled(void) 
 {
 	if (dmaHD_Enable == NULL)
 		dmaHD_Enable = Cvar_Get("dmaHD_enable", "1", CVAR_ARCHIVE);

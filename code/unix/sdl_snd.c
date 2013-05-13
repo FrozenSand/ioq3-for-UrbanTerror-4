@@ -196,6 +196,17 @@ static void print_audiospec(const char *str, const SDL_AudioSpec *spec)
 
 /*
 ===============
+SNDDMAHD_DevList
+===============
+*/
+qboolean SNDDMAHD_DevList(void)
+{
+	// Not implemented.
+	return qtrue;
+}
+
+/*
+===============
 SNDDMA_Init
 ===============
 */

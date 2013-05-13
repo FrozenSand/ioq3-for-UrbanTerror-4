@@ -73,6 +73,22 @@ void Snd_Memset (void* dest, const int val, const size_t count)
   }
 }
 
+/*
+===============
+SNDDMAHD_DevList
+===============
+*/
+qboolean SNDDMAHD_DevList(void)
+{
+	// Not implemented.
+	return qtrue;
+}
+
+/*
+===============
+SNDDMA_Init
+===============
+*/
 qboolean SNDDMA_Init(void)
 {
 	int rc;
