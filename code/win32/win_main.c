@@ -1104,6 +1104,82 @@ void Sys_Net_Restart_f( void ) {
 	NET_Restart();
 }
 
+/*
+==================
+Set to use single core in windows
+
+==================
+*/
+void Sys_SetSingleCore(void)
+{
+	HANDLE hproc;
+	DWORD dwprocessam, dwsystemam;
+	DWORD dwmask = 0x00000001; // Get the mask to start from.
+	DWORD dwuserprocmask = 0x00000000; // This is the mask the user wants to.
+	DWORD dwprocmask = 0x00000000; // This is the mask that we will set.
+	int cpus = 0, i, curcore;
+	cvar_t *com_singlecore;
+	
+	// Try to use second core if available.
+	com_singlecore = Cvar_Get("com_singlecore", "2", CVAR_ARCHIVE);
+	if (com_singlecore->integer <= 0) return;
+	curcore = com_singlecore->integer; 
+
+	hproc = GetCurrentProcess();
+	Com_Printf("Detecting CPU cores: ");
+
+	if (!GetProcessAffinityMask(hproc, &dwprocessam, &dwsystemam)) 
+	{
+		Com_Printf("ERROR\n");
+		return;
+	}
+
+	// Rotate for 31 times (32-bits)
+	for (i = 0; i < 31; i++, dwmask <<= 1)
+	{
+		// If the process has the bit set, then we keep it for the mask to set.
+		if (dwprocessam & dwmask) 
+		{
+			// Use the core that the user wants to use.		
+			if (--curcore == 0) dwuserprocmask = dwmask;
+			dwprocmask = dwmask;
+			cpus++;
+		}
+	}
+	if (cpus < 1) 
+	{
+		Com_Printf("OK: Single core found.\n");
+		return;
+	}
+	Com_Printf("OK: Found %d CPU cores: ", cpus);
+	
+	// Use USER processor mask if we have one, else use last core.
+	if (dwuserprocmask != 0x00000000) dwprocmask = dwuserprocmask;
+	
+	// If we did not get a mask to set, we return error.
+	if (dwprocmask == 0x00000000)
+	{
+		Com_Printf(" ERROR\n");
+		return;
+	}
+
+	// Set the affinity mask.
+	if (!SetProcessAffinityMask(hproc, dwprocmask)) 
+	{
+		Com_Printf(" ERROR setting CPU core.\n");
+		return;
+	}
+
+	if (dwuserprocmask != 0x00000000)
+	{
+		Com_Printf("Using user selected single core: %d\n", com_singlecore->integer);
+	}
+	else
+	{
+		Com_Printf("Using single core: %d\n", cpus);
+	}
+}
+
 
 /*
 ================
@@ -1245,7 +1321,9 @@ void Sys_Init( void ) {
 	Com_Printf( "%s\n", Cvar_VariableString( "sys_cpustring" ) );
 
 	Cvar_Set( "username", Sys_GetCurrentUser() );
-
+	
+	Sys_SetSingleCore(); // Set to use single core (user CVAR needed)
+	
 	IN_Init();		// FIXME: not in dedicated?
 }
 
