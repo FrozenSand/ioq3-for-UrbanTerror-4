@@ -1180,6 +1180,36 @@ void Sys_SetSingleCore(void)
 	}
 }
 
+void Sys_SetProcessPriority(void)
+{
+	cvar_t *com_processpriority;
+	DWORD dwclass;
+	
+	// Try to use second core if available.
+	com_processpriority = Cvar_Get("com_processpriority", "0", CVAR_ARCHIVE);
+	if (com_processpriority->integer <= 0) return;
+
+	Com_Printf("Setting priority to ");
+	if (com_processpriority->integer == 1)
+	{
+		dwclass = ABOVE_NORMAL_PRIORITY_CLASS;
+		Com_Printf("above average: ");
+	}
+	else
+	{
+		dwclass = HIGH_PRIORITY_CLASS;
+		Com_Printf("high: ");
+	}
+	
+	
+	if (!SetPriorityClass(GetCurrentProcess(), dwclass))
+	{
+		Com_Printf("ERROR\n");
+		return;
+	}
+	Com_Printf("OK\n");
+}
+
 
 /*
 ================
@@ -1322,7 +1352,8 @@ void Sys_Init( void ) {
 
 	Cvar_Set( "username", Sys_GetCurrentUser() );
 	
-	Sys_SetSingleCore(); // Set to use single core (user CVAR needed)
+	Sys_SetSingleCore(); // Set to use single core (CVAR:com_singlecore)
+	Sys_SetProcessPriority(); // Set process priority (CVAR:com_processpriority)
 	
 	IN_Init();		// FIXME: not in dedicated?
 }
