@@ -688,6 +688,10 @@ char	*Q_strrchr( const char* string, int c );
 char	*Q_strnchr( const char* string, int c, int n );
 char	*Q_strnrchr( const char *string, int c, int n );
 
+// Fenix: for substring matching
+int Q_strsub (const char *s1, const char *s2);
+int Q_strisub (const char *s1, const char *s2);
+
 // buffer size safe library replacements
 void	Q_strncpyz( char *dest, const char *src, int destsize );
 void	Q_strcat( char *dest, int size, const char *src );
