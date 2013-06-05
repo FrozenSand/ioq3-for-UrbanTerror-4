@@ -35,51 +35,56 @@ These commands can only be entered from stdin or by a remote operator datagram
 Reusable version of SV_GetPlayerByHandle() that doesn't
 print any silly messages.
 */
-client_t *SV_BetterGetPlayerByHandle(const char *handle)
-{
-	client_t	*cl;
-	int		i;
-	char		cleanName[64];
+client_t *SV_BetterGetPlayerByHandle(const char *handle) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		return NULL;
-	}
+    client_t  *cl;
+    int       i;
+    char      cleanName[64];
 
-	// Check whether this is a numeric player handle
-	for(i = 0; handle[i] >= '0' && handle[i] <= '9'; i++);
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        return NULL;
+    }
 
-	if(!handle[i])
-	{
-		int plid = atoi(handle);
+    // Check whether this is a numeric player handle
+    for(i = 0; handle[i] >= '0' && handle[i] <= '9'; i++);
 
-		// Check for numeric playerid match
-		if(plid >= 0 && plid < sv_maxclients->integer)
-		{
-			cl = &svs.clients[plid];
+    if(!handle[i]) {
 
-			if(cl->state)
-				return cl;
-		}
-	}
+        int plid = atoi(handle);
 
-	// check for a name match
-	for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
-		if ( !cl->state ) {
-			continue;
-		}
-		if ( !Q_stricmp( cl->name, handle ) ) {
-			return cl;
-		}
+        // Check for numeric playerid match
+        if(plid >= 0 && plid < sv_maxclients->integer) {
 
-		Q_strncpyz( cleanName, cl->name, sizeof(cleanName) );
-		Q_CleanStr( cleanName );
-		if ( !Q_stricmp( cleanName, handle ) ) {
-			return cl;
-		}
-	}
+            cl = &svs.clients[plid];
 
-	return NULL;
+            if(cl->state) {
+                return cl;
+            }
+
+        }
+    }
+
+    // check for a name match
+    for (i = 0, cl=svs.clients; i < sv_maxclients->integer; i++,cl++) {
+
+        if (!cl->state) {
+            continue;
+        }
+
+        if (!Q_stricmp(cl->name, handle)) {
+            return cl;
+        }
+
+        Q_strncpyz(cleanName, cl->name, sizeof(cleanName));
+        Q_CleanStr(cleanName );
+        if (!Q_stricmp(cleanName, handle)) {
+            return cl;
+        }
+
+    }
+
+    return NULL;
 }
 
 /*
@@ -89,60 +94,91 @@ SV_GetPlayerByHandle
 Returns the player with player id or name from Cmd_Argv(1)
 ==================
 */
-static client_t *SV_GetPlayerByHandle( void ) {
-	client_t	*cl;
-	int			i;
-	char		*s;
-	char		cleanName[64];
+static client_t *SV_GetPlayerByHandle(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		return NULL;
-	}
+    int         count = 0;
+    int         i, idnum;
+    char        *s;
+    client_t    *cl;
+    client_t    *matches[MAX_CLIENTS];
 
-	if ( Cmd_Argc() < 2 ) {
-		Com_Printf( "No player specified.\n" );
-		return NULL;
-	}
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        return NULL;
+    }
 
-	s = Cmd_Argv(1);
+    if (Cmd_Argc() < 2) {
+        Com_Printf("No client specified\n");
+        return NULL;
+    }
 
-	// Check whether this is a numeric player handle
-	for(i = 0; s[i] >= '0' && s[i] <= '9'; i++);
-	
-	if(!s[i])
-	{
-		int plid = atoi(s);
+    s = Cmd_Argv(1);
 
-		// Check for numeric playerid match
-		if(plid >= 0 && plid < sv_maxclients->integer)
-		{
-			cl = &svs.clients[plid];
-			
-			if(cl->state)
-				return cl;
-		}
-	}
+    // Check whether this is a numeric player handle
+    for(i = 0; s[i] >= '0' && s[i] <= '9'; i++);
 
-	// check for a name match
-	for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
-		if ( !cl->state ) {
-			continue;
-		}
-		if ( !Q_stricmp( cl->name, s ) ) {
-			return cl;
-		}
+    if(!s[i]) {
 
-		Q_strncpyz( cleanName, cl->name, sizeof(cleanName) );
-		Q_CleanStr( cleanName );
-		if ( !Q_stricmp( cleanName, s ) ) {
-			return cl;
-		}
-	}
+        // Numeric player handle given as input
+        idnum = atoi(s);
+        if ((idnum < 0) || (idnum >= sv_maxclients->integer)) {
+            Com_Printf("Bad client slot: %i\n", idnum);
+            return NULL;
+        }
 
-	Com_Printf( "Player %s is not on the server\n", s );
+        cl = &svs.clients[idnum];
 
-	return NULL;
+        if (cl->state != CS_ACTIVE) {
+            Com_Printf("Client in slot %i is not connected\n", idnum);
+            return NULL;
+        }
+
+        return cl;
+
+    } else {
+
+        // Full/Partial player name given as input
+        for (i = 0; i < sv_maxclients->integer ; i++) {
+
+            cl = &svs.clients[i];
+
+            // Client is not connected
+            if (!cl->state) {
+                continue;
+            }
+
+            // Check for substring match
+            if (Q_strisub(Q_CleanStr(cl->name), s)) {
+                matches[count] = &svs.clients[i];
+                count++;
+            }
+
+        }
+
+        if (count == 0) {
+
+            // No match found for the given input string
+            Com_Printf("No client found matching %s\n", s);
+            return NULL;
+
+        } else if (count > 1) {
+
+            // Multiple matches found for the given string
+            Com_Printf("Multiple clients found matching %s:\n", s);
+
+            for (i = 0; i < count; i++) {
+                cl = matches[i];
+                Com_Printf(" %2d: [%s]\n", (int)(cl - svs.clients), Q_CleanStr(cl->name));
+            }
+
+            return NULL;
+        }
+
+        // Found just 1 match
+        return matches[0];
+
+    }
+
 }
 
 /*
@@ -152,42 +188,46 @@ SV_GetPlayerByNum
 Returns the player with idnum from Cmd_Argv(1)
 ==================
 */
-static client_t *SV_GetPlayerByNum( void ) {
-	client_t	*cl;
-	int			i;
-	int			idnum;
-	char		*s;
+static client_t *SV_GetPlayerByNum(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		return NULL;
-	}
+    int         i;
+    int         idnum;
+    char        *s;
+    client_t    *cl;
 
-	if ( Cmd_Argc() < 2 ) {
-		Com_Printf( "No player specified.\n" );
-		return NULL;
-	}
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        return NULL;
+    }
 
-	s = Cmd_Argv(1);
+    if (Cmd_Argc() < 2) {
+        Com_Printf("No client specified\n");
+        return NULL;
+    }
 
-	for (i = 0; s[i]; i++) {
-		if (s[i] < '0' || s[i] > '9') {
-			Com_Printf( "Bad slot number: %s\n", s);
-			return NULL;
-		}
-	}
-	idnum = atoi( s );
-	if ( idnum < 0 || idnum >= sv_maxclients->integer ) {
-		Com_Printf( "Bad client slot: %i\n", idnum );
-		return NULL;
-	}
+    s = Cmd_Argv(1);
 
-	cl = &svs.clients[idnum];
-	if ( !cl->state ) {
-		Com_Printf( "Client %i is not active\n", idnum );
-		return NULL;
-	}
-	return cl;
+    for (i = 0; s[i]; i++) {
+        if (s[i] < '0' || s[i] > '9') {
+            Com_Printf("Bad slot number: %s\n", s);
+            return NULL;
+        }
+    }
+
+    idnum = atoi(s);
+    if (idnum < 0 || idnum >= sv_maxclients->integer) {
+        Com_Printf("Bad client slot: %i\n", idnum);
+        return NULL;
+    }
+
+    cl = &svs.clients[idnum];
+    if (cl->state != CS_ACTIVE) {
+        Com_Printf("Client in slot %i is not connected\n", idnum);
+        return NULL;
+    }
+
+    return cl;
+
 }
 
 #ifdef USE_AUTH
@@ -456,6 +496,7 @@ static void SV_MapRestart_f( void ) {
 
 	// connect and begin all the clients
 	for (i=0 ; i<sv_maxclients->integer ; i++) {
+
 		client = &svs.clients[i];
 
 		// send the new gamestate to all connected clients
@@ -505,63 +546,83 @@ static void SV_MapRestart_f( void ) {
 ==================
 SV_Kick_f
 
-Kick a user off of the server  FIXME: move to game
+Kick a user off of the server. FIXME: move to game
 ==================
 */
-static void SV_Kick_f( void ) {
-	client_t	*cl;
-	int			i;
-	char    *reason = "was kicked";
+static void SV_Kick_f(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
+    int         i;
+    client_t    *cl;
+    char        *reason = "was kicked";
 
-	if ( (Cmd_Argc() < 2) || (Cmd_Argc() > 3) ) {
-		Com_Printf ("Usage: kick <player> <reason>\nkick all = kick everyone\nkick allbots = kick all bots\n");
-		return;
-	}
+    // make sure server is running
+    if (!com_sv_running->integer ) {
+        Com_Printf("Server is not running\n");
+        return;
+    }
 
-	if ( Cmd_Argc() == 3 ) 
-		reason = Cmd_Argv(2);
+    if ((Cmd_Argc() < 2) || (Cmd_Argc() > 3)) {
+        Com_Printf ("Usage: kick <client> <reason>\nkick all = kick everyone\nkick allbots = kick all bots\n");
+        return;
+    }
 
-	cl = SV_GetPlayerByHandle();
-	if ( !cl ) {
-		if ( !Q_stricmp(Cmd_Argv(1), "all") ) {
-			for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
-				if ( !cl->state ) {
-					continue;
-				}
-				if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
-					continue;
-				}
-				SV_DropClient( cl, reason );
-				cl->lastPacketTime = svs.time;	// in case there is a funny zombie
-			}
-		}
-		else if ( !Q_stricmp(Cmd_Argv(1), "allbots") ) {
-			for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
-				if ( !cl->state ) {
-					continue;
-				}
-				if( cl->netchan.remoteAddress.type != NA_BOT ) {
-					continue;
-				}
-				SV_DropClient( cl, reason );
-				cl->lastPacketTime = svs.time;	// in case there is a funny zombie
-			}
-		}
-		return;
-	}
-	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
-		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host player\n");
-		return;
-	}
+    if (Cmd_Argc() == 3) {
+        // If the reason was specified attach it to the disconnect message
+        reason = va("was kicked: %s", Cmd_Argv(2));
+    }
 
-	SV_DropClient( cl, reason );
-	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
+
+    if (!Q_stricmp(Cmd_Argv(1), "all")) {
+
+        for (i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++) {
+
+            if (!cl->state) {
+                continue;
+            }
+
+            if (cl->netchan.remoteAddress.type == NA_LOOPBACK) {
+                continue;
+            }
+
+            SV_DropClient(cl, reason);
+            cl->lastPacketTime = svs.time;    // in case there is a funny zombie
+        }
+
+    } else if (!Q_stricmp(Cmd_Argv(1), "allbots")) {
+
+        for (i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++) {
+
+            if (!cl->state) {
+                continue;
+            }
+
+            if (cl->netchan.remoteAddress.type != NA_BOT) {
+                continue;
+            }
+
+            SV_DropClient(cl, reason);
+            cl->lastPacketTime = svs.time;    // in case there is a funny zombie
+
+        }
+
+    } else {
+
+        cl = SV_GetPlayerByHandle();
+
+        if (!cl) {
+            return;
+        }
+
+        if (cl->netchan.remoteAddress.type == NA_LOOPBACK) {
+            SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host client\n");
+            return;
+        }
+
+        SV_DropClient(cl, reason);
+        cl->lastPacketTime = svs.time;    // in case there is a funny zombie
+
+    }
+
 }
 
 /*
@@ -572,52 +633,55 @@ Ban a user from being able to play on this server through the auth
 server
 ==================
 */
-static void SV_Ban_f( void ) {
-	client_t	*cl;
+static void SV_Ban_f(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
+    client_t *cl;
 
-	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: banUser <player name>\n");
-		return;
-	}
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        Com_Printf( "Server is not running\n" );
+        return;
+    }
 
-	cl = SV_GetPlayerByHandle();
+    if (Cmd_Argc() != 2 ) {
+        Com_Printf ("Usage: banUser <client>\n");
+        return;
+    }
 
-	if (!cl) {
-		return;
-	}
+    cl = SV_GetPlayerByHandle();
 
-	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
-		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host player\n");
-		return;
-	}
+    if (!cl) {
+        return;
+    }
 
-	// look up the authorize server's IP
-	if ( !svs.authorizeAddress.ip[0] && svs.authorizeAddress.type != NA_BAD ) {
-		Com_Printf( "Resolving %s\n", AUTHORIZE_SERVER_NAME );
-		if ( !NET_StringToAdr( AUTHORIZE_SERVER_NAME, &svs.authorizeAddress ) ) {
-			Com_Printf( "Couldn't resolve address\n" );
-			return;
-		}
-		svs.authorizeAddress.port = BigShort( PORT_AUTHORIZE );
-		Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", AUTHORIZE_SERVER_NAME,
-			svs.authorizeAddress.ip[0], svs.authorizeAddress.ip[1],
-			svs.authorizeAddress.ip[2], svs.authorizeAddress.ip[3],
-			BigShort( svs.authorizeAddress.port ) );
-	}
+    if (cl->netchan.remoteAddress.type == NA_LOOPBACK) {
+        SV_SendServerCommand(NULL, "print \"%s\"", "Cannot ban host client\n");
+        return;
+    }
 
-	// otherwise send their ip to the authorize server
-	if ( svs.authorizeAddress.type != NA_BAD ) {
-		NET_OutOfBandPrint( NS_SERVER, svs.authorizeAddress,
-			"banUser %i.%i.%i.%i", cl->netchan.remoteAddress.ip[0], cl->netchan.remoteAddress.ip[1], 
-								   cl->netchan.remoteAddress.ip[2], cl->netchan.remoteAddress.ip[3] );
-		Com_Printf("%s was banned from coming back\n", cl->name);
-	}
+    // look up the authorize server's IP
+    if (!svs.authorizeAddress.ip[0] && svs.authorizeAddress.type != NA_BAD) {
+        Com_Printf("Resolving %s\n", AUTHORIZE_SERVER_NAME);
+        if (!NET_StringToAdr( AUTHORIZE_SERVER_NAME, &svs.authorizeAddress)) {
+            Com_Printf("Couldn't resolve address\n");
+            return;
+        }
+        svs.authorizeAddress.port = BigShort( PORT_AUTHORIZE );
+        Com_Printf("%s resolved to %i.%i.%i.%i:%i\n", AUTHORIZE_SERVER_NAME,
+            svs.authorizeAddress.ip[0], svs.authorizeAddress.ip[1],
+            svs.authorizeAddress.ip[2], svs.authorizeAddress.ip[3],
+            BigShort(svs.authorizeAddress.port));
+    }
+
+    // otherwise send their ip to the authorize server
+    if (svs.authorizeAddress.type != NA_BAD) {
+        NET_OutOfBandPrint(NS_SERVER, svs.authorizeAddress,
+                           "banUser %i.%i.%i.%i", cl->netchan.remoteAddress.ip[0], cl->netchan.remoteAddress.ip[1],
+                           cl->netchan.remoteAddress.ip[2], cl->netchan.remoteAddress.ip[3]);
+
+        Com_Printf("%s was banned from coming back\n", cl->name);
+
+    }
 }
 
 /*
@@ -629,49 +693,53 @@ server
 ==================
 */
 static void SV_BanNum_f( void ) {
-	client_t	*cl;
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
+    client_t *cl;
 
-	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: banClient <client number>\n");
-		return;
-	}
+    // make sure server is running
+    if (!com_sv_running->integer ) {
+        Com_Printf("Server is not running\n");
+        return;
+    }
 
-	cl = SV_GetPlayerByNum();
-	if ( !cl ) {
-		return;
-	}
-	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
-		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host player\n");
-		return;
-	}
+    if (Cmd_Argc() != 2) {
+        Com_Printf("Usage: banClient <client number>\n");
+        return;
+    }
 
-	// look up the authorize server's IP
-	if ( !svs.authorizeAddress.ip[0] && svs.authorizeAddress.type != NA_BAD ) {
-		Com_Printf( "Resolving %s\n", AUTHORIZE_SERVER_NAME );
-		if ( !NET_StringToAdr( AUTHORIZE_SERVER_NAME, &svs.authorizeAddress ) ) {
-			Com_Printf( "Couldn't resolve address\n" );
-			return;
-		}
-		svs.authorizeAddress.port = BigShort( PORT_AUTHORIZE );
-		Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", AUTHORIZE_SERVER_NAME,
-			svs.authorizeAddress.ip[0], svs.authorizeAddress.ip[1],
-			svs.authorizeAddress.ip[2], svs.authorizeAddress.ip[3],
-			BigShort( svs.authorizeAddress.port ) );
-	}
+    cl = SV_GetPlayerByNum();
+    if (!cl) {
+        return;
+    }
 
-	// otherwise send their ip to the authorize server
-	if ( svs.authorizeAddress.type != NA_BAD ) {
-		NET_OutOfBandPrint( NS_SERVER, svs.authorizeAddress,
-			"banUser %i.%i.%i.%i", cl->netchan.remoteAddress.ip[0], cl->netchan.remoteAddress.ip[1], 
-								   cl->netchan.remoteAddress.ip[2], cl->netchan.remoteAddress.ip[3] );
-		Com_Printf("%s was banned from coming back\n", cl->name);
-	}
+    if (cl->netchan.remoteAddress.type == NA_LOOPBACK) {
+        SV_SendServerCommand(NULL, "print \"%s\"", "Cannot ban host client\n");
+        return;
+    }
+
+    // look up the authorize server's IP
+    if (!svs.authorizeAddress.ip[0] && svs.authorizeAddress.type != NA_BAD) {
+        Com_Printf( "Resolving %s\n", AUTHORIZE_SERVER_NAME);
+        if (!NET_StringToAdr( AUTHORIZE_SERVER_NAME, &svs.authorizeAddress)) {
+            Com_Printf("Couldn't resolve address\n");
+            return;
+        }
+        svs.authorizeAddress.port = BigShort(PORT_AUTHORIZE);
+        Com_Printf("%s resolved to %i.%i.%i.%i:%i\n", AUTHORIZE_SERVER_NAME,
+            svs.authorizeAddress.ip[0], svs.authorizeAddress.ip[1],
+            svs.authorizeAddress.ip[2], svs.authorizeAddress.ip[3],
+            BigShort( svs.authorizeAddress.port));
+    }
+
+    // otherwise send their ip to the authorize server
+    if (svs.authorizeAddress.type != NA_BAD) {
+        NET_OutOfBandPrint(NS_SERVER, svs.authorizeAddress,
+                           "banUser %i.%i.%i.%i", cl->netchan.remoteAddress.ip[0], cl->netchan.remoteAddress.ip[1],
+                           cl->netchan.remoteAddress.ip[2], cl->netchan.remoteAddress.ip[3] );
+
+        Com_Printf("%s was banned from coming back\n", cl->name);
+
+    }
 }
 
 /*
@@ -681,31 +749,34 @@ SV_KickNum_f
 Kick a user off of the server  FIXME: move to game
 ==================
 */
-static void SV_KickNum_f( void ) {
-	client_t	*cl;
+static void SV_KickNum_f(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
+    client_t *cl;
 
-	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: kicknum <client number>\n");
-		return;
-	}
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        Com_Printf("Server is not running\n");
+        return;
+    }
 
-	cl = SV_GetPlayerByNum();
-	if ( !cl ) {
-		return;
-	}
-	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
-		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host player\n");
-		return;
-	}
+    if (Cmd_Argc() != 2) {
+        Com_Printf("Usage: kicknum <client number>\n");
+        return;
+    }
 
-	SV_DropClient( cl, "was kicked" );
-	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
+    cl = SV_GetPlayerByNum();
+    if (!cl) {
+        return;
+    }
+
+    if (cl->netchan.remoteAddress.type == NA_LOOPBACK) {
+        SV_SendServerCommand(NULL, "print \"%s\"", "Cannot kick host client\n");
+        return;
+    }
+
+    SV_DropClient(cl, "was kicked");
+    cl->lastPacketTime = svs.time;    // in case there is a funny zombie
+
 }
 
 /*
@@ -713,64 +784,67 @@ static void SV_KickNum_f( void ) {
 SV_Status_f
 ================
 */
-static void SV_Status_f( void ) {
-	int			i, j, l;
-	client_t	*cl;
-	playerState_t	*ps;
-	const char		*s;
-	int			ping;
+static void SV_Status_f(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
+    int            i, j, l;
+    client_t       *cl;
+    playerState_t  *ps;
+    const char     *s;
+    int            ping;
 
-	Com_Printf ("map: %s\n", sv_mapname->string );
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        Com_Printf("Server is not running\n");
+        return;
+    }
 
-	Com_Printf ("num score ping name            lastmsg address               qport rate\n");
-	Com_Printf ("--- ----- ---- --------------- ------- --------------------- ----- -----\n");
-	for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++)
-	{
-		if (!cl->state)
-			continue;
-		Com_Printf ("%3i ", i);
-		ps = SV_GameClientNum( i );
-		Com_Printf ("%5i ", ps->persistant[PERS_SCORE]);
+    Com_Printf ("map: %s\n", sv_mapname->string);
+    Com_Printf ("num score ping name            lastmsg address               qport rate\n");
+    Com_Printf ("--- ----- ---- --------------- ------- --------------------- ----- -----\n");
 
-		if (cl->state == CS_CONNECTED)
-			Com_Printf ("CNCT ");
-		else if (cl->state == CS_ZOMBIE)
-			Com_Printf ("ZMBI ");
-		else
-		{
-			ping = cl->ping < 9999 ? cl->ping : 9999;
-			Com_Printf ("%4i ", ping);
-		}
+    for (i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++) {
 
-		Com_Printf ("%s", cl->name);
-    // TTimo adding a ^7 to reset the color
-    // NOTE: colored names in status breaks the padding (WONTFIX)
-    Com_Printf ("^7");
-		l = 16 - strlen(cl->name);
-		for (j=0 ; j<l ; j++)
-			Com_Printf (" ");
+        if (!cl->state) {
+            continue;
+        }
 
-		Com_Printf ("%7i ", svs.time - cl->lastPacketTime );
+        Com_Printf("%3i ", i);
+        ps = SV_GameClientNum( i );
+        Com_Printf("%5i ", ps->persistant[PERS_SCORE]);
 
-		s = NET_AdrToString( cl->netchan.remoteAddress );
-		Com_Printf ("%s", s);
-		l = 22 - strlen(s);
-		for (j=0 ; j<l ; j++)
-			Com_Printf (" ");
-		
-		Com_Printf ("%5i", cl->netchan.qport);
+        if (cl->state == CS_CONNECTED) {
+            Com_Printf("CNCT ");
+        } else if (cl->state == CS_ZOMBIE) {
+            Com_Printf("ZMBI ");
+        } else {
+            ping = cl->ping < 9999 ? cl->ping : 9999;
+            Com_Printf ("%4i ", ping);
+        }
 
-		Com_Printf (" %5i", cl->rate);
+        Com_Printf ("%s", cl->name);
+        // TTimo adding a ^7 to reset the color
+        // NOTE: colored names in status breaks the padding (WONTFIX)
+        Com_Printf ("^7");
+        l = 16 - strlen(cl->name);
+        for (j=0 ; j<l ; j++) {
+            Com_Printf (" ");
+        }
 
-		Com_Printf ("\n");
-	}
-	Com_Printf ("\n");
+        Com_Printf ("%7i ", svs.time - cl->lastPacketTime );
+        s = NET_AdrToString( cl->netchan.remoteAddress );
+        Com_Printf ("%s", s);
+        l = 22 - strlen(s);
+        for (j = 0; j < l; j++) {
+            Com_Printf(" ");
+        }
+
+        Com_Printf ("%5i", cl->netchan.qport);
+        Com_Printf (" %5i", cl->rate);
+        Com_Printf ("\n");
+    }
+
+    Com_Printf ("\n");
+
 }
 
 /*
@@ -779,30 +853,31 @@ SV_ConSay_f
 ==================
 */
 static void SV_ConSay_f(void) {
-	char	*p;
-	char	text[1024];
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
+    char    *p;
+    char    text[1024];
 
-	if ( Cmd_Argc () < 2 ) {
-		return;
-	}
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        Com_Printf("Server is not running.\n");
+        return;
+    }
 
-	strcpy (text, sv_sayprefix->string);
-	p = Cmd_Args();
+    if (Cmd_Argc () < 2) {
+        return;
+    }
 
-	if ( *p == '"' ) {
-		p++;
-		p[strlen(p)-1] = 0;
-	}
+    strcpy(text, sv_sayprefix->string);
+    p = Cmd_Args();
 
-	strcat(text, p);
+    if (*p == '"') {
+        p++;
+        p[strlen(p) - 1] = 0;
+    }
 
-	SV_SendServerCommand(NULL, "chat \"%s\n\"", text);
+    strcat(text, p);
+    SV_SendServerCommand(NULL, "chat \"%s\n\"", text);
+
 }
 
 
@@ -812,37 +887,39 @@ SV_ConTell_f
 ==================
 */
 static void SV_ConTell_f(void) {
-	char	*p;
-	char	text[1024];
-	client_t        *cl;
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
+    char      text[1024];
+    char      *p;
+    client_t  *cl;
 
-	if ( Cmd_Argc() < 3 ) {
-		Com_Printf ("Usage: tell <client number> <text>\n");
-		return;
-	}
-	
-	cl = SV_GetPlayerByNum();
-	if ( !cl ) {
-		return;
-	}
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        Com_Printf("Server is not running\n");
+        return;
+    }
 
-	strcpy (text, sv_tellprefix->string);
-	p = Cmd_ArgsFrom(2);
+    if (Cmd_Argc() < 3) {
+        Com_Printf("Usage: tell <client> <text>\n");
+        return;
+    }
 
-	if ( *p == '"' ) {
-		p++;
-		p[strlen(p)-1] = 0;
-	}
+    cl = SV_GetPlayerByHandle();
 
-	strcat(text, p);
+    if (!cl) {
+        return;
+    }
 
-	SV_SendServerCommand(cl, "chat \"%s\n\"", text);
+    strcpy (text, sv_tellprefix->string);
+    p = Cmd_ArgsFrom(2);
+
+    if (*p == '"') {
+        p++;
+        p[strlen(p) - 1] = 0;
+    }
+
+    strcat(text, p);
+    SV_SendServerCommand(cl, "chat \"%s\n\"", text);
+
 }
 
 
@@ -853,8 +930,8 @@ SV_Heartbeat_f
 Also called by SV_DropClient, SV_DirectConnect, and SV_SpawnServer
 ==================
 */
-void SV_Heartbeat_f( void ) {
-	svs.nextHeartbeatTime = -9999999;
+void SV_Heartbeat_f(void) {
+    svs.nextHeartbeatTime = -9999999;
 }
 
 
@@ -865,9 +942,9 @@ SV_Serverinfo_f
 Examine the serverinfo string
 ===========
 */
-static void SV_Serverinfo_f( void ) {
-	Com_Printf ("Server info settings:\n");
-	Info_Print ( Cvar_InfoString( CVAR_SERVERINFO ) );
+static void SV_Serverinfo_f(void) {
+    Com_Printf("Server info settings:\n");
+    Info_Print(Cvar_InfoString(CVAR_SERVERINFO));
 }
 
 
@@ -878,9 +955,9 @@ SV_Systeminfo_f
 Examine or change the serverinfo string
 ===========
 */
-static void SV_Systeminfo_f( void ) {
-	Com_Printf ("System info settings:\n");
-	Info_Print ( Cvar_InfoString( CVAR_SYSTEMINFO ) );
+static void SV_Systeminfo_f(void) {
+    Com_Printf("System info settings:\n");
+    Info_Print(Cvar_InfoString(CVAR_SYSTEMINFO));
 }
 
 
@@ -891,28 +968,30 @@ SV_DumpUser_f
 Examine all a users info strings FIXME: move to game
 ===========
 */
-static void SV_DumpUser_f( void ) {
-	client_t	*cl;
+static void SV_DumpUser_f(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
+    client_t *cl;
 
-	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: dumpuser <player>\n");
-		return;
-	}
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        Com_Printf("Server is not running\n");
+        return;
+    }
 
-	cl = SV_GetPlayerByHandle();
-	if ( !cl ) {
-		return;
-	}
+    if (Cmd_Argc() != 2) {
+        Com_Printf ("Usage: dumpuser <client>\n");
+        return;
+    }
 
-	Com_Printf( "userinfo\n" );
-	Com_Printf( "--------\n" );
-	Info_Print( cl->userinfo );
+    cl = SV_GetPlayerByHandle();
+    if (!cl) {
+        return;
+    }
+
+    Com_Printf("userinfo\n");
+    Com_Printf("--------\n");
+    Info_Print(cl->userinfo);
+
 }
 
 
@@ -921,8 +1000,8 @@ static void SV_DumpUser_f( void ) {
 SV_KillServer
 =================
 */
-static void SV_KillServer_f( void ) {
-	SV_Shutdown( "killserver" );
+static void SV_KillServer_f(void) {
+    SV_Shutdown("killserver");
 }
 
 //===========================================================
@@ -936,139 +1015,135 @@ stuff in client_t.
 This is mostly ripped from sv_client.c/SV_SendClientGameState
 and cl_main.c/CL_Record_f.
 */
-static void SVD_StartDemoFile(client_t *client, const char *path)
-{
-	int		i, len;
-	entityState_t	*base, nullstate;
-	msg_t		msg;
-	byte		buffer[MAX_MSGLEN];
-	fileHandle_t	file;
+static void SVD_StartDemoFile(client_t *client, const char *path) {
+
+    int             i, len;
+    entityState_t   *base, nullstate;
+    msg_t           msg;
+    byte            buffer[MAX_MSGLEN];
+    fileHandle_t    file;
 #ifdef USE_DEMO_FORMAT_42
-	char		*s;
-	int			v, size;
+    char            *s;
+    int             v, size;
 #endif
 
-	Com_DPrintf("SVD_StartDemoFile\n");
-	assert(!client->demo_recording);
+    Com_DPrintf("SVD_StartDemoFile\n");
+    assert(!client->demo_recording);
 
-	// create the demo file and write the necessary header
-	file = FS_FOpenFileWrite(path);
-	assert(file != 0);
-	
-	/* File_write_header_demo // ADD this fx */
-	/* HOLBLIN  entete demo */ 
-	#ifdef USE_DEMO_FORMAT_42
-		//@Barbatos: get the mod version from the server
-		s = Cvar_VariableString("g_modversion");
-	
-		size = strlen( s );
-		len = LittleLong( size );
-		FS_Write( &len, 4, file );
-		FS_Write( s , size ,  file );
-		
-		v = LittleLong( DEMO_VERSION );
-		FS_Write ( &v, 4 , file );
-		
-		len = 0;
-		len = LittleLong( len );
-		FS_Write ( &len, 4 , file );
-		FS_Write ( &len, 4 , file );
-	#endif
-	/* END HOLBLIN  entete demo */ 
+    // create the demo file and write the necessary header
+    file = FS_FOpenFileWrite(path);
+    assert(file != 0);
 
-	MSG_Init(&msg, buffer, sizeof(buffer));
-	MSG_Bitstream(&msg); // XXX server code doesn't do this, client code does
+    /* File_write_header_demo // ADD this fx */
+    /* HOLBLIN  entete demo */
+    #ifdef USE_DEMO_FORMAT_42
+        //@Barbatos: get the mod version from the server
+        s = Cvar_VariableString("g_modversion");
 
-	MSG_WriteLong(&msg, client->lastClientCommand); // TODO: or is it client->reliableSequence?
+        size = strlen(s);
+        len = LittleLong(size);
+        FS_Write(&len, 4, file);
+        FS_Write(s, size, file);
 
-	MSG_WriteByte(&msg, svc_gamestate);
-	MSG_WriteLong(&msg, client->reliableSequence);
+        v = LittleLong(DEMO_VERSION);
+        FS_Write (&v, 4, file);
 
-	for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
-		if (sv.configstrings[i][0]) {
-			MSG_WriteByte(&msg, svc_configstring);
-			MSG_WriteShort(&msg, i);
-			MSG_WriteBigString(&msg, sv.configstrings[i]);
-		}
-	}
+        len = 0;
+        len = LittleLong(len);
+        FS_Write(&len, 4, file);
+        FS_Write(&len, 4, file);
+    #endif
+    /* END HOLBLIN  entete demo */
 
-	Com_Memset(&nullstate, 0, sizeof(nullstate));
-	for (i = 0 ; i < MAX_GENTITIES; i++) {
-		base = &sv.svEntities[i].baseline;
-		if (!base->number) {
-			continue;
-		}
-		MSG_WriteByte(&msg, svc_baseline);
-		MSG_WriteDeltaEntity(&msg, &nullstate, base, qtrue);
-	}
+    MSG_Init(&msg, buffer, sizeof(buffer));
+    MSG_Bitstream(&msg); // XXX server code doesn't do this, client code does
+    MSG_WriteLong(&msg, client->lastClientCommand); // TODO: or is it client->reliableSequence?
+    MSG_WriteByte(&msg, svc_gamestate);
+    MSG_WriteLong(&msg, client->reliableSequence);
 
-	MSG_WriteByte(&msg, svc_EOF);
+    for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
+        if (sv.configstrings[i][0]) {
+            MSG_WriteByte(&msg, svc_configstring);
+            MSG_WriteShort(&msg, i);
+            MSG_WriteBigString(&msg, sv.configstrings[i]);
+        }
+    }
 
-	MSG_WriteLong(&msg, client - svs.clients);
-	MSG_WriteLong(&msg, sv.checksumFeed);
+    Com_Memset(&nullstate, 0, sizeof(nullstate));
+    for (i = 0 ; i < MAX_GENTITIES; i++) {
+        base = &sv.svEntities[i].baseline;
+        if (!base->number) {
+            continue;
+        }
+        MSG_WriteByte(&msg, svc_baseline);
+        MSG_WriteDeltaEntity(&msg, &nullstate, base, qtrue);
+    }
 
-	MSG_WriteByte(&msg, svc_EOF); // XXX server code doesn't do this, SV_Netchan_Transmit adds it!
+    MSG_WriteByte(&msg, svc_EOF);
+    MSG_WriteLong(&msg, client - svs.clients);
+    MSG_WriteLong(&msg, sv.checksumFeed);
+    MSG_WriteByte(&msg, svc_EOF); // XXX server code doesn't do this, SV_Netchan_Transmit adds it!
 
-	len = LittleLong(client->netchan.outgoingSequence-1);
-	FS_Write(&len, 4, file);
+    len = LittleLong(client->netchan.outgoingSequence - 1);
+    FS_Write(&len, 4, file);
 
-	len = LittleLong (msg.cursize);
-	FS_Write(&len, 4, file);
-	FS_Write(msg.data, msg.cursize, file);
+    len = LittleLong (msg.cursize);
+    FS_Write(&len, 4, file);
+    FS_Write(msg.data, msg.cursize, file);
 
-	#ifdef USE_DEMO_FORMAT_42
-		// add size of packet in the end for backward play /* holblin */
-		FS_Write(&len, 4, file);
-	#endif
+    #ifdef USE_DEMO_FORMAT_42
+        // add size of packet in the end for backward play /* holblin */
+        FS_Write(&len, 4, file);
+    #endif
 
-	FS_Flush(file);
+    FS_Flush(file);
 
-	// adjust client_t to reflect demo started
-	client->demo_recording = qtrue;
-	client->demo_file = file;
-	client->demo_waiting = qtrue;
-	client->demo_backoff = 1;
-	client->demo_deltas = 0;
+    // adjust client_t to reflect demo started
+    client->demo_recording = qtrue;
+    client->demo_file = file;
+    client->demo_waiting = qtrue;
+    client->demo_backoff = 1;
+    client->demo_deltas = 0;
 }
 
 /*
 Write a message to a server-side demo file.
 */
-void SVD_WriteDemoFile(const client_t *client, const msg_t *msg)
-{
-	int len;
-	msg_t cmsg;
-	byte cbuf[MAX_MSGLEN];
-	fileHandle_t file = client->demo_file;
+void SVD_WriteDemoFile(const client_t *client, const msg_t *msg) {
 
-	if (*(int *)msg->data == -1) { // TODO: do we need this?
-		Com_DPrintf("Ignored connectionless packet, not written to demo!\n");
-		return;
-	}
+    int len;
+    msg_t cmsg;
+    byte cbuf[MAX_MSGLEN];
+    fileHandle_t file = client->demo_file;
 
-	// TODO: we only copy because we want to add svc_EOF; can we add it and then
-	// "back off" from it, thus avoiding the copy?
-	MSG_Copy(&cmsg, cbuf, sizeof(cbuf), (msg_t*) msg);
-	MSG_WriteByte(&cmsg, svc_EOF); // XXX server code doesn't do this, SV_Netchan_Transmit adds it!
+    if (*(int *)msg->data == -1) { // TODO: do we need this?
+        Com_DPrintf("Ignored connectionless packet, not written to demo!\n");
+        return;
+    }
 
-	// TODO: the headerbytes stuff done in the client seems unnecessary
-	// here because we get the packet *before* the netchan has it's way
-	// with it; just not sure that's really true :-/
+    // TODO: we only copy because we want to add svc_EOF; can we add it and then
+    // "back off" from it, thus avoiding the copy?
+    MSG_Copy(&cmsg, cbuf, sizeof(cbuf), (msg_t*) msg);
+    MSG_WriteByte(&cmsg, svc_EOF); // XXX server code doesn't do this, SV_Netchan_Transmit adds it!
 
-	len = LittleLong(client->netchan.outgoingSequence);
-	FS_Write(&len, 4, file);
+    // TODO: the headerbytes stuff done in the client seems unnecessary
+    // here because we get the packet *before* the netchan has it's way
+    // with it; just not sure that's really true :-/
 
-	len = LittleLong(cmsg.cursize);
-	FS_Write(&len, 4, file);
+    len = LittleLong(client->netchan.outgoingSequence);
+    FS_Write(&len, 4, file);
 
-	FS_Write(cmsg.data, cmsg.cursize, file); // XXX don't use len!
-	
-	#ifdef USE_DEMO_FORMAT_42
-		// add size of packet in the end for backward play /* holblin */
-		FS_Write(&len, 4, file);
-	#endif
-	
-	FS_Flush(file);
+    len = LittleLong(cmsg.cursize);
+    FS_Write(&len, 4, file);
+
+    FS_Write(cmsg.data, cmsg.cursize, file); // XXX don't use len!
+
+    #ifdef USE_DEMO_FORMAT_42
+        // add size of packet in the end for backward play /* holblin */
+        FS_Write(&len, 4, file);
+    #endif
+
+    FS_Flush(file);
 }
 
 /*
@@ -1077,197 +1152,205 @@ Stop a server-side demo.
 This finishes out the file and clears the demo-related stuff
 in client_t again.
 */
-static void SVD_StopDemoFile(client_t *client)
-{
-	int marker = -1;
-	fileHandle_t file = client->demo_file;
+static void SVD_StopDemoFile(client_t *client) {
 
-	Com_DPrintf("SVD_StopDemoFile\n");
-	assert(client->demo_recording);
+    int marker = -1;
+    fileHandle_t file = client->demo_file;
 
-	// write the necessary trailer and close the demo file
-	FS_Write(&marker, 4, file);
-	FS_Write(&marker, 4, file);
-	FS_Flush(file);
-	FS_FCloseFile(file);
+    Com_DPrintf("SVD_StopDemoFile\n");
+    assert(client->demo_recording);
 
-	// adjust client_t to reflect demo stopped
-	client->demo_recording = qfalse;
-	client->demo_file = -1;
-	client->demo_waiting = qfalse;
-	client->demo_backoff = 1;
-	client->demo_deltas = 0;
+    // write the necessary trailer and close the demo file
+    FS_Write(&marker, 4, file);
+    FS_Write(&marker, 4, file);
+    FS_Flush(file);
+    FS_FCloseFile(file);
+
+    // adjust client_t to reflect demo stopped
+    client->demo_recording = qfalse;
+    client->demo_file = -1;
+    client->demo_waiting = qfalse;
+    client->demo_backoff = 1;
+    client->demo_deltas = 0;
 }
 
 /*
 Clean up player name to be suitable as path name.
 Similar to Q_CleanStr() but tweaked.
 */
-static void SVD_CleanPlayerName(char *name)
-{
-	char *src = name, *dst = name, c;
-	while ((c = *src)) {
-		// note Q_IsColorString(src++) won't work since it's a macro
-		if (Q_IsColorString(src)) {
-			src++;
-		}
-		else if (c == ':' || c == '\\' || c == '/' || c == '*' || c == '?') {
-			*dst++ = '%';
-		}
-		else if (c > ' ' && c < 0x7f) {
-			*dst++ = c;
-		}
-		src++;
-	}
-	*dst = '\0';
+static void SVD_CleanPlayerName(char *name) {
 
-	if (strlen(name) == 0) {
-		strcpy(name, "UnnamedPlayer");
-	}
+    char *src = name, *dst = name, c;
+
+    while ((c = *src)) {
+        // note Q_IsColorString(src++) won't work since it's a macro
+        if (Q_IsColorString(src)) {
+            src++;
+        } else if (c == ':' || c == '\\' || c == '/' || c == '*' || c == '?') {
+            *dst++ = '%';
+        } else if (c > ' ' && c < 0x7f) {
+            *dst++ = c;
+        }
+        src++;
+    }
+
+    *dst = '\0';
+
+    if (strlen(name) == 0) {
+        strcpy(name, "UnnamedPlayer");
+    }
 }
 
 /*
 Generate unique name for a new server demo file.
 (We pretend there are no race conditions.)
 */
-static void SV_NameServerDemo(char *filename, int length, const client_t *client, char *fn)
-{
-	qtime_t time;
-	char playername[32];
-	char demoName[64]; //@Barbatos
+static void SV_NameServerDemo(char *filename, int length, const client_t *client, char *fn) {
 
-	Com_DPrintf("SV_NameServerDemo\n");
+    qtime_t time;
+    char playername[32];
+    char demoName[64]; //@Barbatos
 
-	Com_RealTime(&time);
-	Q_strncpyz(playername, client->name, sizeof(playername));
-	SVD_CleanPlayerName(playername);
-	
-	if (fn != NULL) {
-		Q_strncpyz(demoName, fn, sizeof(demoName));
-		
-		#ifdef USE_DEMO_FORMAT_42
-			Q_snprintf(filename, length-1, "%s/%s.urtdemo", sv_demofolder->string, demoName );
-			if (FS_FileExists(filename)) {
-				Q_snprintf(filename, length-1, "%s/%s_%d.urtdemo", sv_demofolder->string, demoName, Sys_Milliseconds() );
-			}
-		#else
-			Q_snprintf(filename, length-1, "%s/%s.dm_%d", sv_demofolder->string, demoName , PROTOCOL_VERSION );
-			if (FS_FileExists(filename)) {
-				Q_snprintf(filename, length-1, "%s/%s_%d.dm_%d", sv_demofolder->string, demoName, Sys_Milliseconds() , PROTOCOL_VERSION );
-			}		
-		#endif
-	} else {
-		#ifdef USE_DEMO_FORMAT_42
-			Q_snprintf(
-				filename, length-1, "%s/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.urtdemo",
-				sv_demofolder->string, time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
-				time.tm_hour, time.tm_min, time.tm_sec,
-				playername,
-				Sys_Milliseconds()
-			);
-		#else
-			Q_snprintf(
-				filename, length-1, "%s/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
-				sv_demofolder->string, time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
-				time.tm_hour, time.tm_min, time.tm_sec,
-				playername,
-				Sys_Milliseconds(),
-				PROTOCOL_VERSION
-			);
-		#endif
-		filename[length-1] = '\0';
-		
-		if (FS_FileExists(filename)) {
-			filename[0] = 0;
-			return;
-		}
-	}
+    Com_DPrintf("SV_NameServerDemo\n");
+
+    Com_RealTime(&time);
+    Q_strncpyz(playername, client->name, sizeof(playername));
+    SVD_CleanPlayerName(playername);
+
+    if (fn != NULL) {
+
+        Q_strncpyz(demoName, fn, sizeof(demoName));
+
+        #ifdef USE_DEMO_FORMAT_42
+            Q_snprintf(filename, length-1, "%s/%s.urtdemo", sv_demofolder->string, demoName );
+            if (FS_FileExists(filename)) {
+                Q_snprintf(filename, length-1, "%s/%s_%d.urtdemo", sv_demofolder->string, demoName, Sys_Milliseconds() );
+            }
+        #else
+            Q_snprintf(filename, length-1, "%s/%s.dm_%d", sv_demofolder->string, demoName , PROTOCOL_VERSION );
+            if (FS_FileExists(filename)) {
+                Q_snprintf(filename, length-1, "%s/%s_%d.dm_%d", sv_demofolder->string, demoName, Sys_Milliseconds() , PROTOCOL_VERSION );
+            }
+        #endif
+    } else {
+        #ifdef USE_DEMO_FORMAT_42
+            Q_snprintf(
+                filename, length-1, "%s/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.urtdemo",
+                sv_demofolder->string, time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
+                time.tm_hour, time.tm_min, time.tm_sec,
+                playername,
+                Sys_Milliseconds()
+            );
+        #else
+            Q_snprintf(
+                filename, length-1, "%s/%.4d-%.2d-%.2d_%.2d-%.2d-%.2d_%s_%d.dm_%d",
+                sv_demofolder->string, time.tm_year+1900, time.tm_mon + 1, time.tm_mday,
+                time.tm_hour, time.tm_min, time.tm_sec,
+                playername,
+                Sys_Milliseconds(),
+                PROTOCOL_VERSION
+            );
+        #endif
+        filename[length-1] = '\0';
+
+        if (FS_FileExists(filename)) {
+            filename[0] = 0;
+            return;
+        }
+    }
 }
 
-static void SV_StartRecordOne(client_t *client, char *filename)
-{
-	char path[MAX_OSPATH];
+static void SV_StartRecordOne(client_t *client, char *filename) {
 
-	Com_DPrintf("SV_StartRecordOne\n");
+    char path[MAX_OSPATH];
 
-	if (client->demo_recording) {
-		Com_Printf("startserverdemo: %s is already being recorded\n", client->name);
-		return;
-	}
-	if (client->state != CS_ACTIVE) {
-		Com_Printf("startserverdemo: %s is not active\n", client->name);
-		return;
-	}
-	if (client->netchan.remoteAddress.type == NA_BOT) {
-		Com_Printf("startserverdemo: %s is a bot\n", client->name);
-		return;
-	}
+    Com_DPrintf("SV_StartRecordOne\n");
 
-	SV_NameServerDemo(path, sizeof(path), client, filename);
-	SVD_StartDemoFile(client, path);
+    if (client->demo_recording) {
+        Com_Printf("startserverdemo: %s is already being recorded\n", client->name);
+        return;
+    }
 
-	if(sv_demonotice->string)
-		SV_SendServerCommand(client, "print \"%s\"\n", sv_demonotice->string);
+    if (client->state != CS_ACTIVE) {
+        Com_Printf("startserverdemo: %s is not active\n", client->name);
+        return;
+    }
 
-	Com_Printf("startserverdemo: recording %s to %s\n", client->name, path);
+    if (client->netchan.remoteAddress.type == NA_BOT) {
+        Com_Printf("startserverdemo: %s is a bot\n", client->name);
+        return;
+    }
+
+    SV_NameServerDemo(path, sizeof(path), client, filename);
+    SVD_StartDemoFile(client, path);
+
+    if(sv_demonotice->string) {
+        SV_SendServerCommand(client, "print \"%s\"\n", sv_demonotice->string);
+    }
+
+    Com_Printf("startserverdemo: recording %s to %s\n", client->name, path);
 }
 
-static void SV_StartRecordAll(void)
-{
-	int slot;
-	client_t *client;
+static void SV_StartRecordAll(void) {
 
-	Com_DPrintf("SV_StartRecordAll\n");
+    int slot;
+    client_t *client;
 
-	for (slot=0, client=svs.clients; slot < sv_maxclients->integer; slot++, client++) {
-		// filter here to avoid lots of bogus messages from SV_StartRecordOne()
-		if (client->netchan.remoteAddress.type == NA_BOT
-		    || client->state != CS_ACTIVE
-		    || client->demo_recording) {
-			continue;
-		}
-		SV_StartRecordOne(client, NULL);
-	}
+    Com_DPrintf("SV_StartRecordAll\n");
+
+    for (slot = 0, client = svs.clients; slot < sv_maxclients->integer; slot++, client++) {
+        // filter here to avoid lots of bogus messages from SV_StartRecordOne()
+        if (client->netchan.remoteAddress.type == NA_BOT
+            || client->state != CS_ACTIVE
+            || client->demo_recording) {
+            continue;
+        }
+        SV_StartRecordOne(client, NULL);
+    }
 }
 
-static void SV_StopRecordOne(client_t *client)
-{
-	Com_DPrintf("SV_StopRecordOne\n");
+static void SV_StopRecordOne(client_t *client) {
 
-	if (!client->demo_recording) {
-		Com_Printf("stopserverdemo: %s is not being recorded\n", client->name);
-		return;
-	}
-	if (client->state != CS_ACTIVE) { // disconnects are handled elsewhere
-		Com_Printf("stopserverdemo: %s is not active\n", client->name);
-		return;
-	}
-	if (client->netchan.remoteAddress.type == NA_BOT) {
-		Com_Printf("stopserverdemo: %s is a bot\n", client->name);
-		return;
-	}
+    Com_DPrintf("SV_StopRecordOne\n");
 
-	SVD_StopDemoFile(client);
+    if (!client->demo_recording) {
+        Com_Printf("stopserverdemo: %s is not being recorded\n", client->name);
+        return;
+    }
 
-	Com_Printf("stopserverdemo: stopped recording %s\n", client->name);
+    if (client->state != CS_ACTIVE) { // disconnects are handled elsewhere
+        Com_Printf("stopserverdemo: %s is not active\n", client->name);
+        return;
+    }
+
+    if (client->netchan.remoteAddress.type == NA_BOT) {
+        Com_Printf("stopserverdemo: %s is a bot\n", client->name);
+        return;
+    }
+
+    SVD_StopDemoFile(client);
+    Com_Printf("stopserverdemo: stopped recording %s\n", client->name);
+
+
 }
 
-static void SV_StopRecordAll(void)
-{
-	int slot;
-	client_t *client;
+static void SV_StopRecordAll(void) {
 
-	Com_DPrintf("SV_StopRecordAll\n");
+    int slot;
+    client_t *client;
 
-	for (slot=0, client=svs.clients; slot < sv_maxclients->integer; slot++, client++) {
-		// filter here to avoid lots of bogus messages from SV_StopRecordOne()
-		if (client->netchan.remoteAddress.type == NA_BOT
-		    || client->state != CS_ACTIVE // disconnects are handled elsewhere
-		    || !client->demo_recording) {
-			continue;
-		}
-		SV_StopRecordOne(client);
-	}
+    Com_DPrintf("SV_StopRecordAll\n");
+
+    for (slot=0, client=svs.clients; slot < sv_maxclients->integer; slot++, client++) {
+        // filter here to avoid lots of bogus messages from SV_StopRecordOne()
+        if (client->netchan.remoteAddress.type == NA_BOT
+            || client->state != CS_ACTIVE // disconnects are handled elsewhere
+            || !client->demo_recording) {
+            continue;
+        }
+        SV_StopRecordOne(client);
+    }
+
 }
 
 /*
@@ -1288,39 +1371,40 @@ or when the server restarts for any reason (such as a new map
 loading).
 ==================
 */
-static void SV_StartServerDemo_f(void)
-{
-	client_t *client;
+static void SV_StartServerDemo_f(void) {
 
-	Com_DPrintf("SV_StartServerDemo_f\n");
+    client_t *client;
 
-	if (!com_sv_running->integer) {
-		Com_Printf("startserverdemo: Server not running\n");
-		return;
-	}
+    Com_DPrintf("SV_StartServerDemo_f\n");
 
-	if (Cmd_Argc() < 2) {
-		Com_Printf("Usage: startserverdemo <player-or-all> <optional demo name>\n");
-		return;
-	}
+    if (!com_sv_running->integer) {
+        Com_Printf("startserverdemo: Server not running\n");
+        return;
+    }
 
-	client = SV_BetterGetPlayerByHandle(Cmd_Argv(1));
-	if (!Q_stricmp(Cmd_Argv(1), "all")) {
-		if (client) {
-			Com_Printf("startserverdemo: Player 'all' ignored, starting all demos instead\n");
-		}
-		SV_StartRecordAll();
-	}
-	else if (client) {
-		if (Cmd_Argc() > 2) {
-      		SV_StartRecordOne(client, Cmd_ArgsFrom(2));
-    	} else {
-      		SV_StartRecordOne(client, NULL);
-		}
-	}
-	else {
-		Com_Printf("startserverdemo: No player with that handle/in that slot\n");
-	}
+    if (Cmd_Argc() < 2) {
+        Com_Printf("Usage: startserverdemo <client-or-all> [<optional-demo-name>]\n");
+        return;
+    }
+
+    if (!Q_stricmp(Cmd_Argv(1), "all")) {
+
+        SV_StartRecordAll();
+
+    } else {
+
+        client = SV_GetPlayerByHandle();
+        if (!client) {
+            return;
+        }
+
+        if (Cmd_Argc() > 2) {
+            SV_StartRecordOne(client, Cmd_ArgsFrom(2));
+        } else {
+            SV_StartRecordOne(client, NULL);
+        }
+
+    }
 }
 
 /*
@@ -1344,23 +1428,25 @@ static void SV_StopServerDemo_f(void)
 	}
 
 	if (Cmd_Argc() != 2) {
-		Com_Printf("Usage: stopserverdemo <player-or-all>\n");
+		Com_Printf("Usage: stopserverdemo <client-or-all>\n");
 		return;
 	}
 
-	client = SV_BetterGetPlayerByHandle(Cmd_Argv(1));
 	if (!Q_stricmp(Cmd_Argv(1), "all")) {
-		if (client) {
-			Com_Printf("stopserverdemo: Player 'all' ignored, stopping all demos instead\n");
-		}
+
 		SV_StopRecordAll();
 	}
-	else if (client) {
+	else {
+
+	    client = SV_GetPlayerByHandle();
+
+	    if (!client) {
+	        return;
+	    }
+
 		SV_StopRecordOne(client);
 	}
-	else {
-		Com_Printf("stopserverdemo: No player with that handle/in that slot\n");
-	}
+
 }
 
 /*
@@ -1383,56 +1469,52 @@ SV_Auth_Whois_f
 Get user infos
 ==================
 */
-static void SV_Auth_Whois_f( void ) {
-	client_t	*cl;
-	int		idnum = -1;
-	int 	slot;
-	
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
-	
-	if ( Cmd_Argc() < 2 ) {
-		Com_Printf ("Usage: auth-whois <client number|name|all>\n");
-		return;
-	}
-		
-	if ( Cvar_VariableValue("auth") == 0 )
-	{
-		Com_Printf( "Auth services disabled\n" );
-		return;
-	}
+static void SV_Auth_Whois_f(void) {
 
-	idnum = SV_Argc_to_idnum( 1 );
-	
-	// Couldn't find a client so check if we want to whois all of the clients
-	if( idnum == -1 ) 
-	{
-		if(!Q_stricmp(Cmd_Argv(1), "all"))
-		{
-			for (slot=0, cl=svs.clients; slot < sv_maxclients->integer; slot++, cl++) 
-			{
-				if (cl->state != CS_ACTIVE) 
-					continue;
+    int         i;
+    client_t    *cl;
 
-				VM_Call(gvm, GAME_AUTH_WHOIS, (int)(cl - svs.clients));
-			}
+    // make sure server is running
+    if (!com_sv_running->integer) {
+        Com_Printf("Server is not running\n");
+        return;
+    }
 
-			return;
-		}
+    if (Cmd_Argc() < 2) {
+        Com_Printf("Usage: auth-whois <client-or-all>\n");
+        return;
+    }
 
-		else
-			return;
-	}
-	
-	cl = &svs.clients[idnum];
+    if (Cvar_VariableValue("auth") == 0) {
+        Com_Printf("Auth services are disabled\n");
+        return;
+    }
 
-	if ( !cl ) 
-		return;
+    if (!Q_stricmp(Cmd_Argv(1), "all")) {
 
-	VM_Call(gvm, GAME_AUTH_WHOIS, idnum);
+        for (i = 0; i < sv_maxclients->integer; i++) {
+
+            cl = &svs.clients[i];
+
+            if (cl->state != CS_ACTIVE) {
+                continue;
+            }
+
+            VM_Call(gvm, GAME_AUTH_WHOIS, (int)(cl - svs.clients));
+        }
+
+    } else {
+
+        cl = SV_GetPlayerByHandle();
+
+        if (!cl) {
+            return;
+        }
+
+        VM_Call(gvm, GAME_AUTH_WHOIS, (int)(cl - svs.clients));
+
+    }
+
 }
 
 /*
@@ -1443,55 +1525,43 @@ Ban a user from the server
 and the group
 ==================
 */
-static void SV_Auth_Ban_f( void ) {
-	client_t	*cl;
-	int		idnum = -1;
-	char	*days;
-	char	*hours;
-	char	*mins;
-	
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
-	
-	if ( Cvar_VariableValue("auth") == 0 )
-	{
-		Com_Printf( "Auth services disabled\n" );
-		return;
-	}
+static void SV_Auth_Ban_f(void) {
 
-	days = Cmd_Argv( 2 ); 
-	hours = Cmd_Argv( 3 );
-	mins = Cmd_Argv( 4 );
-	
-	if ( Cmd_Argc() < 5 ) {
-		Com_Printf ("Usage: auth-ban <client number|name> <days> <hours> <mins>\n");
-		return;
-	}
-	
-	idnum = SV_Argc_to_idnum( 1 );
-	
-	if( idnum == -1 ) 
-	{
-		Com_Printf("Client not found\n");
-		return;
-	}
-		
-	cl = &svs.clients[idnum];
-	
-	if ( !cl ) 
-	{
-		Com_Printf("Client not found\n");
-		return;
-	}
-	
-	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
-		SV_SendServerCommand(NULL, "print \"%s\"", "Cannot ban host players.\n");
-		return;
-	}
+    client_t    *cl;
+    char        *d, *h, *m;
 
-	VM_Call(gvm, GAME_AUTH_BAN, idnum, atoi(days), atoi(hours), atoi(mins));
+    if (!com_sv_running->integer) {
+        Com_Printf("Server is not running.\n");
+        return;
+    }
+
+    if (Cvar_VariableValue("auth") == 0) {
+        Com_Printf("Auth services are disabled\n");
+        return;
+    }
+
+    if (Cmd_Argc() < 5) {
+        Com_Printf ("Usage: auth-ban <client> <days> <hours> <mins>\n");
+        return;
+    }
+
+    cl = SV_GetPlayerByHandle();
+
+    if (!cl) {
+        return;
+    }
+
+    if (cl->netchan.remoteAddress.type == NA_LOOPBACK) {
+        SV_SendServerCommand(NULL, "print \"%s\"", "Cannot ban host client\n");
+        return;
+    }
+
+    d = Cmd_Argv(2);
+    h = Cmd_Argv(3);
+    m = Cmd_Argv(4);
+
+    VM_Call(gvm, GAME_AUTH_BAN, (int)(cl - svs.clients), atoi(days), atoi(hours), atoi(mins));
+
 }
 
 #endif
@@ -1503,43 +1573,45 @@ SV_AddOperatorCommands
 ==================
 */
 void SV_AddOperatorCommands( void ) {
-	static qboolean	initialized;
 
-	if ( initialized ) {
-		return;
-	}
-	initialized = qtrue;
+    static qboolean initialized;
 
-	Cmd_AddCommand ("heartbeat", SV_Heartbeat_f);
-	Cmd_AddCommand ("kick", SV_Kick_f);
-	Cmd_AddCommand ("banUser", SV_Ban_f);
-	Cmd_AddCommand ("banClient", SV_BanNum_f);
-	Cmd_AddCommand ("clientkick", SV_KickNum_f);
-	Cmd_AddCommand ("status", SV_Status_f);
-	Cmd_AddCommand ("serverinfo", SV_Serverinfo_f);
-	Cmd_AddCommand ("systeminfo", SV_Systeminfo_f);
-	Cmd_AddCommand ("dumpuser", SV_DumpUser_f);
-	Cmd_AddCommand ("map_restart", SV_MapRestart_f);
-	Cmd_AddCommand ("sectorlist", SV_SectorList_f);
-	Cmd_AddCommand ("map", SV_Map_f);
+    if (initialized) {
+        return;
+    }
+
+    initialized = qtrue;
+
+    Cmd_AddCommand ("heartbeat", SV_Heartbeat_f);
+    Cmd_AddCommand ("kick", SV_Kick_f);
+    Cmd_AddCommand ("banUser", SV_Ban_f);
+    Cmd_AddCommand ("banClient", SV_BanNum_f);
+    Cmd_AddCommand ("clientkick", SV_KickNum_f);
+    Cmd_AddCommand ("status", SV_Status_f);
+    Cmd_AddCommand ("serverinfo", SV_Serverinfo_f);
+    Cmd_AddCommand ("systeminfo", SV_Systeminfo_f);
+    Cmd_AddCommand ("dumpuser", SV_DumpUser_f);
+    Cmd_AddCommand ("map_restart", SV_MapRestart_f);
+    Cmd_AddCommand ("sectorlist", SV_SectorList_f);
+    Cmd_AddCommand ("map", SV_Map_f);
 #ifndef PRE_RELEASE_DEMO
-	Cmd_AddCommand ("devmap", SV_Map_f);
-	Cmd_AddCommand ("spmap", SV_Map_f);
-	Cmd_AddCommand ("spdevmap", SV_Map_f);
+    Cmd_AddCommand ("devmap", SV_Map_f);
+    Cmd_AddCommand ("spmap", SV_Map_f);
+    Cmd_AddCommand ("spdevmap", SV_Map_f);
 #endif
-	Cmd_AddCommand ("killserver", SV_KillServer_f);
-	if( com_dedicated->integer ) {
-		Cmd_AddCommand ("say", SV_ConSay_f);
-		Cmd_AddCommand ("tell", SV_ConTell_f);
-		Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
-		Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);
-		
-		//@Barbatos: auth system commands
-		#ifdef USE_AUTH
-		Cmd_AddCommand ("auth-whois", SV_Auth_Whois_f);
-		Cmd_AddCommand ("auth-ban", SV_Auth_Ban_f);
-		#endif
-	}
+    Cmd_AddCommand ("killserver", SV_KillServer_f);
+    if( com_dedicated->integer ) {
+        Cmd_AddCommand ("say", SV_ConSay_f);
+        Cmd_AddCommand ("tell", SV_ConTell_f);
+        Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
+        Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);
+
+        //@Barbatos: auth system commands
+        #ifdef USE_AUTH
+        Cmd_AddCommand ("auth-whois", SV_Auth_Whois_f);
+        Cmd_AddCommand ("auth-ban", SV_Auth_Ban_f);
+        #endif
+    }
 }
 
 /*
@@ -1549,21 +1621,20 @@ SV_RemoveOperatorCommands
 */
 void SV_RemoveOperatorCommands( void ) {
 #if 0
-	// removing these won't let the server start again
-	Cmd_RemoveCommand ("heartbeat");
-	Cmd_RemoveCommand ("kick");
-	Cmd_RemoveCommand ("banUser");
-	Cmd_RemoveCommand ("banClient");
-	Cmd_RemoveCommand ("status");
-	Cmd_RemoveCommand ("serverinfo");
-	Cmd_RemoveCommand ("systeminfo");
-	Cmd_RemoveCommand ("dumpuser");
-	Cmd_RemoveCommand ("map_restart");
-	Cmd_RemoveCommand ("sectorlist");
-	Cmd_RemoveCommand ("say");
-	Cmd_RemoveCommand ("tell");
-	Cmd_RemoveCommand ("startserverdemo");
-	Cmd_RemoveCommand ("stopserverdemo");
+    // removing these won't let the server start again
+    Cmd_RemoveCommand ("heartbeat");
+    Cmd_RemoveCommand ("kick");
+    Cmd_RemoveCommand ("banUser");
+    Cmd_RemoveCommand ("banClient");
+    Cmd_RemoveCommand ("status");
+    Cmd_RemoveCommand ("serverinfo");
+    Cmd_RemoveCommand ("systeminfo");
+    Cmd_RemoveCommand ("dumpuser");
+    Cmd_RemoveCommand ("map_restart");
+    Cmd_RemoveCommand ("sectorlist");
+    Cmd_RemoveCommand ("say");
+    Cmd_RemoveCommand ("tell");
+    Cmd_RemoveCommand ("startserverdemo");
+    Cmd_RemoveCommand ("stopserverdemo");
 #endif
 }
-
