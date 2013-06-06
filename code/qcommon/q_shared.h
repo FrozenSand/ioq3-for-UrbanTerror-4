@@ -188,6 +188,10 @@ typedef int		clipHandle_t;
 
 #define	MAX_SAY_TEXT	150
 
+// Fenix
+#define MAX_MAPLIST_SIZE    256
+#define MAX_MAPLIST_STRING  2048
+
 // paramters for command buffer stuffing
 typedef enum {
 	EXEC_NOW,			// don't return until completed, a VM should NEVER use this,

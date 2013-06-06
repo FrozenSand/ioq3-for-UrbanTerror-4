@@ -329,6 +329,74 @@ static int SV_Argc_to_idnum( int arg_num ) {
 }
 #endif
 
+
+static int QDECL SV_SortMaps(const void *a, const void *b) {
+    return strcmp (*(const char **) a, *(const char **) b);
+}
+
+/////////////////////////////////////////////////////////////////////
+// Name        : GetMapSoundingLike
+// Description : Retrieve a full map name given a substring of it
+// Author      : Fenix
+/////////////////////////////////////////////////////////////////////
+static char *SV_GetMapSoundingLike(const char *s) {
+
+    int  count = 0;
+    int  i, len = 0;
+    int  mapcount;
+    char maplist[MAX_MAPLIST_STRING];
+    char *matches[MAX_MAPLIST_SIZE];
+    char *mapname;
+
+    if (!(mapcount = FS_GetFileList("maps", ".bsp", maplist, sizeof(maplist)))) {
+        Com_Printf("Unable to retrieve map list\n");
+        return NULL;
+    }
+
+    mapname = maplist;
+    for (i = 0; i < mapcount; i++, mapname += len + 1) {
+
+        len = strlen(mapname);
+
+        // Check for substring match
+        if (Q_strisub(mapname, s)) {
+            COM_StripExtension(mapname, mapname);
+            matches[count] = mapname;
+            count++;
+        }
+
+    }
+
+    if (count == 0) {
+
+        // No match found for the given map name input
+        Com_Printf("No map found matching %s\n", s);
+        return NULL;
+
+    } else if (count > 1) {
+
+        // Multiple matches found for the given map name
+        Com_Printf("Multiple maps found matching %s:\n", s);
+
+        // Sorting the short map list alphabetically
+        qsort(matches, count, sizeof(char *), SV_SortMaps);
+
+        for (i = 0; i < count; i++) {
+            // Printing a short map list so the user can retry with a more specific name
+            Com_Printf(" %2d: [%s]\n", i + 1, matches[i]);
+        }
+
+        return NULL;
+
+    }
+
+
+    // If we got here means that we just have a match
+    // for the given string. We found our map!
+    return matches[0];
+
+}
+
 //=========================================================
 
 /*
@@ -338,68 +406,68 @@ SV_Map_f
 Restart the server on a different map
 ==================
 */
-static void SV_Map_f( void ) {
-	char		*cmd;
-	char		*map;
-	qboolean	killBots, cheat;
-	char		expanded[MAX_QPATH];
-	char		mapname[MAX_QPATH];
+static void SV_Map_f(void) {
 
-	map = Cmd_Argv(1);
-	if ( !map ) {
-		return;
-	}
+    char      *cmd;
+    char      *searchmap;
+    char      mapname[MAX_QPATH];
+    qboolean  killBots, cheat;
 
-	// make sure the level exists before trying to change, so that
-	// a typo at the server console won't end the game
-	Com_sprintf (expanded, sizeof(expanded), "maps/%s.bsp", map);
-	if ( FS_ReadFile (expanded, NULL) == -1 ) {
-		Com_Printf ("Can't find map %s\n", expanded);
-		return;
-	}
+    if (Cmd_Argc() < 2) {
+        return;
+    }
 
-	// force latched values to get set
-	Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
+    searchmap = SV_GetMapSoundingLike(Cmd_Argv(1));
+    if (!searchmap) {
+        return;
+    }
 
-	cmd = Cmd_Argv(0);
-	if( Q_stricmpn( cmd, "sp", 2 ) == 0 ) {
-		Cvar_SetValue( "g_gametype", GT_SINGLE_PLAYER );
-		Cvar_SetValue( "g_doWarmup", 0 );
-		// may not set sv_maxclients directly, always set latched
-		Cvar_SetLatched( "sv_maxclients", "8" );
-		cmd += 2;
-		cheat = qfalse;
-		killBots = qtrue;
-	}
-	else {
-		if ( !Q_stricmp( cmd, "devmap" ) || !Q_stricmp( cmd, "spdevmap" ) ) {
-			cheat = qtrue;
-			killBots = qtrue;
-		} else {
-			cheat = qfalse;
-			killBots = qfalse;
-		}
-		if( sv_gametype->integer == GT_SINGLE_PLAYER ) {
-			Cvar_SetValue( "g_gametype", GT_FFA );
-		}
-	}
+    // force latched values to get set
+    Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH);
 
-	// save the map name here cause on a map restart we reload the q3config.cfg
-	// and thus nuke the arguments of the map command
-	Q_strncpyz(mapname, map, sizeof(mapname));
+    cmd = Cmd_Argv(0);
+    if (Q_stricmpn(cmd, "sp", 2) == 0) {
+        Cvar_SetValue("g_gametype", GT_SINGLE_PLAYER);
+        Cvar_SetValue("g_doWarmup", 0);
+        // may not set sv_maxclients directly, always set latched
+        Cvar_SetLatched("sv_maxclients", "8");
+        cmd += 2;
+        cheat = qfalse;
+        killBots = qtrue;
+    }
+    else {
 
-	// start up the map
-	SV_SpawnServer( mapname, killBots );
+        if (!Q_stricmp( cmd, "devmap") || !Q_stricmp(cmd, "spdevmap") ) {
+            cheat = qtrue;
+            killBots = qtrue;
+        } else {
+            cheat = qfalse;
+            killBots = qfalse;
+        }
 
-	// set the cheat value
-	// if the level was started with "map <levelname>", then
-	// cheats will not be allowed.  If started with "devmap <levelname>"
-	// then cheats will be allowed
-	if ( cheat ) {
-		Cvar_Set( "sv_cheats", "1" );
-	} else {
-		Cvar_Set( "sv_cheats", "0" );
-	}
+        if (sv_gametype->integer == GT_SINGLE_PLAYER) {
+            Cvar_SetValue("g_gametype", GT_FFA);
+        }
+
+    }
+
+    // save the map name here cause on a map restart we reload the q3config.cfg
+    // and thus nuke the arguments of the map command
+    Q_strncpyz(mapname, searchmap, sizeof(mapname));
+
+    // start up the map
+    SV_SpawnServer(mapname, killBots);
+
+    // set the cheat value
+    // if the level was started with "map <levelname>", then
+    // cheats will not be allowed.  If started with "devmap <levelname>"
+    // then cheats will be allowed
+    if (cheat) {
+        Cvar_Set("sv_cheats", "1");
+    } else {
+        Cvar_Set("sv_cheats", "0");
+    }
+
 }
 
 /*
