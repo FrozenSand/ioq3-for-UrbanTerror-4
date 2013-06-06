@@ -330,9 +330,28 @@ static int SV_Argc_to_idnum( int arg_num ) {
 #endif
 
 
+/////////////////////////////////////////////////////////////////////
+// Name        : SV_StripExtension
+// Description : Remove the extension from a given file name
+// Author      : Fenix
+/////////////////////////////////////////////////////////////////////
+static void SV_StripExtension(const char *in, char *out) {
+    while (*in && *in != '.') {
+        *out++ = *in++;
+    }
+    *out = 0;
+}
+
+
+/////////////////////////////////////////////////////////////////////
+// Name        : SV_SortMaps
+// Description : Array sorting comparison function (for qsort)
+// Author      : Fenix
+/////////////////////////////////////////////////////////////////////
 static int QDECL SV_SortMaps(const void *a, const void *b) {
     return strcmp (*(const char **) a, *(const char **) b);
 }
+
 
 /////////////////////////////////////////////////////////////////////
 // Name        : GetMapSoundingLike
@@ -360,7 +379,7 @@ static char *SV_GetMapSoundingLike(const char *s) {
 
         // Check for substring match
         if (Q_strisub(mapname, s)) {
-            COM_StripExtension(mapname, mapname, sizeof(const char *));
+            SV_StripExtension(mapname, mapname);
             matches[count] = mapname;
             count++;
         }
