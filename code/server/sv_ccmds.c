@@ -360,7 +360,7 @@ static char *SV_GetMapSoundingLike(const char *s) {
 
         // Check for substring match
         if (Q_strisub(mapname, s)) {
-            COM_StripExtension(mapname, mapname);
+            COM_StripExtension(mapname, mapname, sizeof(const char *));
             matches[count] = mapname;
             count++;
         }
@@ -1628,7 +1628,7 @@ static void SV_Auth_Ban_f(void) {
     h = Cmd_Argv(3);
     m = Cmd_Argv(4);
 
-    VM_Call(gvm, GAME_AUTH_BAN, (int)(cl - svs.clients), atoi(days), atoi(hours), atoi(mins));
+    VM_Call(gvm, GAME_AUTH_BAN, (int)(cl - svs.clients), atoi(d), atoi(h), atoi(m));
 
 }
 
