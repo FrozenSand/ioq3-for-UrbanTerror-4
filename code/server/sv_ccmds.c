@@ -237,7 +237,7 @@ SV_PP_Cmd_Argc_to_idnum
 
 @Barbatos: wow this one looks horrible, FIXME!
 ==================
-*/
+*//*
 static int SV_Argc_to_idnum( int arg_num ) {
 	client_t	*cl;
 	int			idnum;
@@ -326,7 +326,7 @@ static int SV_Argc_to_idnum( int arg_num ) {
 	}
 	
 	return -1;
-}
+}*/
 #endif
 
 
