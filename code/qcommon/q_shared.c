@@ -877,6 +877,76 @@ int Q_stricmp (const char *s1, const char *s2) {
 }
 
 
+////////////////////////////////////////////////////////////////////////
+// Name         : Q_strsub
+// Description  : Tells whether s2 is a substring of s1 (CASE SENSITIVE)
+// Author       : Fenix
+////////////////////////////////////////////////////////////////////////
+int Q_strsub (const char *s1, const char *s2) {
+
+    int i, j, match;
+    int len1 = strlen(s1);
+    int len2 = strlen(s2);
+
+    // Check for proper input value
+    if ((!len2) || (!len1) || (len2 > len1)) {
+        return 0;
+    }
+
+    for(i = 0; i <= len1 - len2; i++) {
+
+        for(j = i; j < i + len2; j++) {
+            match = 1;
+            if (s1[j] != s2[j-i]) {
+                match = 0;
+                break;
+            }
+        }
+
+        // We got a substring
+        if (match == 1) break;
+   }
+
+   return match;
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Name         : Q_strisub
+// Description  : Tells whether s2 is a substring of s1 (CASE INSENSITIVE)
+// Author       : Fenix
+//////////////////////////////////////////////////////////////////////////
+int Q_strisub (const char *s1, const char *s2) {
+
+    int i, j, match;
+    int len1 = strlen(s1);
+    int len2 = strlen(s2);
+
+    // Check for proper input value
+    if ((!len2) || (!len1) || (len2 > len1)) {
+        return 0;
+    }
+
+    for(i = 0; i <= len1 - len2; i++) {
+
+        for(j = i; j < i + len2; j++) {
+            match = 1;
+            if (tolower(s1[j]) != tolower(s2[j-i])) {
+                match = 0;
+                break;
+            }
+        }
+
+        // We got a substring
+        if (match == 1) break;
+   }
+
+   return match;
+
+}
+
+
 char *Q_strlwr( char *s1 ) {
     char	*s;
 
