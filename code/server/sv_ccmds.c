@@ -96,9 +96,10 @@ Returns the player with player id or name from Cmd_Argv(1)
 */
 static client_t *SV_GetPlayerByHandle(void) {
 
+    char        *s;
+    char        name[64];
     int         count = 0;
     int         i, idnum;
-    char        *s;
     client_t    *cl;
     client_t    *matches[MAX_CLIENTS];
 
@@ -147,8 +148,19 @@ static client_t *SV_GetPlayerByHandle(void) {
                 continue;
             }
 
+            // do NOT modify netname
+            strcpy(name, cl->name);
+            Q_CleanStr(name);
+
+            // Check for exact match
+            if (!Q_stricmp(name,s)) {
+                matches[0] = &svs.clients[i];
+                count = 1;
+                break;
+            }
+
             // Check for substring match
-            if (Q_strisub(Q_CleanStr(cl->name), s)) {
+            if (Q_strisub(name, s)) {
                 matches[count] = &svs.clients[i];
                 count++;
             }
@@ -168,7 +180,8 @@ static client_t *SV_GetPlayerByHandle(void) {
 
             for (i = 0; i < count; i++) {
                 cl = matches[i];
-                Com_Printf(" %2d: [%s]\n", (int)(cl - svs.clients), Q_CleanStr(cl->name));
+                strcpy(name, cl->name);
+                Com_Printf(" %2d: [%s]\n", (int)(cl - svs.clients), name);
             }
 
             return NULL;
@@ -363,7 +376,7 @@ static char *SV_GetMapSoundingLike(const char *s) {
     int  count = 0;
     int  i, len = 0;
     int  mapcount;
-    char maplist[MAX_MAPLIST_STRING];
+    static char maplist[MAX_MAPLIST_STRING];
     char *matches[MAX_MAPLIST_SIZE];
     char *mapname;
 
@@ -376,10 +389,17 @@ static char *SV_GetMapSoundingLike(const char *s) {
     for (i = 0; i < mapcount; i++, mapname += len + 1) {
 
         len = strlen(mapname);
+        SV_StripExtension(mapname, mapname);
+
+        // Check for exact match
+        if (!Q_stricmp(mapname, s)) {
+            matches[0] = mapname;
+            count = 1;
+            break;
+        }
 
         // Check for substring match
         if (Q_strisub(mapname, s)) {
-            SV_StripExtension(mapname, mapname);
             matches[count] = mapname;
             count++;
         }
