@@ -935,16 +935,28 @@ static rserr_t GLW_SetMode( const char *drivername,
 					
 					PrintCDSError( cdsRet );
 					
-					ri.Printf( PRINT_ALL, "...restoring display settings\n" );
-					ChangeDisplaySettings( 0, 0 );
-					
-					glw_state.cdsFullscreen = qfalse;
-					glConfig.isFullscreen = qfalse;
-					if ( !GLW_CreateWindow( drivername, glConfig.vidWidth, glConfig.vidHeight, colorbits, qfalse) )
+					//@Barbatos - try initializing default 800x600 mode instead of crashing
+					ri.Printf( PRINT_ALL, "... trying to fallback to r_mode 4 (800x600)\n");
+					ri.Cvar_Set( "r_mode", "4" );
+					glw_state.cdsFullscreen = qtrue;
+
+					if ( !GLW_CreateWindow( drivername, glConfig.vidWidth, glConfig.vidHeight, colorbits, qtrue) )
 					{
-						return RSERR_INVALID_MODE;
+						ri.Printf( PRINT_ALL, "...restoring display settings\n" );
+						ChangeDisplaySettings( 0, 0 );
+						glw_state.cdsFullscreen = qfalse;
+						glConfig.isFullscreen = qfalse;
+						if ( !GLW_CreateWindow( drivername, glConfig.vidWidth, glConfig.vidHeight, colorbits, qfalse) )
+						{
+							return RSERR_INVALID_MODE;
+						}
+						return RSERR_INVALID_FULLSCREEN;
 					}
-					return RSERR_INVALID_FULLSCREEN;
+					// Perform a vid_restart to apply the changes
+					else {
+						Cbuf_AddText( "vid_restart" );
+					}
+					
 				}
 			}
 		}
