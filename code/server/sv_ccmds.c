@@ -367,40 +367,56 @@ static int QDECL SV_SortMaps(const void *a, const void *b) {
 
 
 /////////////////////////////////////////////////////////////////////
-// Name        : GetMapSoundingLike
+// Name        : SV_GetMapSoundingLike
 // Description : Retrieve a full map name given a substring of it
 // Author      : Fenix
 /////////////////////////////////////////////////////////////////////
 static char *SV_GetMapSoundingLike(const char *s) {
 
-    int  count = 0;
-    int  i, len = 0;
-    int  mapcount;
-    static char maplist[MAX_MAPLIST_STRING];
+    int  i, mapcount;
+    int  len = 0, count = 0;
     char *matches[MAX_MAPLIST_SIZE];
-    char *mapname;
+    char *searchmap;
+    char expanded[MAX_QPATH];
+    char mapname[MAX_QPATH];
+    static char maplist[MAX_MAPLIST_STRING];
 
+    // [BUGFIX]: instead of iterating through all the maps matching both full and
+    // partial name, search just for the exact map name and return it if the match is found
+    Com_sprintf(mapname, sizeof(mapname), s);
+    Com_sprintf(expanded, sizeof(expanded), "maps/%s.bsp", s);
+    if (FS_ReadFile(expanded, NULL) > 0) {
+        searchmap = mapname;
+        return searchmap;
+    }
+
+    // We didn't found an exact name match. Keep iterating through all the
+    // available maps matching partial substrings
     if (!(mapcount = FS_GetFileList("maps", ".bsp", maplist, sizeof(maplist)))) {
         Com_Printf("Unable to retrieve map list\n");
         return NULL;
     }
 
-    mapname = maplist;
-    for (i = 0; i < mapcount; i++, mapname += len + 1) {
+    searchmap = maplist;
+    for (i = 0; i < mapcount && count < MAX_MAPLIST_SIZE; i++, searchmap += len + 1) {
 
-        len = strlen(mapname);
-        SV_StripExtension(mapname, mapname);
+        len = strlen(searchmap);
+        SV_StripExtension(searchmap, searchmap);
+
+        // Fenix: commented out since we moved the
+        // check before the for cycle which iterate
+        // through all the available maps
 
         // Check for exact match
-        if (!Q_stricmp(mapname, s)) {
-            matches[0] = mapname;
-            count = 1;
-            break;
-        }
+        //if (!Q_stricmp(mapname, s)) {
+        //    matches[0] = mapname;
+        //    count = 1;
+        //    break;
+        //}
 
         // Check for substring match
-        if (Q_strisub(mapname, s)) {
-            matches[count] = mapname;
+        if (Q_strisub(searchmap, s)) {
+            matches[count] = searchmap;
             count++;
         }
 
@@ -409,13 +425,13 @@ static char *SV_GetMapSoundingLike(const char *s) {
     if (count == 0) {
 
         // No match found for the given map name input
-        Com_Printf("No map found matching %s\n", s);
+        Com_Printf("No map found matching \"%s\"\n", s);
         return NULL;
 
     } else if (count > 1) {
 
         // Multiple matches found for the given map name
-        Com_Printf("Multiple maps found matching %s:\n", s);
+        Com_Printf("Multiple maps found matching \"%s\":\n", s);
 
         // Sorting the short map list alphabetically
         qsort(matches, count, sizeof(char *), SV_SortMaps);
@@ -423,6 +439,13 @@ static char *SV_GetMapSoundingLike(const char *s) {
         for (i = 0; i < count; i++) {
             // Printing a short map list so the user can retry with a more specific name
             Com_Printf(" %2d: [%s]\n", i + 1, matches[i]);
+        }
+
+        if (count >= MAX_MAPLIST_SIZE) {
+            // Tell the user that there are actually more
+            // maps matching the given substring, although
+            // we are not displaying them....
+            Com_Printf("...and more\n");
         }
 
         return NULL;
