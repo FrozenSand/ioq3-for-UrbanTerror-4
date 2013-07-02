@@ -94,6 +94,8 @@ void IN_StartupJoystick (void);
 void IN_JoyMove(void);
 
 static void MidiInfo_f( void );
+void IN_CursorShow (void);
+void IN_VursorHide (void);
 
 /*
 ============================================================
@@ -148,8 +150,6 @@ void IN_ActivateWin32Mouse( void ) {
 
 	SetCapture ( g_wv.hWnd );
 	ClipCursor (&window_rect);
-	while (ShowCursor (FALSE) >= 0)
-		;
 }
 
 void IN_ActivateRawMouse( void ) 
@@ -166,7 +166,6 @@ void IN_DeactivateWin32Mouse( void )
 {
 	ClipCursor (NULL);
 	ReleaseCapture ();
-	while (ShowCursor (TRUE) < 0);
 }
 
 void IN_DeactivateRawMouse( void ) 
@@ -272,6 +271,30 @@ static LPDIRECTINPUT8A			g_pdi;
 static LPDIRECTINPUTDEVICE8A	g_pMouse;
 
 void IN_DIMouse( int *mx, int *my );
+
+
+
+/**
+ * Show windows cursor.
+ */
+void IN_CursorShow (void)
+{
+	while (ShowCursor(TRUE) < 0)
+		;
+}
+
+
+
+/**
+ * Hide windows cursor.
+ */
+void IN_CursorHide (void)
+{
+	while (ShowCursor(FALSE) >= 0)
+		;
+}
+
+
 
 /*
 ========================
@@ -566,6 +589,7 @@ void IN_ActivateMouse( void )
 	// Win32 WM_ messages
 	else if (in_mouse->integer == -1) IN_ActivateWin32Mouse();
 	
+	IN_CursorHide();
 }
 
 
@@ -584,6 +608,7 @@ void IN_DeactivateMouse( void ) {
 	IN_DeactivateDIMouse();
 	IN_DeactivateWin32Mouse();
 	IN_DeactivateRawMouse();
+	IN_CursorShow();
 }
 
 
