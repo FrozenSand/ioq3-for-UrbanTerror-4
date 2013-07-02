@@ -765,6 +765,10 @@ extern	cvar_t	*com_journal;
 extern	cvar_t	*com_cameraMode;
 extern	cvar_t	*com_altivec;
 
+//@Barbatos - name of the console log file (default: qconsole.log)
+// It allows you to keep the logs of multiple servers using the same executable
+extern 	cvar_t 	*com_logfileName; 
+
 // both client and server must agree to pause
 extern	cvar_t	*cl_paused;
 extern	cvar_t	*sv_paused;

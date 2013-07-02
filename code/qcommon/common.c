@@ -80,6 +80,7 @@ cvar_t	*sv_paused;
 cvar_t  *cl_packetdelay;
 cvar_t  *sv_packetdelay;
 cvar_t	*com_cameraMode;
+cvar_t 	*com_logfileName;
 #if defined(_WIN32) && defined(_DEBUG)
 cvar_t	*com_noErrorInterrupt;
 #endif
@@ -182,7 +183,7 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 			time( &aclock );
 			newtime = localtime( &aclock );
 
-			logfile = FS_FOpenFileWrite( "qconsole.log" );
+			logfile = FS_FOpenFileWrite( com_logfileName->string );
 			
 			if(logfile)
 			{
@@ -197,7 +198,7 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 			}
 			else
 			{
-				Com_Printf("Opening qconsole.log failed!\n");
+				Com_Printf("Opening %s failed!\n", com_logfileName->string);
 				Cvar_SetValue("logfile", 0);
 			}
 
@@ -2467,6 +2468,7 @@ void Com_Init( char *commandLine ) {
 
 	com_developer = Cvar_Get ("developer", "0", CVAR_TEMP );
 	com_logfile = Cvar_Get ("logfile", "0", CVAR_TEMP );
+	com_logfileName = Cvar_Get("logfileName", "qconsole.log", CVAR_ARCHIVE);
 
 	com_timescale = Cvar_Get ("timescale", "1", CVAR_CHEAT | CVAR_SYSTEMINFO );
 	com_fixedtime = Cvar_Get ("fixedtime", "0", CVAR_CHEAT);
