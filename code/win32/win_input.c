@@ -95,7 +95,7 @@ void IN_JoyMove(void);
 
 static void MidiInfo_f( void );
 void IN_CursorShow (void);
-void IN_VursorHide (void);
+void IN_CursorHide (void);
 
 /*
 ============================================================
