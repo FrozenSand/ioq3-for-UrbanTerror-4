@@ -1337,7 +1337,7 @@ Normal keyboard characters, already shifted / capslocked / etc
 */
 void CL_CharEvent( int key ) {
 	char *cbd;
-	int i;
+	int i, len;
 
 	// the console key should never be used as a char
 	if ( key == '`' || key == '~' ) {
@@ -1360,8 +1360,9 @@ void CL_CharEvent( int key ) {
 		// support paste ctrl+v
 		if (key == 'v' - 'a' + 1) {
 			cbd = Sys_GetClipboardData();
+			len = strlen(cbd);
 
-			for (i = 0; i < strlen(cbd) && i < MAX_STRING_CHARS; i++) {
+			for (i = 0; i < len && i < MAX_STRING_CHARS; i++) {
 				if (Q_isprint(cbd[i])) {
 					VM_Call( uivm, UI_KEY_EVENT, cbd[i] | K_CHAR_FLAG, qtrue );
 				}
