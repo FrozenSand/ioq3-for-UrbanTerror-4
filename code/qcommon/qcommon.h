@@ -102,7 +102,7 @@ void MSG_ReadDeltaUsercmdKey( msg_t *msg, int key, usercmd_t *from, usercmd_t *t
 
 void MSG_WriteDeltaEntity( msg_t *msg, struct entityState_s *from, struct entityState_s *to
 						   , qboolean force );
-void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to, 
+void MSG_ReadDeltaEntity( msg_t *msg, entityState_t *from, entityState_t *to,
 						 int number );
 
 void MSG_WriteDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct playerState_s *to );
@@ -176,7 +176,7 @@ void		NET_Sleep(int msec);
 
 #define MAX_DOWNLOAD_WINDOW			8		// max of eight download frames
 #define MAX_DOWNLOAD_BLKSIZE		2048	// 2048 byte block chunks
- 
+
 
 /*
 Netchan handles packet fragmentation and out of order / duplicate suppression
@@ -320,7 +320,7 @@ typedef enum {
 } sharedTraps_t;
 
 void	VM_Init( void );
-vm_t	*VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *), 
+vm_t	*VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *),
 				   vmInterpret_t interpret );
 // module should be bare: "cgame", not "cgame.dll" or "vm/cgame.qvm"
 
@@ -638,13 +638,14 @@ const char *FS_LoadedPakChecksums( void );
 const char *FS_LoadedPakPureChecksums( void );
 // Returns a space separated string containing the checksums of all loaded pk3 files.
 // Servers with sv_pure set will get this string and pass it to clients.
+int FS_LoadedPakChecksumsBlob( unsigned char *dst, int dstlen );
 
 const char *FS_ReferencedPakNames( void );
 const char *FS_ReferencedPakChecksums( void );
 const char *FS_ReferencedPakPureChecksums( void );
-// Returns a space separated string containing the checksums of all loaded 
-// AND referenced pk3 files. Servers with sv_pure set will get this string 
-// back from clients for pure validation 
+// Returns a space separated string containing the checksums of all loaded
+// AND referenced pk3 files. Servers with sv_pure set will get this string
+// back from clients for pure validation
 
 void FS_ClearPakReferences( int flags );
 // clears referenced booleans on loaded pk3s
@@ -767,7 +768,7 @@ extern	cvar_t	*com_altivec;
 
 //@Barbatos - name of the console log file (default: qconsole.log)
 // It allows you to keep the logs of multiple servers using the same executable
-extern 	cvar_t 	*com_logfileName; 
+extern 	cvar_t 	*com_logfileName;
 
 // both client and server must agree to pause
 extern	cvar_t	*cl_paused;
@@ -1074,7 +1075,7 @@ qboolean Sys_DetectAltivec( void );
 #define INTERNAL_NODE (HMAX+1)
 
 typedef struct nodetype {
-	struct	nodetype *left, *right, *parent; /* tree structure */ 
+	struct	nodetype *left, *right, *parent; /* tree structure */
 	struct	nodetype *next, *prev; /* doubly-linked list */
 	struct	nodetype **head; /* highest ranked node in block */
 	int		weight;
@@ -1126,5 +1127,13 @@ extern huffman_t clientHuffTables;
 #define DLF_NO_UDP 4
 #define DLF_NO_DISCONNECT 8
 #define DLF_BSPNAME_ONLY 32
+
+// compressed pure list buffer
+#define PURE_COMPRESS_BUFFER 16384
+
+// last N CS will be used:
+#define PURE_COMPRESS_NUMCS 8
+
+
 
 #endif // _QCOMMON_H_

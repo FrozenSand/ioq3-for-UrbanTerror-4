@@ -58,7 +58,7 @@ Parses deltas from the given base and adds the resulting entity
 to the current frame
 ==================
 */
-void CL_DeltaEntity (msg_t *msg, clSnapshot_t *frame, int newnum, entityState_t *old, 
+void CL_DeltaEntity (msg_t *msg, clSnapshot_t *frame, int newnum, entityState_t *old,
 					 qboolean unchanged) {
 	entityState_t	*state;
 
@@ -236,7 +236,7 @@ void CL_ParseSnapshot( msg_t *msg ) {
 	// If the frame is delta compressed from data that we
 	// no longer have available, we must suck up the rest of
 	// the frame, but not use it, then ask for a non-compressed
-	// message 
+	// message
 	if ( newSnap.deltaNum <= 0 ) {
 		newSnap.valid = qtrue;		// uncompressed frame
 		old = NULL;
@@ -328,6 +328,187 @@ int cl_connectedToPureServer;
 int cl_connectedToCheatServer;
 
 /*
+================
+TextDecode6Bit
+
+Decode pk3 file names encoded usign 6 bit alphabet
+================
+*/
+
+void TextDecode6Bit(unsigned char *buf, int blen, char *out, int olen)
+{
+ static char val2char[] = "\x00 !#%&'()+,-.0123456789;=@[]^_`abcdefghijklmnopqrstuvwxyz{}~";
+ int i;
+ int sh = 0;
+ int shn = 0;
+ int op = -1; // encode added space at start
+
+ for(i=0;i<blen;i++) {
+  int v = buf[i];
+  if (v<60) {
+   v = val2char[v];
+   if (op>=0) out[op] = v;
+   op++;
+   if (!v) return; // null terminated, we are done
+  } else {
+   switch (v-60) {
+    case 0:
+     if (op+5>olen) {
+      buf[op]=0;
+      Com_Printf("TextDecode6Bit: target buffer overflow!\n");
+      return;
+     }
+     if (op>=0) out[op+0] = ' ';
+     out[op+1] = 'u';
+     out[op+2] = 't';
+     out[op+3] = '4';
+     out[op+4] = '_';
+     op+=5;
+     break;
+    case 1:
+     if (op+4>olen) {
+      buf[op]=0;
+      Com_Printf("TextDecode6Bit: target buffer overflow!\n");
+      return;
+     }
+     if (op>=0) out[op+0] = ' ';
+     out[op+1] = 'u';
+     out[op+2] = 't';
+     out[op+3] = '_';
+     op+=4;
+     break;
+    case 2:
+     if (op+5>olen) {
+      buf[op]=0;
+      Com_Printf("TextDecode6Bit: target buffer overflow!\n");
+      return;
+     }
+     if (op>=0) out[op+0] = '_';
+     out[op+1] = 'b';
+     out[op+2] = 'e';
+     out[op+3] = 't';
+     out[op+4] = 'a';
+     op+=5;
+     break;
+    case 3:
+     if (op+5>olen) {
+      buf[op]=0;
+      Com_Printf("TextDecode6Bit: target buffer overflow!\n");
+      return;
+     }
+     if (op>=0) out[op+0] = 'j';
+     out[op+1] = 'u';
+     out[op+2] = 'm';
+     out[op+3] = 'p';
+     out[op+4] = 's';
+     op+=5;
+     break;
+   }
+  }
+  if (op==olen) {
+   break;
+  }
+ }
+}
+
+
+/*
+================
+CL_ParseCompressedPureList
+
+Decode, decompress and set pure file list from compressed data
+================
+*/
+void CL_ParseCompressedPureList()
+{
+ int i,esc,sh,shc,bl;
+ static unsigned char buf[PURE_COMPRESS_BUFFER];
+ int l;
+ static char sums[16384];
+ static char names[BIG_INFO_STRING*4];
+ msg_t msg = {0};
+
+ // Decode 7 bit encoding into 8 bit buffer
+ esc = 0;
+ shc = 0;
+ sh = 0;
+ bl = 0;
+ for(i=0;(i<8)&&(bl<sizeof(buf));i++) {
+  char *s = cl.gameState.stringData + cl.gameState.stringOffsets[ MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+i ];
+  while(*s) {
+   int v = *(s++);
+   if (esc) {
+    v--;
+    esc=0;
+   } else {
+    if (v=='@') {
+     esc=1;
+     continue;
+    }
+   }
+   sh=(sh<<7)|v;
+   shc+=7;
+   if (shc>=8) {
+    shc-=8;
+    v = (sh>>shc)&0xFF;
+    buf[bl++] = v;
+//    fprintf(stderr,"%02X",v);
+   }
+  }
+ }
+// fprintf(stderr,"\n");
+
+ Com_Printf("Pure filelist compressed size: %d\n",bl);
+
+ // Decompress huffman encoded filenames
+ msg.maxsize = sizeof(buf);
+ msg.cursize = bl;
+ msg.data = buf;
+ l = (buf[0]|(buf[1]<<8))*4;
+ if (l>msg.maxsize) Com_Error(ERR_DROP,"Malformed compressed pure filelist");
+ Huff_Decompress(&msg,2+l);
+
+ Com_Printf("Pure filelist (%d files) decompressed size: %d\n",l/4,bl);
+
+// fprintf(stderr,"DECOMPRESSED(%d): ",msg.cursize);
+// for(i=0;i<msg.cursize;i++) fprintf(stderr,"%02X",buf[i]);
+// fprintf(stderr,"\n");
+
+ // create checksums string
+ sums[0]=0;
+ sh=0;
+ for(i=0;i<l;i+=4) {
+  char tmp[16];
+  int n;
+  unsigned int chs = buf[2+i+0]|(buf[2+i+1]<<8)|(buf[2+i+2]<<16)|(buf[2+i+3]<<24);
+  n = sprintf(tmp,"%i ",chs); // Can't use Com_sprintf, it doesn't return anything
+  if (sh+n+1>=sizeof(sums)) {
+   Com_Error(ERR_DROP,"Checksum buffer overflow");
+   break;
+  }
+  strcpy(sums+sh,tmp);
+  sh+=n;
+//  Q_strcat( sums, sizeof( sums), va("%i ", chs ) ); // this is fugly
+ }
+ if (sh && sums[sh-1]==' ') sums[sh-1] = 0; // kill ending space
+
+ // unpack pk3 filenames
+ TextDecode6Bit(buf+2+l, msg.cursize-(2+l), names, sizeof(names));
+
+ // do simple integrity check, both should have same number of items
+ sh=1; // number of spaces = number of names-1
+ i=0;
+ while(names[i]) { if (names[i]==' ') sh++; i++; }
+// fprintf(stderr,"FNAMES: %d  CHSUMS: %d\n",sh,l/4);
+
+ if (sh!=l/4) Com_Printf("WARNING: Compressed purelist inconsistency!! (FN:%d/CH:%d)\n",sh,l/4);
+
+// fprintf(stderr,"FNAMES: \"%s\"\n",names);
+// fprintf(stderr,"CHSUMS: \"%s\"\n",sums);
+ FS_PureServerSetLoadedPaks( sums, names );
+}
+
+/*
 ==================
 CL_SystemInfoChanged
 
@@ -364,7 +545,13 @@ void CL_SystemInfoChanged( void ) {
 	// check pure server string
 	s = Info_ValueForKey( systemInfo, "sv_paks" );
 	t = Info_ValueForKey( systemInfo, "sv_pakNames" );
-	FS_PureServerSetLoadedPaks( s, t );
+	if (s[0]=='*' && s[1]==0 && t[0]=='*' && t[1]==0) {
+		Com_Printf("Using compressed pure file list\n");
+		CL_ParseCompressedPureList();
+	} else {
+		Com_Printf("Using default pure file list\n");
+	   FS_PureServerSetLoadedPaks( s, t );
+	}
 
 	s = Info_ValueForKey( systemInfo, "sv_referencedPaks" );
 	t = Info_ValueForKey( systemInfo, "sv_referencedPakNames" );
@@ -670,7 +857,7 @@ void CL_ParseServerMessage( msg_t *msg ) {
 
 	// get the reliable sequence acknowledge number
 	clc.reliableAcknowledge = MSG_ReadLong( msg );
-	// 
+	//
 	if ( clc.reliableAcknowledge < clc.reliableSequence - MAX_RELIABLE_COMMANDS ) {
 		clc.reliableAcknowledge = clc.reliableSequence;
 	}
