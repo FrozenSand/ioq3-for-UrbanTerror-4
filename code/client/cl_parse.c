@@ -345,6 +345,7 @@ void TextDecode6Bit(unsigned char *buf, int blen, char *out, int olen)
 
  for(i=0;i<blen;i++) {
   int v = buf[i];
+  if (v>=64) Com_Error (ERR_DROP,"TextDecode6Bit: Character value out of range (%d)\n",v);
   if (v<60) {
    v = val2char[v];
    if (op>=0) out[op] = v;
@@ -459,13 +460,16 @@ void CL_ParseCompressedPureList()
 // fprintf(stderr,"\n");
 
  Com_Printf("Pure filelist compressed size: %d\n",bl);
+ if (bl<2+4+1) {
+  Com_Error (ERR_DROP,"CL_ParseCompressedPureList: CS data too short to be valid (%d bytes)\n",bl);
+ }
 
  // Decompress huffman encoded filenames
  msg.maxsize = sizeof(buf);
  msg.cursize = bl;
  msg.data = buf;
  l = (buf[0]|(buf[1]<<8))*4;
- if (l>msg.maxsize) Com_Error(ERR_DROP,"Malformed compressed pure filelist");
+ if ((l>msg.maxsize) || (l<4)) Com_Error(ERR_DROP,"Malformed compressed pure filelist size");
  Huff_Decompress(&msg,2+l);
 
  Com_Printf("Pure filelist (%d files) decompressed size: %d\n",l/4,bl);
