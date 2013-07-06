@@ -922,6 +922,11 @@ void SV_CheckTimeouts( void ) {
 			// wait several frames so a debugger session doesn't
 			// cause a timeout
 			if ( ++cl->timeoutCount > 5 ) {
+
+				if (cl->demo_recording) {
+					Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(cl-svs.clients)));
+				}
+
 				SV_DropClient (cl, "timed out"); 
 				cl->state = CS_FREE;	// don't bother with zombie state
 			}
