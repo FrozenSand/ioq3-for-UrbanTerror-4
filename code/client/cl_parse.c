@@ -499,16 +499,19 @@ void CL_ParseCompressedPureList()
  // unpack pk3 filenames
  TextDecode6Bit(buf+2+l, msg.cursize-(2+l), names, sizeof(names));
 
- // do simple integrity check, both should have same number of items
- sh=1; // number of spaces = number of names-1
- i=0;
- while(names[i]) { if (names[i]==' ') sh++; i++; }
-// fprintf(stderr,"FNAMES: %d  CHSUMS: %d\n",sh,l/4);
+// -- Not reliable --
+// do simple integrity check, both should have same number of items
+// sh=1; // number of spaces = number of names-1
+// i=0;
+// while(names[i]) { if (names[i]==' ') sh++; i++; }
+// Com_DPrintf("FNAMES: %d  CHSUMS: %d\n",sh,l/4);
+// if (abs(sh-l/4)>2) Com_Printf("WARNING: Compressed purelist inconsistency!! (FN:%d/CH:%d)\n",sh,l/4);
 
- if (sh!=l/4) Com_Printf("WARNING: Compressed purelist inconsistency!! (FN:%d/CH:%d)\n",sh,l/4);
-
-// fprintf(stderr,"FNAMES: \"%s\"\n",names);
-// fprintf(stderr,"CHSUMS: \"%s\"\n",sums);
+ if (com_developer->value) {
+  // fprintf to stderr needed, these strings are huge and will overflow console buffer
+  fprintf(stderr,"FNAMES: \"%s\"\n",names);
+  fprintf(stderr,"CHSUMS: \"%s\"\n",sums);
+ }
  FS_PureServerSetLoadedPaks( sums, names );
 }
 
@@ -553,8 +556,8 @@ void CL_SystemInfoChanged( void ) {
 		Com_Printf("Using compressed pure file list\n");
 		CL_ParseCompressedPureList();
 	} else {
-		Com_Printf("Using default pure file list\n");
-	   FS_PureServerSetLoadedPaks( s, t );
+		Com_Printf("Using standard pure file list\n");
+		FS_PureServerSetLoadedPaks( s, t );
 	}
 
 	s = Info_ValueForKey( systemInfo, "sv_referencedPaks" );

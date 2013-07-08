@@ -437,14 +437,14 @@ int TextEncode6Bit(const char *nam, unsigned char *buf, int blen)
    tp++;
   }
   if (x==-1) {
-   Com_Printf("Invalid character in pk3 file name: '%c'\n",ch);
+   Com_Printf("WARNING: Invalid character in pk3 file name: '%c'\n",ch);
    x = char2val['~']; // replace with ~ character to not break everythign else
   }
   buf[ol++] = x;
   if (ol==blen) {
-   Com_Printf("TextEncode6Bit: target buffer overflow!\n");
+   Com_Printf("ERROR: TextEncode6Bit: target buffer overflow!\n");
    buf[ol-1]=0;
-   return ol;
+   return -1;
   }
   if (!ch) return ol;
  }
@@ -457,19 +457,22 @@ SV_MakeCompressedPureList
 Fills the last N configstrings with compressed pure list
 ================
 */
-void SV_MakeCompressedPureList()
+int SV_MakeCompressedPureList()
 {
  unsigned char buf[PURE_COMPRESS_BUFFER];
  char tmp[1025];
  int i,l,bl,sh,shl,ol,csnr;
  const char *nam;
  msg_t msg = {0};
- const char *err_chunk = "Too many pk3 files (compressed data doesn't fit into available space)";
+ const char *err_chunk = "ERROR: Too many pk3 files (compressed data doesn't fit into available space)\n";
 
  // Get raw checksums
  bl = FS_LoadedPakChecksumsBlob(buf+2,sizeof(buf)-2);
- if (!bl) Com_Error(ERR_DROP,"Too many pk3 files (size checksums > buffer)");
-// Com_Printf("CRC SIZE(%d)\n",bl);
+ if (!bl) {
+  Com_Printf("ERROR: Too many pk3 files (size of checksums > buffer)\n");
+  return 1;
+ }
+ Com_DPrintf("CRC SIZE: %d\n",bl);
 
  // Add number of files at start
  l = bl/4; // num files
@@ -480,10 +483,15 @@ void SV_MakeCompressedPureList()
  nam = FS_LoadedPakNames();
 #if 1
  msg.cursize = 2+bl;
- msg.cursize+=TextEncode6Bit(nam,buf+msg.cursize,sizeof(buf)-msg.cursize);
-#else
+ i = TextEncode6Bit(nam,buf+msg.cursize,sizeof(buf)-msg.cursize);
+ if (i<0) return 1;
+ msg.cursize+=i;
+#else // not used, disables 6bit encoding
  msg.cursize = 2+bl+strlen(nam)+1;
- if (msg.cursize>sizeof(buf)) Com_Error(ERR_DROP,"Too many pk3 files (no space in buffer for names, need %d bytes)",msg.cursize-sizeof(buf));
+ if (msg.cursize>sizeof(buf)) {
+  Com_Printf("ERROR: Too many pk3 files (no space in buffer for names, need %d bytes)\n",msg.cursize-sizeof(buf));
+  return 1;
+ }
  strcpy((char*)buf+2+bl,nam);
 #endif
  Com_Printf("Pure filelist (%d files) size: %d\n",l,msg.cursize);
@@ -524,7 +532,10 @@ void SV_MakeCompressedPureList()
 //    Com_Printf("OUT:%02X\n",tmp[ol-1]);
     if (ol==sizeof(tmp)-1) {
      tmp[ol]=0;
-     if (csnr==PURE_COMPRESS_NUMCS) Com_Error(ERR_DROP,err_chunk);
+     if (csnr==PURE_COMPRESS_NUMCS) {
+      Com_Printf(err_chunk);
+      return 1;
+     }
      SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+csnr, tmp);
      csnr++;
      ol=0;
@@ -536,7 +547,10 @@ void SV_MakeCompressedPureList()
 //   Com_Printf("OUT:%02X\n",tmp[ol-1]);
    if (ol==sizeof(tmp)-1) {
     tmp[ol]=0;
-    if (csnr==PURE_COMPRESS_NUMCS) Com_Error(ERR_DROP,err_chunk);
+    if (csnr==PURE_COMPRESS_NUMCS) {
+     Com_Printf(err_chunk);
+     return 1;
+    }
     SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+csnr, tmp);
     csnr++;
     ol=0;
@@ -552,7 +566,10 @@ void SV_MakeCompressedPureList()
    tmp[ol++] = '@';
    if (ol==sizeof(tmp)-1) {
     tmp[ol]=0;
-    if (csnr==PURE_COMPRESS_NUMCS) Com_Error(ERR_DROP,err_chunk);
+    if (csnr==PURE_COMPRESS_NUMCS) {
+     Com_Printf(err_chunk);
+     return 1;
+    }
     SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+csnr, tmp);
     csnr++;
     ol=0;
@@ -564,11 +581,15 @@ void SV_MakeCompressedPureList()
 //  Com_Printf("OUT:%02X\n",tmp[ol-1]);
  }
  if (ol) {
-  if (csnr==PURE_COMPRESS_NUMCS) Com_Error(ERR_DROP,err_chunk);
+  if (csnr==PURE_COMPRESS_NUMCS) {
+   Com_Printf(err_chunk);
+   return 1;
+  }
   tmp[ol]=0;
   SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+csnr, tmp);
  }
  Com_Printf("Using %d configstrings to store pure filelist (encoded using %d characters)\n",csnr+1,ol+csnr*1024);
+ return 0;
 }
 
 /*
@@ -757,9 +778,19 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 		// the server sends these to the clients so they will only
 		// load pk3s also loaded at the server
         if (sv_newpurelist->integer) {
-            Cvar_Set( "sv_paks", "*" );
-            Cvar_Set( "sv_pakNames", "*" );
-            SV_MakeCompressedPureList();
+            if (SV_MakeCompressedPureList()) {
+                int i;
+                // Do cleanup
+                for(i=0;i<PURE_COMPRESS_NUMCS;i++) SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+i,"");
+                // No clients will be able to connect...
+                Cvar_Set( "sv_paks", "TooManyFiles" );
+                Cvar_Set( "sv_pakNames", "TooManyFiles" );
+                // ... so use RCON to fix it
+                Com_Printf( "----------------------------------\nToo many PK3 files to fit into pure file list. Remove some PK3s and reload server.\n----------------------------------\n" );
+            } else {
+                Cvar_Set( "sv_paks", "*" );
+                Cvar_Set( "sv_pakNames", "*" );
+            }
         } else {
             p = FS_LoadedPakChecksums();
             Cvar_Set( "sv_paks", p );
@@ -808,7 +839,7 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
       while(*tt) { if (*tt==' ') l2++; tt++; }
      }
      if (l != l2) {
-      Com_Printf( "WARNING: Pure pak file list inconsistency (%d checksums, %d file names)\n",l,l2 );
+      Com_Printf( "WARNING: Pure pak file list inconsistency (%d checksums, %d file names). Players may not be able to connect to server.\n",l,l2 );      
      }
     }
 
