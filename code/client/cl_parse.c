@@ -499,13 +499,12 @@ void CL_ParseCompressedPureList()
  // unpack pk3 filenames
  TextDecode6Bit(buf+2+l, msg.cursize-(2+l), names, sizeof(names));
 
-// -- Not reliable --
 // do simple integrity check, both should have same number of items
-// sh=1; // number of spaces = number of names-1
-// i=0;
-// while(names[i]) { if (names[i]==' ') sh++; i++; }
-// Com_DPrintf("FNAMES: %d  CHSUMS: %d\n",sh,l/4);
-// if (abs(sh-l/4)>2) Com_Printf("WARNING: Compressed purelist inconsistency!! (FN:%d/CH:%d)\n",sh,l/4);
+ sh=1; // number of spaces = number of names-1
+ i=0;
+ while(names[i]) { if (names[i]==' ') sh++; i++; }
+ Com_DPrintf("FNAMES: %d  CHSUMS: %d\n",sh,l/4);
+ if (abs(sh-l/4)>2) Com_Printf("WARNING: Compressed purelist inconsistency!! (FN:%d/CH:%d)\n",sh,l/4);
 
  if (com_developer->value) {
   // fprintf to stderr needed, these strings are huge and will overflow console buffer

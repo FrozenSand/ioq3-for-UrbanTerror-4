@@ -838,8 +838,8 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
       tt = t;
       while(*tt) { if (*tt==' ') l2++; tt++; }
      }
-     if (l != l2) {
-      Com_Printf( "WARNING: Pure pak file list inconsistency (%d checksums, %d file names). Players may not be able to connect to server.\n",l,l2 );      
+     if (abs(l-l2)>1) { // seems pakNames may have one extra item without checksum at the end
+      Com_Printf( "WARNING: Pure pak file list inconsistency (%d checksums, %d file names). Players may not be able to connect to server.\n",l,l2 );
      }
     }
 
