@@ -1211,8 +1211,8 @@ char *Sys_GetClipboardData(void)
       Q_strncpyz(data, cliptext, sizeof(cliptext));
       strtok(data, "\n\r\b");
     }
+    pclose(fp);
   }
-  pclose(fp);
 
   return data;
 }
