@@ -1200,7 +1200,21 @@ void Sys_AppActivate (void)
 
 char *Sys_GetClipboardData(void)
 {
-  return NULL;
+  char *data = NULL;
+  char *cliptext[1024];
+  FILE *fp;
+
+  fp = popen("/usr/bin/xclip -o", "r");
+  if (fp != NULL) {
+    if (fgets(cliptext, sizeof(cliptext)-1, fp) != NULL) {
+      data = Z_Malloc(sizeof(cliptext) + 1);
+      Q_strncpyz(data, cliptext, sizeof(cliptext));
+      strtok(data, "\n\r\b");
+    }
+    pclose(fp);
+  }
+
+  return data;
 }
 
 static struct Q3ToAnsiColorTable_s
