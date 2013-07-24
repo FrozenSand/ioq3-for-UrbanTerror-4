@@ -389,6 +389,209 @@ void SV_TouchCGame(void) {
 	}
 }
 
+
+/*
+================
+TextEncode6Bit
+
+Encodes text using 6 bit alphabet for map names
+================
+*/
+
+int TextEncode6Bit(const char *nam, unsigned char *buf, int blen)
+{
+ static int char2val[256] = { // character mapping table
+  0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  1,2,-1,3,-1,4,5,6,7,8,-1,9,10,11,12,-1,13,14,15,16,17,18,19,20,21,22,-1,23,-1,24,-1,-1,25,-1,-1,
+  -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,26,-1,27,28,29,30,31,32,
+  33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,-1,58,59,-1,-1,-1,-1,
+  -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+ int ol;
+ static char tmp[BIG_INFO_STRING*4];
+ char *tp = tmp+1;
+
+ tmp[0]=' '; // add space at start to compress first name using " ut4_"
+ while(*nam)  *(tp++) = tolower(*(nam++));
+
+ tp = tmp;
+ ol = 0;
+ while(1) { // Use 4 values for most common words (based on analysis of 5000+ map filenames)
+  int x;
+  char ch = *tp;
+  if (ch==' ' && tp[1]=='u' && tp[2]=='t' && tp[3]=='4' && tp[4]=='_') { // " ut4_"
+   x = 60; tp+=5;
+  } else
+  if (ch==' ' && tp[1]=='u' && tp[2]=='t' && tp[3]=='_') { // " ut_"
+   x = 61; tp+=4;
+  } else
+  if (ch=='_' && tp[1]=='b' && tp[2]=='e' && tp[3]=='t' && tp[4]=='a') { //"_beta"
+   x = 62; tp+=5;
+  } else
+  if (ch=='j' && tp[1]=='u' && tp[2]=='m' && tp[3]=='p' && tp[4]=='s') { //"jumps"
+   x = 63; tp+=5;
+  } else {
+   x = char2val[(unsigned int)ch];
+   tp++;
+  }
+  if (x==-1) {
+   Com_Printf("WARNING: Invalid character in pk3 file name: '%c'\n",ch);
+   x = char2val['~']; // replace with ~ character to not break everythign else
+  }
+  buf[ol++] = x;
+  if (ol==blen) {
+   Com_Printf("ERROR: TextEncode6Bit: target buffer overflow!\n");
+   buf[ol-1]=0;
+   return -1;
+  }
+  if (!ch) return ol;
+ }
+}
+
+/*
+================
+SV_MakeCompressedPureList
+
+Fills the last N configstrings with compressed pure list
+================
+*/
+int SV_MakeCompressedPureList()
+{
+ unsigned char buf[PURE_COMPRESS_BUFFER];
+ char tmp[1025];
+ int i,l,bl,sh,shl,ol,csnr;
+ const char *nam;
+ msg_t msg = {0};
+ const char *err_chunk = "ERROR: Too many pk3 files (compressed data doesn't fit into available space)\n";
+
+ // Get raw checksums
+ bl = FS_LoadedPakChecksumsBlob(buf+2,sizeof(buf)-2);
+ if (!bl) {
+  Com_Printf("ERROR: Too many pk3 files (size of checksums > buffer)\n");
+  return 1;
+ }
+ Com_DPrintf("CRC SIZE: %d\n",bl);
+
+ // Add number of files at start
+ l = bl/4; // num files
+ buf[0]=(l)&0xFF;
+ buf[1]=(l>>8)&0xFF;
+
+ // Get pak names
+ nam = FS_LoadedPakNames();
+#if 1
+ msg.cursize = 2+bl;
+ i = TextEncode6Bit(nam,buf+msg.cursize,sizeof(buf)-msg.cursize);
+ if (i<0) return 1;
+ msg.cursize+=i;
+#else // not used, disables 6bit encoding
+ msg.cursize = 2+bl+strlen(nam)+1;
+ if (msg.cursize>sizeof(buf)) {
+  Com_Printf("ERROR: Too many pk3 files (no space in buffer for names, need %d bytes)\n",msg.cursize-sizeof(buf));
+  return 1;
+ }
+ strcpy((char*)buf+2+bl,nam);
+#endif
+ Com_Printf("Pure filelist (%d files) size: %d\n",l,msg.cursize);
+
+// fprintf(stderr,"FNAMES: %s\n",nam);
+
+// Com_Printf("BUF(%d): ",msg.cursize);
+// for(i=0;i<msg.cursize;i++) Com_Printf("%02X",buf[i]);
+// Com_Printf("\n");
+
+ // Huffman compress names
+ msg.maxsize = sizeof(buf);
+ msg.data = buf;
+ Huff_Compress(&msg,2+bl);
+ bl = msg.cursize;
+
+// fprintf(stderr,"COMPRESSED(%d): ",msg.cursize);
+// for(i=0;i<msg.cursize;i++) fprintf(stderr,"%02X",buf[i]);
+// fprintf(stderr,"\n");
+
+ Com_Printf("Pure filelist compressed size: %d\n",bl);
+
+ // Do 8bit to 7bit encoding, escaping \0 % " using @ char and original value + 1
+ csnr = 0;
+ sh = 0;
+ l = 0;
+ shl = 0;
+ ol = 0;
+ for(i=0;i<bl;i++) {
+  sh=(sh<<8)|buf[i];
+  shl+=8;
+//  Com_Printf("IN:%02X\n",buf[i]);
+  while(shl>=7) {
+   shl-=7;
+   int v = (sh>>shl)&127;
+   if (v==0 || v=='"' || v=='%' || v=='@') {
+    tmp[ol++] = '@';
+//    Com_Printf("OUT:%02X\n",tmp[ol-1]);
+    if (ol==sizeof(tmp)-1) {
+     tmp[ol]=0;
+     if (csnr==PURE_COMPRESS_NUMCS) {
+      Com_Printf(err_chunk);
+      return 1;
+     }
+     SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+csnr, tmp);
+     csnr++;
+     ol=0;
+    }
+    tmp[ol++] = v+1;
+   } else {
+    tmp[ol++] = v;
+   }
+//   Com_Printf("OUT:%02X\n",tmp[ol-1]);
+   if (ol==sizeof(tmp)-1) {
+    tmp[ol]=0;
+    if (csnr==PURE_COMPRESS_NUMCS) {
+     Com_Printf(err_chunk);
+     return 1;
+    }
+    SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+csnr, tmp);
+    csnr++;
+    ol=0;
+   }
+  }
+ }
+// Com_Printf("[shl=%d sh=%X]\n",shl,sh);
+
+ // Finish remaining bits if any
+ if (shl>0) {
+  int v = (sh<<(7-shl))&127;
+  if (v==0 || v=='"' || v=='%' || v=='@') {
+   tmp[ol++] = '@';
+   if (ol==sizeof(tmp)-1) {
+    tmp[ol]=0;
+    if (csnr==PURE_COMPRESS_NUMCS) {
+     Com_Printf(err_chunk);
+     return 1;
+    }
+    SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+csnr, tmp);
+    csnr++;
+    ol=0;
+   }
+   tmp[ol++] = v+1;
+  } else {
+   tmp[ol++] = v;
+  }
+//  Com_Printf("OUT:%02X\n",tmp[ol-1]);
+ }
+ if (ol) {
+  if (csnr==PURE_COMPRESS_NUMCS) {
+   Com_Printf(err_chunk);
+   return 1;
+  }
+  tmp[ol]=0;
+  SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+csnr, tmp);
+ }
+ Com_Printf("Using %d configstrings to store pure filelist (encoded using %d characters)\n",csnr+1,ol+csnr*1024);
+ return 0;
+}
+
 /*
 ================
 SV_SpawnServer
@@ -429,7 +632,7 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 	// clear collision map data
 	CM_ClearMap();
 
-	// init client structures and svs.numSnapshotEntities 
+	// init client structures and svs.numSnapshotEntities
 	if ( !Cvar_VariableValue("sv_running") ) {
 		SV_Startup();
 	} else {
@@ -574,13 +777,29 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 	if ( sv_pure->integer ) {
 		// the server sends these to the clients so they will only
 		// load pk3s also loaded at the server
-		p = FS_LoadedPakChecksums();
-		Cvar_Set( "sv_paks", p );
-		if (strlen(p) == 0) {
-			Com_Printf( "WARNING: sv_pure set but no PK3 files loaded\n" );
-		}
-		p = FS_LoadedPakNames();
-		Cvar_Set( "sv_pakNames", p );
+        if (sv_newpurelist->integer) {
+            if (SV_MakeCompressedPureList()) {
+                int i;
+                // Do cleanup
+                for(i=0;i<PURE_COMPRESS_NUMCS;i++) SV_SetConfigstring( MAX_CONFIGSTRINGS-PURE_COMPRESS_NUMCS+i,"");
+                // No clients will be able to connect...
+                Cvar_Set( "sv_paks", "TooManyFiles" );
+                Cvar_Set( "sv_pakNames", "TooManyFiles" );
+                // ... so use RCON to fix it
+                Com_Printf( "----------------------------------\nToo many PK3 files to fit into pure file list. Remove some PK3s and reload server.\n----------------------------------\n" );
+            } else {
+                Cvar_Set( "sv_paks", "*" );
+                Cvar_Set( "sv_pakNames", "*" );
+            }
+        } else {
+            p = FS_LoadedPakChecksums();
+            Cvar_Set( "sv_paks", p );
+            if (!p[0]) {
+                Com_Printf( "WARNING: sv_pure set but no PK3 files loaded\n" );
+            }
+            p = FS_LoadedPakNames();
+            Cvar_Set( "sv_pakNames", p );
+        }
 
 		// if a dedicated pure server we need to touch the cgame because it could be in a
 		// seperate pk3 file and the client will need to load the latest cgame.qvm
@@ -601,6 +820,29 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 
 	// save systeminfo and serverinfo strings
 	Q_strncpyz( systemInfo, Cvar_InfoString_Big( CVAR_SYSTEMINFO ), sizeof( systemInfo ) );
+
+    {
+     const char *t,*tt;
+     int l,l2;
+
+     t = Info_ValueForKey( systemInfo, "sv_paks" );
+     l = 0;
+     if (t) {
+      tt = t;
+      while(*tt) { if (*tt==' ') l++; tt++; }
+     }
+
+     t = Info_ValueForKey( systemInfo, "sv_pakNames" );
+     l2 = 0;
+     if (t) {
+      tt = t;
+      while(*tt) { if (*tt==' ') l2++; tt++; }
+     }
+     if (abs(l-l2)>1) { // seems pakNames may have one extra item without checksum at the end
+      Com_Printf( "WARNING: Pure pak file list inconsistency (%d checksums, %d file names). Players may not be able to connect to server.\n",l,l2 );
+     }
+    }
+
 	cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
 	SV_SetConfigstring( CS_SYSTEMINFO, systemInfo );
 
@@ -649,6 +891,7 @@ void SV_Init (void) {
 	sv_minPing = Cvar_Get ("sv_minPing", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_maxPing = Cvar_Get ("sv_maxPing", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_floodProtect = Cvar_Get ("sv_floodProtect", "1", CVAR_ARCHIVE | CVAR_SERVERINFO );
+	sv_newpurelist = Cvar_Get ("sv_newpurelist", "0", CVAR_ARCHIVE );
 
 	// systeminfo
 	Cvar_Get ("sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );

@@ -52,6 +52,7 @@ cvar_t	*sv_minPing;
 cvar_t	*sv_maxPing;
 cvar_t	*sv_gametype;
 cvar_t	*sv_pure;
+cvar_t	*sv_newpurelist;
 cvar_t	*sv_floodProtect;
 cvar_t	*sv_lanForceRate;			// dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
 cvar_t	*sv_strictAuth;
@@ -175,7 +176,7 @@ void SV_AddServerCommand( client_t *client, const char *cmd ) {
 =================
 SV_SendServerCommand
 
-Sends a reliable command string to be interpreted by 
+Sends a reliable command string to be interpreted by
 the client game module: "cp", "print", "chat", etc
 A NULL client will broadcast to all clients
 =================
@@ -363,7 +364,7 @@ void SVC_Status( netadr_t from ) {
 		cl = &svs.clients[i];
 		if ( cl->state >= CS_CONNECTED ) {
 			ps = SV_GameClientNum( i );
-			Com_sprintf (player, sizeof(player), "%i %i \"%s\"\n", 
+			Com_sprintf (player, sizeof(player), "%i %i \"%s\"\n",
 				ps->persistant[PERS_SCORE], cl->ping, cl->name);
 			playerLength = strlen(player);
 			if (statusLength + playerLength >= sizeof(status) ) {
@@ -422,7 +423,7 @@ void SVC_Info( netadr_t from ) {
 	Info_SetValueForKey( infostring, "hostname", sv_hostname->string );
 	Info_SetValueForKey( infostring, "mapname", sv_mapname->string );
 	Info_SetValueForKey( infostring, "clients", va("%i", count) );
-	Info_SetValueForKey( infostring, "sv_maxclients", 
+	Info_SetValueForKey( infostring, "sv_maxclients",
 		va("%i", sv_maxclients->integer - sv_privateClients->integer ) );
 	Info_SetValueForKey( infostring, "gametype", va("%i", sv_gametype->integer ) );
 	Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->integer ) );
@@ -483,7 +484,7 @@ void SVC_RconRecoveryRemoteCommand( netadr_t from, msg_t *msg ) {
 	// TTimo - https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=534
 	time = Com_Milliseconds();
 	
-	if ( !strlen( sv_rconRecoveryPassword->string ) || strcmp (Cmd_Argv(1), sv_rconRecoveryPassword->string) ) 
+	if ( !strlen( sv_rconRecoveryPassword->string ) || strcmp (Cmd_Argv(1), sv_rconRecoveryPassword->string) )
 	{
 		// MaJ - If the rconpassword is bad and one just happned recently, don't spam the log file, just die.
 		if ( (unsigned)( time - lasttime ) < 600u )
@@ -545,7 +546,7 @@ void SVC_RemoteCommand( netadr_t from, msg_t *msg ) {
 	NET_StringToAdr( sv_rconAllowedSpamIP->string , &allowedSpamIPAdress);
 	
 	
-	if ( !strlen( sv_rconPassword->string ) || strcmp (Cmd_Argv(1), sv_rconPassword->string) ) 
+	if ( !strlen( sv_rconPassword->string ) || strcmp (Cmd_Argv(1), sv_rconPassword->string) )
 	{
 		// let's the sv_rconAllowedSpamIP do spam rcon
 		if ( ( !strlen( sv_rconAllowedSpamIP->string ) || !NET_CompareBaseAdr( from , allowedSpamIPAdress ) ) && !NET_IsLocalAddress(from) ){
@@ -735,10 +736,10 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		SV_DirectConnect( from );
 	} else if (!Q_stricmp(c, "ipAuthorize")) {
 		SV_AuthorizeIpPacket( from );
-	} 
+	}
 	#ifdef USE_AUTH
 	// @Barbatos @Kalish
-	else if ( (!Q_stricmp(c, "AUTH:SV"))) 
+	else if ( (!Q_stricmp(c, "AUTH:SV")))
 	{
 		NET_StringToAdr(sv_authServerIP->string, &authServerIP);
 		
@@ -747,7 +748,7 @@ void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 			return;
 		}
 		VM_Call(gvm, GAME_AUTHSERVER_PACKET);
-	} 
+	}
 	#endif
 	
 	else if (!Q_stricmp(c, "rcon")) {
@@ -887,7 +888,7 @@ void SV_CalcPings( void ) {
 ==================
 SV_CheckTimeouts
 
-If a packet has not been received from a client for timeout->integer 
+If a packet has not been received from a client for timeout->integer
 seconds, drop the conneciton.  Server time is used instead of
 realtime to avoid dropping the local client while debugging.
 
@@ -922,7 +923,7 @@ void SV_CheckTimeouts( void ) {
 			// wait several frames so a debugger session doesn't
 			// cause a timeout
 			if ( ++cl->timeoutCount > 5 ) {
-				SV_DropClient (cl, "timed out"); 
+				SV_DropClient (cl, "timed out");
 				cl->state = CS_FREE;	// don't bother with zombie state
 			}
 		} else {

@@ -476,10 +476,14 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	// tell everyone why they got dropped
 	SV_SendServerCommand( NULL, "print \"%s" S_COLOR_WHITE " %s\n\"", drop->name, reason );
 
-
 	if (drop->download)	{
 		FS_FCloseFile( drop->download );
 		drop->download = 0;
+	}
+
+	if (drop->demo_recording) {
+	    // stop the server side demo if we were recording this client
+       Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(drop - svs.clients)));
 	}
 
 	// call the prog function for removing a client
@@ -508,6 +512,7 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 			break;
 		}
 	}
+
 	if ( i == sv_maxclients->integer ) {
 		SV_Heartbeat_f();
 	}
@@ -524,6 +529,7 @@ or crashing -- SV_FinalMessage() will handle that
 =====================
 */
 void SV_Auth_DropClient( client_t *drop, const char *reason, const char *message ) {
+
 	int		i;
 	challenge_t	*challenge;
 
@@ -549,11 +555,15 @@ void SV_Auth_DropClient( client_t *drop, const char *reason, const char *message
 	// tell everyone why they got dropped
 	if( strlen( reason ) > 0 ) SV_SendServerCommand( NULL, "print \"%s\n\"", reason );
 
-
 	if (drop->download)	{
 		FS_FCloseFile( drop->download );
 		drop->download = 0;
 	}
+
+	if (drop->demo_recording) {
+        // stop the server side demo if we were recording this client
+       Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(drop - svs.clients)));
+    }
 
 	// call the prog function for removing a client
 	// this will remove the body, among other things
@@ -581,6 +591,7 @@ void SV_Auth_DropClient( client_t *drop, const char *reason, const char *message
 			break;
 		}
 	}
+
 	if ( i == sv_maxclients->integer ) {
 		SV_Heartbeat_f();
 	}
@@ -1044,10 +1055,6 @@ The client is going to disconnect, so remove the connection immediately  FIXME: 
 =================
 */
 static void SV_Disconnect_f( client_t *cl ) {
-	// stop server-side demo (if any)
-	if (cl->demo_recording) {
-		Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(cl-svs.clients)));
-	}
 	SV_DropClient( cl, "disconnected" );
 }
 

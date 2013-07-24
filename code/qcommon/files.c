@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 /*****************************************************************************
  * name:		files.c
  *
- * desc:		handle based filesystem for Quake III Arena 
+ * desc:		handle based filesystem for Quake III Arena
  *
  * $Archive: /MissionPack/code/qcommon/files.c $
  *
@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 QUAKE3 FILESYSTEM
 
-All of Quake's data access is through a hierarchical file system, but the contents of 
+All of Quake's data access is through a hierarchical file system, but the contents of
 the file system can be transparently merged from several sources.
 
 A "qpath" is a reference to game file data.  MAX_ZPATH is 256 characters, which must include
@@ -599,7 +599,7 @@ qboolean FS_FileExists( const char *file )
 ================
 FS_SV_FileExists
 
-Tests if the file exists 
+Tests if the file exists
 ================
 */
 qboolean FS_SV_FileExists( const char *file )
@@ -1020,7 +1020,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 
 	// make absolutely sure that it can't back up the path.
 	// The searchpaths do guarantee that something will always
-	// be prepended, so we don't need to worry about "c:" or "//limbo" 
+	// be prepended, so we don't need to worry about "c:" or "//limbo"
 	if ( strstr( filename, ".." ) || strstr( filename, "::" ) ) {
 		*file = 0;
 		return -1;
@@ -1061,9 +1061,9 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 					// found it!
 
 					// mark the pak as having been referenced and mark specifics on cgame and ui
-					// shaders, txt, arena files  by themselves do not count as a reference as 
-					// these are loaded from all pk3s 
-					// from every pk3 file.. 
+					// shaders, txt, arena files  by themselves do not count as a reference as
+					// these are loaded from all pk3s
+					// from every pk3 file..
 					l = strlen( filename );
 					if ( !(pak->referenced & FS_GENERAL_REF)) {
 						if ( Q_stricmp(filename + l - 7, ".shader") != 0 &&
@@ -1113,7 +1113,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 					fsh[*file].zipFilePos = pakFile->pos;
 
 					if ( fs_debug->integer ) {
-						Com_Printf( "FS_FOpenFileRead: %s (found in '%s')\n", 
+						Com_Printf( "FS_FOpenFileRead: %s (found in '%s')\n",
 							filename, pak->pakFilename );
 					}
 					return zfi->cur_file_info.uncompressed_size;
@@ -1422,7 +1422,7 @@ int	FS_FileIsInPAK(const char *filename, int *pChecksum ) {
 
 	// make absolutely sure that it can't back up the path.
 	// The searchpaths do guarantee that something will always
-	// be prepended, so we don't need to worry about "c:" or "//limbo" 
+	// be prepended, so we don't need to worry about "c:" or "//limbo"
 	if ( strstr( filename, ".." ) || strstr( filename, "::" ) ) {
 		return -1;
 	}
@@ -2128,7 +2128,7 @@ int	FS_GetModList( char *listbuf, int bufsize ) {
 			//   we will try each three of them here (yes, it's a bit messy)
 			path = FS_BuildOSPath( fs_basepath->string, name, "" );
 			nPaks = 0;
-			pPaks = Sys_ListFiles(path, ".pk3", NULL, &nPaks, qfalse); 
+			pPaks = Sys_ListFiles(path, ".pk3", NULL, &nPaks, qfalse);
 			Sys_FreeFileList( pPaks ); // we only use Sys_ListFiles to check wether .pk3 files are present
 
 			/* try on home path */
@@ -2562,7 +2562,7 @@ qboolean FS_ComparePaks( char *neededpaks, int len, qboolean dlstring ) {
 			}
 		}
 
-		if ( !havepak && fs_serverReferencedPakNames[i] && *fs_serverReferencedPakNames[i] ) { 
+		if ( !havepak && fs_serverReferencedPakNames[i] && *fs_serverReferencedPakNames[i] ) {
 			// Don't got it
 
 			if (dlstring)
@@ -2853,6 +2853,34 @@ const char *FS_GamePureChecksum( void ) {
 
 /*
 =====================
+FS_LoadedPakChecksumsBlob
+
+Return pak checksums as a binary blob with length at start
+=====================
+*/
+int FS_LoadedPakChecksumsBlob( unsigned char *dst, int dstlen ) {
+    searchpath_t    *search;
+    int num = 0;
+    int dp = 0;
+
+    for ( search = fs_searchpaths ; search ; search = search->next ) {
+        // is the element a pak file?
+        if ( !search->pack ) {
+            continue;
+        }
+        if (dp+4>=dstlen) return 0;
+        dst[dp+0] = search->pack->checksum&0xFF;
+        dst[dp+1] = (search->pack->checksum>>8)&0xFF;
+        dst[dp+2] = (search->pack->checksum>>16)&0xFF;
+        dst[dp+3] = (search->pack->checksum>>24)&0xFF;
+        dp+=4;
+        num++;
+    }
+    return dp;
+}
+
+/*
+=====================
 FS_LoadedPakChecksums
 
 Returns a space separated string containing the checksums of all loaded pk3 files.
@@ -2868,7 +2896,7 @@ const char *FS_LoadedPakChecksums( void ) {
 	info[0] = 0;
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
-		// is the element a pak file? 
+		// is the element a pak file?
 		if ( !search->pack ) {
 			continue;
 		}
@@ -2905,7 +2933,7 @@ Servers with sv_pure set will get this string and pass it to clients.
 =====================
 */
 const char *FS_LoadedPakNames( void ) {
-	static char	info[BIG_INFO_STRING];
+	static char	info[BIG_INFO_STRING*4];
 	searchpath_t	*search;
 	int i;
 	qboolean found;
@@ -2965,7 +2993,7 @@ const char *FS_LoadedPakPureChecksums( void ) {
 	info[0] = 0;
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
-		// is the element a pak file? 
+		// is the element a pak file?
 		if ( !search->pack ) {
 			continue;
 		}
@@ -2998,7 +3026,7 @@ const char *FS_LoadedPakPureChecksums( void ) {
 FS_ReferencedPakChecksums
 
 Returns a space separated string containing the checksums of all referenced pk3 files.
-The server will send this to the clients so they can check which files should be auto-downloaded. 
+The server will send this to the clients so they can check which files should be auto-downloaded.
 =====================
 */
 const char *FS_ReferencedPakChecksums( void ) {
@@ -3025,7 +3053,7 @@ const char *FS_ReferencedPakChecksums( void ) {
 FS_ReferencedPakPureChecksums
 
 Returns a space separated string containing the pure checksums of all referenced pk3 files.
-Servers with sv_pure set will get this string back from clients for pure validation 
+Servers with sv_pure set will get this string back from clients for pure validation
 
 The string has a specific order, "cgame ui @ ref1 ref2 ref3 ..."
 =====================
@@ -3076,7 +3104,7 @@ const char *FS_ReferencedPakPureChecksums( void ) {
 FS_ReferencedPakNames
 
 Returns a space separated string containing the names of all referenced pk3 files.
-The server will send this to the clients so they can check which files should be auto-downloaded. 
+The server will send this to the clients so they can check which files should be auto-downloaded.
 =====================
 */
 const char *FS_ReferencedPakNames( void ) {
@@ -3191,7 +3219,7 @@ FS_PureServerSetReferencedPaks
 
 The checksums and names of the pk3 files referenced at the server
 are sent to the client and stored here. The client will use these
-checksums to see if any pk3 files need to be auto-downloaded. 
+checksums to see if any pk3 files need to be auto-downloaded.
 =====================
 */
 void FS_PureServerSetReferencedPaks( const char *pakSums, const char *pakNames ) {
