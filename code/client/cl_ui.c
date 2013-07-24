@@ -1187,7 +1187,7 @@ void CL_InitUI( void ) {
 	}
 	uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
 	if ( !uivm ) {
-		Com_Error( ERR_FATAL, "VM_Create on UI failed" );
+		Com_Error( ERR_FATAL, "VM_Create on UI failed. It may be because you are running a different version from this server. Please check that you are up to date on www.urbanterror.info\n" );
 	}
 
 	// sanity check

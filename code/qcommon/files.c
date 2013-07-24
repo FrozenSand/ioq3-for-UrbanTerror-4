@@ -3327,7 +3327,7 @@ void FS_Restart( int checksumFeed ) {
 			lastValidBase[0] = '\0';
 			lastValidGame[0] = '\0';
 			FS_Restart(checksumFeed);
-			Com_Error( ERR_DROP, "Invalid game folder\n" );
+			Com_Error( ERR_DROP, "Invalid game folder\nIt may be because you are running a different version from this server. Please check that you are up to date on www.urbanterror.info\n" );
 			return;
 		}
 		Com_Error( ERR_FATAL, "Couldn't load default.cfg" );
