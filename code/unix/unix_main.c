@@ -1204,7 +1204,11 @@ char *Sys_GetClipboardData(void)
   char *cliptext[1024];
   FILE *fp;
 
+  #ifdef MACOS_X
+  fp = popen("/usr/bin/pbpaste", "r");
+  #else
   fp = popen("/usr/bin/xclip -o", "r");
+  #endif
   if (fp != NULL) {
     if (fgets(cliptext, sizeof(cliptext)-1, fp) != NULL) {
       data = Z_Malloc(sizeof(cliptext) + 1);
