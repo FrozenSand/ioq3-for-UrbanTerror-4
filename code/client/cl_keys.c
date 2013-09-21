@@ -1362,7 +1362,7 @@ void CL_CharEvent( int key ) {
 
 		    cbd = Sys_GetClipboardData();
 
-		    if (!cdb) {
+		    if (!cbd) {
 		        // Fenix: on Linux copy&paste support works only
 		        // if xclip is installed on the system. If not
 		        // Sys_GetClipboardData will return NULL and the
