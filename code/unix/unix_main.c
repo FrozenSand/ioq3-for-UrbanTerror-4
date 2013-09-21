@@ -1214,7 +1214,6 @@ char *Sys_GetClipboardData(void)
   } else {
       return NULL;
   }
-
   #endif
   if (fp != NULL) {
     if (fgets(cliptext, sizeof(cliptext)-1, fp) != NULL) {
