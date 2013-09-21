@@ -1207,11 +1207,14 @@ char *Sys_GetClipboardData(void)
   #ifdef MACOS_X
   fp = popen("/usr/bin/pbpaste", "r");
   #else
-  if (access("/usr/bin/xclip", F_OK) == -1) {
-    // xclip is not installed
-    return NULL;
+  if (access("/usr/bin/xclip", F_OK) != -1) {
+      fp = popen("/usr/bin/xclip -o", "r");
+  } else if (access("/usr/local/bin/xclip", F_OK) != -1) {
+      fp = popen("/usr/local/bin/xclip -o", "r");
+  } else {
+      return NULL;
   }
-  fp = popen("/usr/bin/xclip -o", "r");
+
   #endif
   if (fp != NULL) {
     if (fgets(cliptext, sizeof(cliptext)-1, fp) != NULL) {
