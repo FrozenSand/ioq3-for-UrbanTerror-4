@@ -37,7 +37,7 @@ int demo_protocols[] =
 #define MAX_NUM_ARGVS	50
 
 #define MIN_DEDICATED_COMHUNKMEGS 96
-#define MIN_COMHUNKMEGS		256
+#define MIN_COMHUNKMEGS		512
 #define DEF_COMHUNKMEGS		512 //@Barbatos - previously 256
 #define DEF_COMZONEMEGS		32 //@Barbatos - previously 24
 #define XSTRING(x)				STRING(x)
@@ -1707,7 +1707,7 @@ void *Hunk_Alloc( int size, ha_pref preference ) {
 		Hunk_Log();
 		Hunk_SmallLog();
 #endif
-		Com_Error( ERR_DROP, "Hunk_Alloc failed on %i", size );
+		Com_Error( ERR_DROP, "Hunk_Alloc failed on %i - you must raise the value of the cvar com_hunkmegs and restart your game.", size );
 	}
 
 	if ( hunk_permanent == &hunk_low ) {
