@@ -1359,14 +1359,25 @@ void CL_CharEvent( int key ) {
 	{
 		// support paste ctrl+v
 		if (key == 'v' - 'a' + 1) {
-			cbd = Sys_GetClipboardData();
-			len = strlen(cbd);
+
+		    cbd = Sys_GetClipboardData();
+
+		    if (!cbd) {
+		        // Fenix: on Linux copy&paste support works only
+		        // if xclip is installed on the system. If not
+		        // Sys_GetClipboardData will return NULL and the
+		        // following VM_Call will generate a segfault
+		        return;
+		    }
+
+		    len = strlen(cbd);
 
 			for (i = 0; i < len && i < MAX_STRING_CHARS; i++) {
 				if (Q_isprint(cbd[i])) {
 					VM_Call( uivm, UI_KEY_EVENT, cbd[i] | K_CHAR_FLAG, qtrue );
 				}
 			}
+
 		} else {
 			VM_Call( uivm, UI_KEY_EVENT, key | K_CHAR_FLAG, qtrue );
 		}
