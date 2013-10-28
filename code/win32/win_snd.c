@@ -28,7 +28,9 @@ HRESULT (WINAPI *pDirectSoundCreate)(GUID FAR *lpGUID, LPDIRECTSOUND FAR *lplpDS
 #define iDirectSoundCreate(a,b,c)	pDirectSoundCreate(a,b,c)
 typedef HRESULT (WINAPI *pDirectSoundEnumerate)(LPDSENUMCALLBACK lpDSEnumCallback, LPVOID lpContext);
 
-#define SECONDARY_BUFFER_SIZE	0x10000
+// p5yc0runn3r - Increased buffer size from 65536 (0x10000) to 131072 (0x20000) due to increased KHz
+#define SECONDARY_BUFFER_SIZE	0x20000
+
 
 
 static qboolean	dsound_init;
@@ -215,6 +217,10 @@ qboolean SNDDMAHD_DevList(void)
 	return SNDDMAHD_DSEnumSoundDevices(qtrue);
 }
 
+#ifndef NO_DMAHD
+qboolean dmaHD_Enabled(void);
+#endif
+
 int SNDDMA_InitDS ()
 {
 	HRESULT			hresult;
@@ -263,6 +269,16 @@ int SNDDMA_InitDS ()
 	else if (s_khz->integer >= 22) dma.speed = 22050;
 	else dma.speed = 11025;
 
+#ifndef NO_DMAHD
+	if (dmaHD_Enabled()) 
+	{
+		// p5yc0runn3r - Fix dmaHD sound to 44KHz, Stereo and 16 bits per sample.
+		dma.speed = 44100;
+		dma.channels = 2;
+		dma.samplebits = 16;
+	}
+#endif		
+	
 	memset (&format, 0, sizeof(format));
 	format.wFormatTag = WAVE_FORMAT_PCM;
     format.nChannels = dma.channels;
