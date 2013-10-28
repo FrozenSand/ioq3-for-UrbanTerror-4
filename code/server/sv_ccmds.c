@@ -115,12 +115,12 @@ static client_t *SV_GetPlayerByHandle(void) {
 
     s = Cmd_Argv(1);
 
-    // Check whether this is a numeric player handle
-    for(i = 0; s[i] >= '0' && s[i] <= '9'; i++);
+    // check whether this is a numeric player handle
+    for (i = 0; s[i] >= '0' && s[i] <= '9'; i++);
 
-    if(!s[i]) {
+    if (!s[i]) {
 
-        // Numeric player handle given as input
+        // numeric player handle given as input
         idnum = atoi(s);
         if ((idnum < 0) || (idnum >= sv_maxclients->integer)) {
             Com_Printf("Bad client slot: %i\n", idnum);
@@ -129,7 +129,7 @@ static client_t *SV_GetPlayerByHandle(void) {
 
         cl = &svs.clients[idnum];
 
-        if (cl->state != CS_ACTIVE) {
+        if (!cl->state) {
             Com_Printf("Client in slot %i is not connected\n", idnum);
             return NULL;
         }
@@ -138,28 +138,27 @@ static client_t *SV_GetPlayerByHandle(void) {
 
     } else {
 
-        // Full/Partial player name given as input
+        // full/partial player name given as input
         for (i = 0; i < sv_maxclients->integer ; i++) {
 
             cl = &svs.clients[i];
 
-            // Client is not connected
+            // client is not connected
             if (!cl->state) {
                 continue;
             }
 
-            // do NOT modify netname
             strcpy(name, cl->name);
             Q_CleanStr(name);
 
-            // Check for exact match
+            // check for exact match
             if (!Q_stricmp(name,s)) {
                 matches[0] = &svs.clients[i];
                 count = 1;
                 break;
             }
 
-            // Check for substring match
+            // check for substring match
             if (Q_strisub(name, s)) {
                 matches[count] = &svs.clients[i];
                 count++;
@@ -169,13 +168,13 @@ static client_t *SV_GetPlayerByHandle(void) {
 
         if (count == 0) {
 
-            // No match found for the given input string
+            // no match found for the given input string
             Com_Printf("No client found matching %s\n", s);
             return NULL;
 
         } else if (count > 1) {
 
-            // Multiple matches found for the given string
+            // multiple matches found for the given string
             Com_Printf("Multiple clients found matching %s:\n", s);
 
             for (i = 0; i < count; i++) {
@@ -187,7 +186,7 @@ static client_t *SV_GetPlayerByHandle(void) {
             return NULL;
         }
 
-        // Found just 1 match
+        // found just 1 match
         return matches[0];
 
     }
@@ -234,7 +233,7 @@ static client_t *SV_GetPlayerByNum(void) {
     }
 
     cl = &svs.clients[idnum];
-    if (cl->state != CS_ACTIVE) {
+    if (!cl->state) {
         Com_Printf("Client in slot %i is not connected\n", idnum);
         return NULL;
     }
