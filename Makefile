@@ -27,6 +27,7 @@ ifeq ($(COMPILE_PLATFORM),mingw32)
   endif
 endif
 
+
 BUILD_CLIENT     =1
 BUILD_CLIENT_SMP =0
 BUILD_SERVER     =1
@@ -37,6 +38,13 @@ USE_SDL          =1
 USE_OPENAL       =0
 USE_CURL         =1
 USE_CODEC_VORBIS =0
+
+ifneq ($(PLATFORM),mingw32)
+  URT_NOSSE =0
+endif
+ifeq ($(URT_NOSSE),1)
+  BUILD_SERVER   =0
+endif
 
 # Barbatos - Urban Terror 4.2 auth system
 # You're not forced to use it.
@@ -465,9 +473,15 @@ endif
   ifeq ($(USE_CODEC_VORBIS),1)
     BASE_CFLAGS += -DUSE_CODEC_VORBIS=1
   endif
- #NoooooOOo //MARCH FLAGS are evil and so is -mtune and state the other flags manually anything after Althon  1600+/pentium 4 should have SSE2+ \
- # support in a Ideal world we would do builds for Intel and AMD cpus 
-  OPTIMIZE = -O2  -mmmx -msse -msse2 
+  
+  ifeq ($(URT_NOSSE),1)
+    #Optimizations for NON-SSE/SSE2 CPUs
+    OPTIMIZE = -O3 -march=i586 -fomit-frame-pointer -ffast-math -falign-loops=2 \
+      -funroll-loops -falign-jumps=2 -falign-functions=2 -fstrength-reduce
+  else
+    #Optimizations for SSE/SSE2 CPUs
+    OPTIMIZE = -O2  -mmmx -msse -msse2 
+  endif
   HAVE_VM_COMPILED = true
 
   DEBUG_CFLAGS=$(BASE_CFLAGS) -g -O0 -Wall
@@ -731,7 +745,11 @@ ifneq ($(BUILD_SERVER),0)
 endif
 
 ifneq ($(BUILD_CLIENT),0)
-  TARGETS += $(B)/Quake3-UrT.$(ARCH)$(BINEXT)
+  ifeq ($(URT_NOSSE),1)
+    TARGETS += $(B)/Quake3-UrT-no-SSE2.$(ARCH)$(BINEXT)
+  else
+    TARGETS += $(B)/Quake3-UrT.$(ARCH)$(BINEXT)
+  endif
   ifneq ($(BUILD_CLIENT_SMP),0)
     TARGETS += $(B)/Quake3-UrT-smp.$(ARCH)$(BINEXT)
   endif
@@ -1155,10 +1173,17 @@ else
     $(B)/clientsmp/sdl_glimp.o
 endif
 
+ifeq ($(URT_NOSSE),1)
+$(B)/Quake3-UrT-no-SSE2.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ) $(LIBSDLMAIN)
+	$(echo_cmd) "LD $@"
+	$(Q)$(CC) -o $@ $(Q3OBJ) $(Q3POBJ) $(CLIENT_LDFLAGS) \
+		$(LDFLAGS) $(LIBSDLMAIN)
+else
 $(B)/Quake3-UrT.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) -o $@ $(Q3OBJ) $(Q3POBJ) $(CLIENT_LDFLAGS) \
 		$(LDFLAGS) $(LIBSDLMAIN)
+endif
 
 $(B)/Quake3-UrT-smp.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ_SMP) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
@@ -1704,7 +1729,11 @@ copyfiles: release
 	-$(MKDIR) -p -m 0755 $(COPYDIR)/missionpack
 
 ifneq ($(BUILD_CLIENT),0)
-	$(INSTALL) -s -m 0755 $(BR)/Quake3-UrT.$(ARCH)$(BINEXT) $(COPYDIR)/Quake3-UrT.$(ARCH)$(BINEXT)
+	ifeq ($(URT_NOSSE),1)
+		$(INSTALL) -s -m 0755 $(BR)/Quake3-UrT-no-SSE2.$(ARCH)$(BINEXT) $(COPYDIR)/Quake3-UrT-no-SSE2.$(ARCH)$(BINEXT)
+	else
+		$(INSTALL) -s -m 0755 $(BR)/Quake3-UrT.$(ARCH)$(BINEXT) $(COPYDIR)/Quake3-UrT.$(ARCH)$(BINEXT)
+	endif
 endif
 
 # Don't copy the SMP until it's working together with SDL.
