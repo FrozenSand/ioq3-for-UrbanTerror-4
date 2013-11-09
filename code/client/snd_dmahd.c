@@ -515,12 +515,12 @@ static void dmaHD_PaintChannelFrom16_HHRTF(channel_t *ch, const sfx_t *sc, int c
 		c = count >> 1;
 		if (so < 0) { c += so; so = 0; } // [c -= (-so)] == [c += so]
 		if ((so + c) > len) c = len - so;
-		if (c > 0)
+		if (c > 0) // Bass has to sound from all channels so process once.
 		{
 			// Calculate volumes.
 			vol = chs->bassvol * dmaHD_snd_vol;
 
-			rawsamps = (int*)samp; rawsamps += chan;
+			rawsamps = (int*)samp; //rawsamps += chan;
 			for (i = 0; i < c; i++) 
 			{ 
 				data = (samples[so++] * vol) >> 8;
