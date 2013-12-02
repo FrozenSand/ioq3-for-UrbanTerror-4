@@ -1272,7 +1272,8 @@ void Info_RemoveKey( char *s, const char *key ) {
 
 		if (!strcmp (key, pkey) )
 		{
-			strcpy (start, s);	// remove this part
+			//strcpy is not safe for overlapping copies, use memmove
+			memmove(start, s, strlen(s) + 1);
 			return;
 		}
 
@@ -1327,7 +1328,8 @@ void Info_RemoveKey_Big( char *s, const char *key ) {
 
 		if (!strcmp (key, pkey) )
 		{
-			strcpy (start, s);	// remove this part
+			//strcpy is not safe for overlapping copies, use memmove
+			memmove(start, s, strlen(s) + 1);
 			return;
 		}
 
