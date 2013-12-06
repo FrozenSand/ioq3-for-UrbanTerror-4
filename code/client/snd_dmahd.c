@@ -1,30 +1,24 @@
 /*
-===========================================================================
-Copyright (C) 1999-2005 Id Software, Inc.
+Copyright (c) 2010-2013  p5yc0runn3r at gmail.com
 
-This file is part of Quake III Arena source code.
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
 
-Quake III Arena source code is free software; you can redistribute it
-and/or modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the License,
-or (at your option) any later version.
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
 
-Quake III Arena source code is distributed in the hope that it will be
-useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+   1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
 
-You should have received a copy of the GNU General Public License
-along with Quake III Arena source code; if not, write to the Free Software
-Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-===========================================================================
-*/
+   2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
 
-/*
-===========================================================================
-Changes to ID's source code: dmaHD HRTF Sound system
-by p5yc0runn3r founder of Armed, Pissed & Dangerous clan.
-===========================================================================
+   3. This notice may not be removed or altered from any source
+   distribution.
 */
 
 #ifndef NO_DMAHD
@@ -290,13 +284,11 @@ static int dmaHD_GetSampleRaw_8bit(int index, int samples, byte* data)
 {
 	if (index < 0) index += samples; else if (index >= samples) index -= samples;
 	return (int)(((byte)(data[index])-128)<<8);
-	//return (index < 0 || index >= samples) ? 0 : (int)(((byte)(data[index])-128)<<8);
 }
 static int dmaHD_GetSampleRaw_16bit(int index, int samples, byte* data) 
 {
 	if (index < 0) index += samples; else if (index >= samples) index -= samples;
 	return (int)LittleShort(((short*)data)[index]);
-	//return (index < 0 || index >= samples) ? 0 : (int)LittleShort(((short*)data)[index]);
 }
 
 // Get only decimal part (a - floor(a))
@@ -412,7 +404,7 @@ void dmaHD_ResampleSfx( sfx_t *sfx, int inrate, int inwidth, byte *data, qboolea
 	// Check if this is a weapon sound.
 	sfx->weaponsound = (memcmp(sfx->soundName, "sound/weapons/", 14) == 0) ? qtrue : qfalse;
 
-	// Get first sample from sound effect.
+	// Get last sample from sound effect.
 	idx_smp = -stepscale;
 	sample = dmaHD_GetInterpolatedSample(idx_smp, sfx->soundLength, data, dmaHD_GetSampleRaw);
 	bsample = dmaHD_GetNoInterpolationSample(idx_smp, sfx->soundLength, data, dmaHD_GetSampleRaw);
@@ -446,7 +438,6 @@ void dmaHD_ResampleSfx( sfx_t *sfx, int inrate, int inwidth, byte *data, qboolea
 
 		// Low pass.
 		lp_data = lp_a * (float)bsample + lp_inva * lp_last;
-		//if ((idx_hp % 2) != 0) buffer[idx_lp++] = SMPCLAMP((lp_last + lp_data) / 2.0f);
 		buffer[idx_lp++] = SMPCLAMP(lp_data);
 		lp_last = lp_data;
 	}
@@ -460,19 +451,37 @@ qboolean dmaHD_LoadSound(sfx_t *sfx)
 {
 	byte *data;
 	snd_info_t info;
+	char dmahd_soundName[MAX_QPATH];
+	char *lpext;
 
 	// Player specific sounds are never directly loaded.
 	if (sfx->soundName[0] == '*') return qfalse;
 
-	// Load it in.
-	if (!(data = S_CodecLoad(sfx->soundName, &info))) return qfalse;
+	strcpy(dmahd_soundName, sfx->soundName);
+	if ((lpext = strrchr(sfx->soundName, '.')) != NULL)
+	{
+		strcpy(dmahd_soundName, sfx->soundName);
+		*(strrchr(dmahd_soundName, '.')) = '\0'; // for sure there is a '.'
+	}
+	strcat(dmahd_soundName, "_dmahd");
+	if (lpext != NULL) strcat(dmahd_soundName, lpext);
+
+	// Just check if file exists
+	if (FS_FOpenFileRead(dmahd_soundName, NULL, qtrue) == qtrue)
+	{
+		// Load it in.
+		if (!(data = S_CodecLoad(dmahd_soundName, &info))) return qfalse;
+	}
+	else
+	{
+		// Load it in.
+		if (!(data = S_CodecLoad(sfx->soundName, &info))) return qfalse;
+	}
 
 	// Information
-	Com_DPrintf("^3Loading sound: ^7%s", sfx->soundName);
-	if (info.width == 1) 
-		Com_DPrintf(" [^28^3bit ^7-> ^216^3bit]");
-	if (info.rate != dma.speed) 
-		Com_DPrintf(" [^2%d^3Hz ^7-> ^2%d^3Hz]", info.rate, dma.speed);
+	Com_DPrintf("Loading sound: %s", sfx->soundName);
+	if (info.width == 1) Com_DPrintf(" [8 bit -> 16 bit]");
+	if (info.rate != dma.speed) Com_DPrintf(" [%d Hz -> %d Hz]", info.rate, dma.speed);
 	Com_DPrintf("\n");
 
 	sfx->lastTimeUsed = Com_Milliseconds() + 1;
@@ -491,7 +500,7 @@ qboolean dmaHD_LoadSound(sfx_t *sfx)
 
 /*
 ===============================================================================
-PART#02: dmaHD: dma sound EXtension : Mixing
+PART#02: dmaHD: Mixing
 ===============================================================================
 */
 
@@ -576,8 +585,8 @@ void dmaHD_TransferPaintBuffer(int endtime)
 
 		ls_paintedtime += (snd_linear_count>>1);
 
-		if( CL_VideoRecording( ) )
-			CL_WriteAVIAudioFrame( (byte *)snd_out, snd_linear_count << 1 );
+		if (CL_VideoRecording())
+			CL_WriteAVIAudioFrame((byte *)snd_out, snd_linear_count << 1);
 	}
 }
 
@@ -594,15 +603,14 @@ void dmaHD_PaintChannels( int endtime )
 #endif
 
 	dmaHD_snd_vol = 
-#ifdef MAX_RAW_STREAMS // For using Mitsu's build...
+#ifdef MAX_RAW_STREAMS
 		(s_muted->integer) ? 0 : 
 #endif
 		s_volume->value*256;
 
 	while ( s_paintedtime < endtime ) 
 	{
-		// if paintbuffer is smaller than DMA buffer
-		// we may need to fill it multiple times
+		// if paintbuffer is smaller than DMA buffer we may need to fill it multiple times
 		end = endtime;
 		if ((endtime - s_paintedtime) >= DMAHD_PAINTBUFFER_SIZE ) 
 		{
@@ -701,7 +709,7 @@ void dmaHD_PaintChannels( int endtime )
 
 /*
 ===============================================================================
-PART#03: dmaHD: dma sound EXtension : main
+PART#03: dmaHD: main
 ===============================================================================
 */
 
@@ -1025,32 +1033,28 @@ qboolean dmaHD_Enabled(void)
 // ====================================================================
 // User-setable variables
 // ====================================================================
-
 void dmaHD_SoundInfo(void) 
 {	
-	int i;
-	for (i = 0; i < 19; i++) Com_Printf("^7-^6-" );
 	Com_Printf("\n" );
-	Com_Printf("^2p5yc0runn3r's ^3dma^1HD ^7sound information\n");
+	Com_Printf("dmaHD HRTF sound engine by p5yc0runn3r\n");
 	
 	if (!s_soundStarted) 
 	{
-		Com_Printf ("  ^1Sound system not started...\n");
+		Com_Printf (" dmaHD sound system not started.\n");
 	} 
 	else 
 	{
-		Com_Printf("  ^3dma^1HD ^7Mixer  ^7- ^2Hybrid^7-^2HRTF ^0[^63D^0]\n");
-		Com_Printf("  ^2%d^3ch ^7- ^2%d^3Hz ^7- ^2%d^3bps\n", dma.channels, dma.speed, dma.samplebits);
+		Com_Printf(" dmaHD HRTF 3D Mixer\n");
+		Com_Printf(" %d ch / %d Hz / %d bps\n", dma.channels, dma.speed, dma.samplebits);
 		if (s_numSfx > 0 || g_dmaHD_allocatedsoundmemory > 0)
 		{
-			Com_Printf("  ^2%d^3sounds ^7in ^2%.2f^3MiB\n", s_numSfx, (float)g_dmaHD_allocatedsoundmemory / 1048576.0f);
+			Com_Printf(" %d sounds in %.2f MiB\n", s_numSfx, (float)g_dmaHD_allocatedsoundmemory / 1048576.0f);
 		}
 		else
 		{
-			Com_Printf("  ^1No sounds loaded yet\n");
+			Com_Printf(" No sounds loaded yet.\n");
 		}
 	}
-	for (i = 0; i < 19; i++) Com_Printf("^7-^6-" );
 	Com_Printf("\n" );
 }
 
@@ -1059,25 +1063,23 @@ void dmaHD_SoundList(void)
 	int i;
 	sfx_t *sfx;
 	
-	for (i = 0; i < 19; i++) Com_Printf("^7-^6-" );
 	Com_Printf("\n" );
-	Com_Printf("^2p5yc0runn3r's ^3dma^1HD ^7sound list\n");
+	Com_Printf("dmaHD HRTF sound engine by p5yc0runn3r\n");
 
 	if (s_numSfx > 0 || g_dmaHD_allocatedsoundmemory > 0)
 	{
 		for (sfx = s_knownSfx, i = 0; i < s_numSfx; i++, sfx++)
 		{
-			Com_Printf("  %s%s ^2%.2f^3KiB\n", 
-				(sfx->inMemory ? S_COLOR_GREEN : S_COLOR_RED), sfx->soundName, 
-				(float)sfx->soundLength / 1024.0f);
+			Com_Printf(" %s %.2f KiB %s\n", 
+				sfx->soundName, (float)sfx->soundLength / 1024.0f, 
+				(sfx->inMemory ? "" : "!"));
 		}
-		Com_Printf("  ^2%d^3sounds ^7in ^2%.2f^3MiB\n", s_numSfx, (float)g_dmaHD_allocatedsoundmemory / 1048576.0f);
+		Com_Printf(" %d sounds in %.2f MiB\n", s_numSfx, (float)g_dmaHD_allocatedsoundmemory / 1048576.0f);
 	}
 	else
 	{
-		Com_Printf("  ^1No sounds loaded yet\n");
+		Com_Printf(" No sounds loaded yet.\n");
 	}
-	for (i = 0; i < 19; i++) Com_Printf("^7-^6-" );
 	Com_Printf("\n" );
 }
 
