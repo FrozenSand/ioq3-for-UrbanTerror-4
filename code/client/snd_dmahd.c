@@ -1025,7 +1025,7 @@ dmaHD_Enabled
 qboolean dmaHD_Enabled(void) 
 {
 	if (dmaHD_Enable == NULL)
-		dmaHD_Enable = Cvar_Get("dmaHD_enable", "0", CVAR_ARCHIVE); //@Barbatos - turned off by default
+		dmaHD_Enable = Cvar_Get("dmaHD_enable", "1", CVAR_ARCHIVE); //@p5yc0runn3r- Turn on by default
 
 	return (dmaHD_Enable->integer);
 }
