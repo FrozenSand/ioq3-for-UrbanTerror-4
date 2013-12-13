@@ -1251,15 +1251,8 @@ void IN_HandleRawMouseData(HRAWINPUT hndlmouse)
 	UINT dwSize;
 	RAWINPUT* raw;
 
-	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
-		if ( Cvar_VariableValue ("r_fullscreen") == 0 )	{
-			IN_DeactivateMouse();
-		}
-		return;
-	}
-
-        // even in raw mouse mode, it is necessary to keep warping the pointer to the center to avoid the mouse sliding out in windowed mode
-	SetCursorPos( window_center_x, window_center_y );
+	// even in raw mouse mode, it is necessary to keep warping the pointer to the center to avoid the mouse sliding out in windowed mode
+	if ((cls.keyCatchers & KEYCATCH_CONSOLE) != KEYCATCH_CONSOLE) SetCursorPos(window_center_x, window_center_y);
 	
 	if (GetRawInputData(hndlmouse, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER)) == (UINT)-1)
 	{
@@ -1289,7 +1282,7 @@ void IN_HandleRawMouseData(HRAWINPUT hndlmouse)
 	{
 		Com_DPrintf("Absolute mouse data not supported.");
 	}
-	else
+	else if ((cls.keyCatchers & KEYCATCH_CONSOLE) != KEYCATCH_CONSOLE)
 	{
 		if (raw->data.mouse.lLastX != 0 || raw->data.mouse.lLastY != 0)
 		{
