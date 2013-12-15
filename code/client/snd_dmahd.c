@@ -405,7 +405,7 @@ void dmaHD_ResampleSfx( sfx_t *sfx, int inrate, int inwidth, byte *data, qboolea
 	sfx->weaponsound = (memcmp(sfx->soundName, "sound/weapons/", 14) == 0) ? qtrue : qfalse;
 
 	// Get last sample from sound effect.
-	idx_smp = -stepscale;
+	idx_smp = -(stepscale * 4.0f);
 	sample = dmaHD_GetInterpolatedSample(idx_smp, sfx->soundLength, data, dmaHD_GetSampleRaw);
 	bsample = dmaHD_GetNoInterpolationSample(idx_smp, sfx->soundLength, data, dmaHD_GetSampleRaw);
 	idx_smp += stepscale;
