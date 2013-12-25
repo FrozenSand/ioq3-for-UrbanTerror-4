@@ -513,9 +513,11 @@ PART#02: dmaHD: Mixing
 
 static void dmaHD_PaintChannelFrom16_HHRTF(channel_t *ch, const sfx_t *sc, int count, int sampleOffset, int bufferOffset, int chan) 
 {
-	int data, vol, i, so, tso;
+	int data, vol, i, so;
 	portable_samplepair_t *samp = &dmaHD_paintbuffer[bufferOffset];
 	short *samples;
+	short *tsamples;
+	int *out;
 	ch_side_t* chs = (chan == 0) ? &ch->l : &ch->r;
 
 	if (dmaHD_snd_vol <= 0) return;
@@ -529,18 +531,24 @@ static void dmaHD_PaintChannelFrom16_HHRTF(channel_t *ch, const sfx_t *sc, int c
 		samples = &((short*)sc->soundData)[sc->soundLength]; // Select bass frequency offset (just after high frequency)
 		// Calculate volumes.
 		vol = chs->bassvol * dmaHD_snd_vol;
-		tso = so;
-		if (chan == 0) for (i = 0; i < count; i++) samp[i].left += (samples[tso++] * vol) >> 8; 
-		else for (i = 0; i < count; i++) samp[i].right += (samples[tso++] * vol) >> 8; 
+		tsamples = &samples[so];
+		out = (int*)samp;
+		if (chan == 1) out++;
+		for (i = 0; i < count; i++) {
+			*out += (*tsamples * vol) >> 8; ++tsamples; ++out; ++out;
+		}
 	}
 	if (chs->vol > 0) // Process high frequency
 	{
 		samples = (short*)sc->soundData; // Select high frequency offset.
 		// Calculate volumes.
 		vol = chs->vol * dmaHD_snd_vol;
-		tso = so;
-		if (chan == 0) for (i = 0; i < count; i++) samp[i].left += (samples[tso++] * vol) >> 8; 
-		else for (i = 0; i < count; i++) samp[i].right += (samples[tso++] * vol) >> 8; 
+		tsamples = &samples[so];
+		out = (int*)samp;
+		if (chan == 1) out++;
+		for (i = 0; i < count; i++) {
+			*out += (*tsamples * vol) >> 8; ++tsamples; ++out; ++out;
+		}
 	}
 }
 
@@ -549,6 +557,8 @@ static void dmaHD_PaintChannelFrom16_dmaEX2(channel_t *ch, const sfx_t *sc, int 
 	int data, rvol, lvol, i, so;
 	portable_samplepair_t *samp = &dmaHD_paintbuffer[bufferOffset];
 	short *samples;
+	short *tsamples;
+	int *out;
 
 	if (dmaHD_snd_vol <= 0) return;
 
@@ -562,11 +572,13 @@ static void dmaHD_PaintChannelFrom16_dmaEX2(channel_t *ch, const sfx_t *sc, int 
 		samples = &((short*)sc->soundData)[sc->soundLength]; // Select bass frequency offset (just after high frequency)
 		// Calculate volumes.
 		lvol = ch->l.bassvol * dmaHD_snd_vol;
+		tsamples = &samples[so];
+		out = (int*)samp;
 		for (i = 0; i < count; i++) 
 		{ 
-			data = (samples[so + i] * lvol) >> 8;
-			samp[i].left += data;
-			samp[i].right += data;
+			data = (*tsamples * lvol) >> 8; ++tsamples;
+			*out += data; ++out; // L
+			*out += data; ++out; // R
 		}
 	}
 	if (ch->l.vol > 0 || ch->r.vol > 0) // Process high frequency.
@@ -580,10 +592,13 @@ static void dmaHD_PaintChannelFrom16_dmaEX2(channel_t *ch, const sfx_t *sc, int 
 		{
 			if (ch->r.vol > ch->l.vol) lvol = -lvol; else rvol = -rvol;
 		}
+		tsamples = &samples[so];
+		out = (int*)samp;
 		for (i = 0; i < count; i++)
 		{ 
-			samp[i].left += (samples[so + i] * lvol) >> 8;
-			samp[i].right += (samples[so + i] * rvol) >> 8;
+			*out += (*tsamples * lvol) >> 8; ++out; // L
+			*out += (*tsamples * rvol) >> 8; ++out; // R
+			++tsamples;
 		}
 	}
 	if (ch->l.reverbvol > 0 || ch->r.reverbvol > 0) // Process high frequency reverb.
@@ -595,10 +610,13 @@ static void dmaHD_PaintChannelFrom16_dmaEX2(channel_t *ch, const sfx_t *sc, int 
 		// Calculate volumes for reverb.
 		lvol = ch->l.reverbvol * dmaHD_snd_vol;
 		rvol = ch->r.reverbvol * dmaHD_snd_vol;
+		tsamples = &samples[so];
+		out = (int*)samp;
 		for (i = 0; i < count; i++)
 		{ 
-			samp[i].left += (samples[so + i] * lvol) >> 8;
-			samp[i].right += (samples[so + i] * rvol) >> 8;
+			*out += (*tsamples * lvol) >> 8; ++out; // L
+			*out += (*tsamples * rvol) >> 8; ++out; // R
+			++tsamples;
 		}
 	}
 }
@@ -608,6 +626,7 @@ static void dmaHD_PaintChannelFrom16_dmaEX(channel_t *ch, const sfx_t *sc, int c
 	int rvol, lvol, i, j, so;
 	portable_samplepair_t *samp = &dmaHD_paintbuffer[bufferOffset];
 	short *samples, *bsamples;
+	int *out;
 
 	if (dmaHD_snd_vol <= 0) return;
 
@@ -617,8 +636,8 @@ static void dmaHD_PaintChannelFrom16_dmaEX(channel_t *ch, const sfx_t *sc, int c
 	if (count <= 0) return;
 	if (ch->l.vol <= 0 && ch->r.vol <= 0) return;
 
-	samples = (short*)sc->soundData; // Select high frequency offset.
-	bsamples = &((short*)sc->soundData)[sc->soundLength]; // Select bass frequency offset (just after high frequency)
+	samples = &((short*)sc->soundData)[so]; // Select high frequency offset.
+	bsamples = &((short*)sc->soundData)[sc->soundLength + so]; // Select bass frequency offset (just after high frequency)
 	// Calculate volumes.
 	lvol = ch->l.vol * dmaHD_snd_vol;
 	rvol = ch->r.vol * dmaHD_snd_vol;
@@ -627,10 +646,12 @@ static void dmaHD_PaintChannelFrom16_dmaEX(channel_t *ch, const sfx_t *sc, int c
 	{
 		if (lvol < rvol) lvol = -lvol; else rvol = -rvol;
 	}
+	out = (int*)samp;
 	for (i = 0; i < count; i++) 
 	{ 
-		samp[i].left += ((samples[so + i] * lvol) >> 8) + ((bsamples[so + i] * lvol) >> 8);
-		samp[i].right += ((samples[so + i] * rvol) >> 8) + ((bsamples[so + i] * rvol) >> 8);
+		*out += ((*samples * lvol) >> 8) + ((*bsamples * lvol) >> 8); ++out; // L
+		*out += ((*samples * rvol) >> 8) + ((*bsamples * rvol) >> 8); ++out; // R
+		++samples; ++bsamples;
 	}
 }
 
