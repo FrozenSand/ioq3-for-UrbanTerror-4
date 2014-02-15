@@ -80,20 +80,20 @@ const char *COM_GetExtension( const char *name ) {
 COM_StripExtension
 ============
 */
-void COM_StripExtension( const char *in, char *out, int destsize ) {
-	int             length;
+void COM_StripExtension( const char *in, char *out, int destsize )
+{
+	const char *dot = strrchr(in, '.'), *slash;
 
-	Q_strncpyz(out, in, destsize);
-
-	length = strlen(out)-1;
-	while (length > 0 && out[length] != '.')
-	{
-		length--;
-		if (out[length] == '/')
-			return;		// no extension
+	if (dot && (!(slash = strrchr(in, '/')) || slash < dot)) {
+		destsize = (destsize < dot-in+1 ? destsize : dot-in+1);
 	}
-	if (length)
-		out[length] = 0;
+
+	if ( in == out && destsize > 1 ) {
+		out[destsize-1] = '\0';
+	} 
+	else {
+		Q_strncpyz(out, in, destsize);
+	}
 }
 
 
