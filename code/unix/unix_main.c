@@ -1201,7 +1201,7 @@ void Sys_AppActivate (void)
 char *Sys_GetClipboardData(void)
 {
   char *data = NULL;
-  char *cliptext[1024];
+  char *cliptext;
   FILE *fp;
 
   #ifdef MACOS_X
@@ -1216,6 +1216,7 @@ char *Sys_GetClipboardData(void)
   }
   #endif
   if (fp != NULL) {
+    cliptext = Z_Malloc(MAX_SAY_STRLEN);
     if (fgets(cliptext, sizeof(cliptext)-1, fp) != NULL) {
       data = Z_Malloc(sizeof(cliptext) + 1);
       Q_strncpyz(data, cliptext, sizeof(cliptext));
