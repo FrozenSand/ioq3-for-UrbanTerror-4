@@ -38,6 +38,9 @@ USE_OPENAL       =0
 USE_CURL         =1
 USE_CODEC_VORBIS =0
 
+# Clearskies - X11-based gamma for Linux
+USE_ALTGAMMA	=1
+
 # Barbatos - Urban Terror 4.2 auth system
 # You're not forced to use it.
 USE_AUTH		=1
@@ -239,6 +242,10 @@ ifeq ($(PLATFORM),linux)
     BASE_CFLAGS += -I/usr/X11R6/include
   endif
 
+  ifeq ($(USE_ALTGAMMA), 1)
+  	BASE_CFLAGS += -DUSE_ALTGAMMA=1
+  endif
+
   OPTIMIZE = -O3 -ffast-math -funroll-loops -fomit-frame-pointer
 
   ifeq ($(ARCH),x86_64)
@@ -278,6 +285,9 @@ ifeq ($(PLATFORM),linux)
 
   ifeq ($(USE_SDL),1)
     CLIENT_LDFLAGS=$(shell sdl-config --libs)
+    ifeq ($(USE_ALTGAMMA), 1)
+      CLIENT_LDFLAGS += -lX11 -lXxf86vm
+    endif
   else
     CLIENT_LDFLAGS=-L/usr/X11R6/$(LIB) -lX11 -lXext -lXxf86dga -lXxf86vm
   endif
