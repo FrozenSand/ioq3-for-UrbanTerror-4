@@ -384,6 +384,7 @@ extern	cvar_t	*cl_altTab;
 extern  cvar_t	*cl_auth_engine;
 extern  cvar_t  *cl_auth;
 extern  cvar_t  *authc;
+extern  cvar_t  *authl; // Auth Login
 #endif
 
 extern  cvar_t  *cl_mouseAccelOffset;

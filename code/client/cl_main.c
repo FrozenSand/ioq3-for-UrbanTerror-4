@@ -87,6 +87,7 @@ cvar_t  *cl_mouseAccelStyle;
 cvar_t  *cl_auth_engine;
 cvar_t  *cl_auth;
 cvar_t  *authc;
+cvar_t  *authl;
 #endif
 
 clientActive_t		cl;
@@ -2936,6 +2937,7 @@ void CL_Init( void ) {
 	cl_auth_engine = Cvar_Get( "cl_auth_engine", "1", CVAR_TEMP | CVAR_ROM);
 	cl_auth = Cvar_Get("cl_auth", "0", CVAR_TEMP | CVAR_ROM);
 	authc = Cvar_Get("authc", "0", CVAR_TEMP | CVAR_USERINFO);
+	authl = Cvar_Get("authl", "", CVAR_TEMP | CVAR_USERINFO);
 	#endif
 	
 	// userinfo
