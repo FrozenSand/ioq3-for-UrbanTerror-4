@@ -95,6 +95,17 @@ typedef void *QGLContext;
 #define GLimp_SetCurrentContext(ctx)
 #endif
 
+#ifndef MACOS_X
+#ifdef USE_ALTGAMMA
+#include <X11/Xlib.h>
+#include <X11/extensions/xf86vmode.h>
+
+static XF86VidModeGamma origGamma;
+static Display *disp;
+static int scrNum;
+#endif
+#endif
+
 static QGLContext opengl_context;
 
 //#define KBD_DBG
@@ -567,6 +578,23 @@ void IN_DeactivateMouse( void )
 */
 void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] )
 {
+  #ifndef MACOS_X
+  #ifdef USE_ALTGAMMA
+  float g = Cvar_Get("r_gamma", "1.0", 0)->value;
+  XF86VidModeGamma gamma;
+
+  gamma.red = g;
+  gamma.green = g;
+  gamma.blue = g;
+
+  XF86VidModeSetGamma(disp, scrNum, &gamma);
+  XF86VidModeGetGamma(disp, scrNum, &gamma);
+  Com_Printf("XF86VidModeSetGamma: %.3f, %.3f, %.3f.\n", gamma.red, gamma.green, gamma.blue);
+  return;
+  #endif
+  #endif
+
+
 	Uint16 table[3][256];
 	int i, j;
     //	float g;
@@ -624,6 +652,13 @@ void GLimp_Shutdown( void )
 {
   IN_Shutdown();
   screen = NULL;
+
+  #ifndef MACOS_X
+  #ifdef USE_ALTGAMMA
+  XF86VidModeSetGamma(disp, scrNum, &origGamma);
+  XCloseDisplay(disp);
+  #endif
+  #endif
 
   memset( &glConfig, 0, sizeof( glConfig ) );
   memset( &glState, 0, sizeof( glState ) );
@@ -1006,6 +1041,15 @@ static void GLW_InitExtensions( void )
 static void GLW_InitGamma( void )
 {
     glConfig.deviceSupportsGamma = qtrue;
+
+    #ifndef MACOS_X
+    #ifdef USE_ALTGAMMA
+    disp = XOpenDisplay(NULL);
+    scrNum = DefaultScreen(disp);
+    XF86VidModeGetGamma(disp, scrNum, &origGamma);
+    #endif
+    #endif
+
 }
 
 /*
