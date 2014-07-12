@@ -82,6 +82,8 @@ cvar_t	*cl_altTab;
 cvar_t  *cl_mouseAccelOffset;
 cvar_t  *cl_mouseAccelStyle;
 
+cvar_t  *cl_lastServerAddress;
+
 //@Barbatos
 #ifdef USE_AUTH
 cvar_t  *cl_auth_engine;
@@ -1242,12 +1244,12 @@ CL_Reconnect_f
 ================
 */
 void CL_Reconnect_f( void ) {
-	if ( !strlen( cls.servername ) || !strcmp( cls.servername, "localhost" ) ) {
+	if (!strlen(cl_lastServerAddress->string) || !strcmp(cl_lastServerAddress->string, "localhost")) {
 		Com_Printf( "Can't reconnect to localhost.\n" );
 		return;
 	}
 	Cvar_Set("ui_singlePlayerActive", "0");
-	Cbuf_AddText( va("connect %s\n", cls.servername ) );
+	Cbuf_AddText(va("connect %s\n", cl_lastServerAddress->string));
 }
 
 /*
@@ -1320,6 +1322,8 @@ void CL_Connect_f( void ) {
 	} else {
 		cls.state = CA_CONNECTING;
 	}
+
+	Cvar_Set("cl_lastServerAddress", serverString);
 
 	cls.keyCatchers = 0;
 	clc.connectTime = -99999;	// CL_CheckForResend() will fire immediately
@@ -2891,6 +2895,7 @@ void CL_Init( void ) {
 	cl_mouseAccelOffset = Cvar_Get( "cl_mouseAccelOffset", "5", CVAR_ARCHIVE );
 
 	cl_showMouseRate = Cvar_Get ("cl_showmouserate", "0", 0);
+	cl_lastServerAddress = Cvar_Get("cl_lastServerAddress", "", CVAR_ROM | CVAR_ARCHIVE);
 
 	cl_autoDownload = Cvar_Get ("cl_autoDownload", "1", CVAR_ARCHIVE);
 #if USE_CURL
