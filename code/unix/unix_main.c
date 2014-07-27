@@ -1217,9 +1217,9 @@ char *Sys_GetClipboardData(void)
   #endif
   if (fp != NULL) {
     cliptext = Z_Malloc(MAX_STRING_CHARS);
-    if (fgets(cliptext, sizeof(MAX_STRING_CHARS)-1, fp) != NULL) {
-      data = Z_Malloc(sizeof(MAX_STRING_CHARS) + 1);
-      Q_strncpyz(data, cliptext, sizeof(MAX_STRING_CHARS));
+    if (fgets(cliptext, MAX_STRING_CHARS-1, fp) != NULL) {
+      data = Z_Malloc(MAX_STRING_CHARS + 1);
+      Q_strncpyz(data, cliptext, MAX_STRING_CHARS);
       strtok(data, "\n\r\b");
     }
     pclose(fp);
