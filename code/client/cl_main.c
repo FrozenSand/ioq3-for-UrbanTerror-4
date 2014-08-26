@@ -1854,6 +1854,10 @@ void CL_DownloadMenu(int key)
 
 }
 
+qboolean CL_IsDownloading(void) {
+	return clc.cURLUsed;
+}
+
 /*
 =================
 CL_CheckForResend
