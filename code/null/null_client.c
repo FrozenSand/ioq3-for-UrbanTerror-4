@@ -40,6 +40,10 @@ void Key_WriteBindings( fileHandle_t f ) {
 void CL_Frame ( int msec ) {
 }
 
+qboolean CL_IsDownloading(void) {
+	return qfalse;
+}
+
 void CL_PacketEvent( netadr_t from, msg_t *msg ) {
 }
 
