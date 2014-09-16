@@ -246,8 +246,11 @@ static int CL_cURL_CallbackWrite(void *buffer, size_t size, size_t nmemb,
 	return size*nmemb;
 }
 
-void CL_cURL_BeginDownload( const char *localName, const char *remoteURL )
+void CL_cURL_BeginDownload( const char *baseLocalName, const char *remoteURL )
 {
+	char localName[MAX_STRING_CHARS];
+	Com_sprintf(localName, sizeof(localName), "q3ut4/download/%s", COM_SkipPath(CopyString(baseLocalName)));
+
 	clc.cURLUsed = qtrue;
 	Com_Printf("URL: %s\n", remoteURL);
 	Com_DPrintf("***** CL_cURL_BeginDownload *****\n"

@@ -1722,6 +1722,11 @@ static pack_t *FS_LoadZipFile( char *zipfile, const char *basename )
 		if (err != UNZ_OK) {
 			break;
 		}
+
+		if (strstr(filename_inzip, ".qvm") && strstr(pack->pakFilename, "download/")) {
+			Com_Error(ERR_DROP, "QVM found in a downloaded pk3! (%s)", pack->pakFilename);
+		}
+
 		if (file_info.uncompressed_size > 0) {
 			fs_headerLongs[fs_numHeaderLongs++] = LittleLong(file_info.crc);
 		}
@@ -2745,6 +2750,7 @@ static void FS_Startup( const char *gameName )
 
 	// add search path elements in reverse priority order
 	if (fs_basepath->string[0]) {
+		FS_AddGameDirectory(va("%s/q3ut4", fs_basepath->string), "download");
 		FS_AddGameDirectory( fs_basepath->string, gameName );
 	}
 	// fs_homepath is somewhat particular to *nix systems, only add if relevant
@@ -2759,6 +2765,7 @@ static void FS_Startup( const char *gameName )
 	
 	// NOTE: same filtering below for mods and basegame
 	if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string,fs_basepath->string)) {
+		FS_AddGameDirectory(va("%s/q3ut4", fs_homepath->string), "download");
 		FS_AddGameDirectory ( fs_homepath->string, gameName );
 	}
 
