@@ -201,10 +201,6 @@ static int pak_purechecksums[1];
 // NOW defined in build files
 //#define PRE_RELEASE_TADEMO
 
-#define MAX_ZPATH			256
-#define	MAX_SEARCH_PATHS	4096
-#define MAX_FILEHASH_SIZE	1024
-
 typedef struct fileInPack_s {
 	char					*name;		// name of the file
 	unsigned long			pos;		// file info position in zip
@@ -1656,11 +1652,12 @@ static pack_t *FS_LoadZipFile( char *zipfile, const char *basename )
 	unz_global_info gi;
 	char			filename_inzip[MAX_ZPATH];
 	unz_file_info	file_info;
-	int				i, len;
+	int				i, j, len;
 	long			hash;
 	int				fs_numHeaderLongs;
 	int				*fs_headerLongs;
 	char			*namePtr;
+	qboolean		alreadyForeign = qfalse;
 
 	fs_numHeaderLongs = 0;
 
@@ -1722,6 +1719,20 @@ static pack_t *FS_LoadZipFile( char *zipfile, const char *basename )
 		if (err != UNZ_OK) {
 			break;
 		}
+
+		if (strstr(filename_inzip, ".qvm") && strstr(pack->pakFilename, "download/")) {
+			for (j = 0; j < foreignQVMsFound; j++) {
+				if (!strcmp(foreignQVMNames[j], pack->pakBasename)) {
+					alreadyForeign = qtrue;
+				}
+			}
+
+			if (!alreadyForeign) {
+				Com_sprintf(foreignQVMNames[foreignQVMsFound], MAX_ZPATH, pack->pakBasename);
+				foreignQVMsFound++;
+			}
+		}
+
 		if (file_info.uncompressed_size > 0) {
 			fs_headerLongs[fs_numHeaderLongs++] = LittleLong(file_info.crc);
 		}
@@ -2727,6 +2738,8 @@ static void FS_Startup( const char *gameName )
 
 	Com_Printf( "----- FS_Startup -----\n" );
 
+	foreignQVMsFound = 0;
+
 	fs_debug = Cvar_Get( "fs_debug", "0", 0 );
 	fs_basepath = Cvar_Get ("fs_basepath", Sys_DefaultInstallPath(), CVAR_INIT );
 	fs_basegame = Cvar_Get ("fs_basegame", "", CVAR_INIT );
@@ -2745,6 +2758,7 @@ static void FS_Startup( const char *gameName )
 
 	// add search path elements in reverse priority order
 	if (fs_basepath->string[0]) {
+		FS_AddGameDirectory(va("%s/q3ut4", fs_basepath->string), "download");
 		FS_AddGameDirectory( fs_basepath->string, gameName );
 	}
 	// fs_homepath is somewhat particular to *nix systems, only add if relevant
@@ -2759,6 +2773,7 @@ static void FS_Startup( const char *gameName )
 	
 	// NOTE: same filtering below for mods and basegame
 	if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string,fs_basepath->string)) {
+		FS_AddGameDirectory(va("%s/q3ut4", fs_homepath->string), "download");
 		FS_AddGameDirectory ( fs_homepath->string, gameName );
 	}
 
