@@ -193,6 +193,9 @@ static const unsigned pak_checksums[] = {
 static int pak_purechecksums[1];
 
 
+int foreignQVMsFound;
+char foreignQVMNames[MAX_ZPATH][MAX_SEARCH_PATHS];
+
 // if this is defined, the executable positively won't work with any paks other
 // than the demo pak, even if productid is present.  This is only used for our
 // last demo release to prevent the mac and linux users from using the demo
