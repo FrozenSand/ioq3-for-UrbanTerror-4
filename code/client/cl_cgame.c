@@ -31,6 +31,9 @@ extern qboolean loadCamera(const char *name);
 extern void startCamera(int time);
 extern qboolean getCameraInfo(int time, vec3_t *origin, vec3_t *angles);
 
+int foreignQVMsFound;
+char foreignQVMNames[MAX_ZPATH][MAX_SEARCH_PATHS];
+
 /*
 ====================
 CL_GetGameState

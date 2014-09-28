@@ -536,8 +536,8 @@ issues.
 #define	MAX_SEARCH_PATHS	4096
 #define MAX_FILEHASH_SIZE	1024
 
-int foreignQVMsFound;
-char foreignQVMNames[MAX_ZPATH][MAX_SEARCH_PATHS];
+extern int foreignQVMsFound;
+extern char foreignQVMNames[MAX_ZPATH][MAX_SEARCH_PATHS];
 
 // referenced flags
 // these are in loop specific order so don't change the order
