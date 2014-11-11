@@ -30,7 +30,6 @@ cvar_t		*cl_debuggraph;
 cvar_t		*cl_graphheight;
 cvar_t		*cl_graphscale;
 cvar_t		*cl_graphshift;
-cvar_t		*cl_drawclock;
 
 /*
 ================
@@ -345,22 +344,6 @@ void SCR_DrawDemoRecording( void ) {
 
 
 /*
-=================
-SCR_DrawClock
-=================
-*/
-void SCR_DrawClock( void ) {
-	qtime_t myTime;
-	char	string[16];
-	if (Cvar_VariableValue ("cl_drawclock")) {
-		Com_RealTime( &myTime );
-		Com_sprintf( string, sizeof ( string ), "%02i:%02i:%02i", myTime.tm_hour, myTime.tm_min, myTime.tm_sec );
-		SCR_DrawStringExt( 320 - strlen( string ) * 4, 11, 8, string, g_color_table[7], qtrue );
-	}
-}
-
-
-/*
 ===============================================================================
 
 DEBUG GRAPH
@@ -438,7 +421,6 @@ void SCR_Init( void ) {
 	cl_graphheight = Cvar_Get ("graphheight", "32", CVAR_CHEAT);
 	cl_graphscale = Cvar_Get ("graphscale", "1", CVAR_CHEAT);
 	cl_graphshift = Cvar_Get ("graphshift", "0", CVAR_CHEAT);
-	cl_drawclock = Cvar_Get ("cl_drawclock", "0", CVAR_ARCHIVE);
 
 	scr_initialized = qtrue;
 }
@@ -508,7 +490,6 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 		case CA_ACTIVE:
 			CL_CGameRendering( stereoFrame );
 			SCR_DrawDemoRecording();
-			SCR_DrawClock();
 			break;
 		}
 	}
