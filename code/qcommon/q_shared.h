@@ -342,7 +342,7 @@ extern	vec4_t		colorMdGrey;
 extern	vec4_t		colorDkGrey;
 
 #define Q_COLOR_ESCAPE	'^'
-#define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) != Q_COLOR_ESCAPE )
+#define Q_IsColorString(p) (p && *p == Q_COLOR_ESCAPE && *(p+1) && *(p+1) >= '0' && *(p+1) <= '9')
 
 #define COLOR_BLACK		'0'
 #define COLOR_RED		'1'
