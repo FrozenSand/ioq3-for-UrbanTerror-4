@@ -91,6 +91,8 @@ cvar_t  *authc;
 cvar_t  *authl;
 #endif
 
+cvar_t	*cl_masterServers[CL_MAX_MASTER_SERVERS];
+
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
@@ -3462,8 +3464,7 @@ CL_GlobalServers_f
 ==================
 */
 void CL_GlobalServers_f( void ) {
-	netadr_t	to;
-	int			i;
+	int			i, adrNum = 0;
 	int			count;
 	char		*buffptr;
 	char		command[1024];
@@ -3478,29 +3479,30 @@ void CL_GlobalServers_f( void ) {
 
 	Com_Printf( "Requesting servers from the master...\n");
 
-	for ( i = 0 ; i < CL_MAX_MASTER_SERVERS ; i++ ) {
-		if ( !cl_masterServers[i]->string[0] ) {
+	for ( adrNum = 0 ; adrNum < CL_MAX_MASTER_SERVERS ; adrNum++ ) {
+		if ( !cl_masterServers[adrNum]->string[0] ) {
 			continue;
 		}
 
-		if ( cl_masterServers[i]->modified ) {
-			cl_masterServers[i]->modified = qfalse;
+		if ( cl_masterServers[adrNum]->modified ) {
+			cl_masterServers[adrNum]->modified = qfalse;
 	
-			Com_Printf( "Resolving %s\n", cl_masterServers[i]->string );
-			if ( !NET_StringToAdr( cl_masterServers[i]->string, &adr ) ) {
+			Com_Printf( "Resolving %s\n", cl_masterServers[adrNum]->string );
+			if ( !NET_StringToAdr( cl_masterServers[adrNum]->string, &adr[adrNum] ) ) {
 				// if the address failed to resolve, clear it
 				// so we don't take repeated dns hits
-				Com_Printf( "Couldn't resolve address: %s\n", cl_masterServers[i]->string );
-				Cvar_Set( cl_masterServers[i]->name, "" );
-				cl_masterServers[i]->modified = qfalse;
+				Com_Printf( "Couldn't resolve address: %s\n", cl_masterServers[adrNum]->string );
+				Cvar_Set( cl_masterServers[adrNum]->name, "" );
+				cl_masterServers[adrNum]->modified = qfalse;
 				continue;
 			}
-			if ( !strchr( cl_masterServers[i]->string, ':' ) ) {
-				adr[i].port = BigShort( PORT_MASTER );
+			if ( !strchr( cl_masterServers[adrNum]->string, ':' ) ) {
+				adr[adrNum].type = NA_IP;
+				adr[adrNum].port = BigShort(PORT_MASTER);
 			}
-			Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", cl_masterServers[i]->string,
-				adr[i].ip[0], adr[i].ip[1], adr[i].ip[2], adr[i].ip[3],
-				BigShort( adr[i].port ) );
+			Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", cl_masterServers[adrNum]->string,
+				adr[adrNum].ip[0], adr[adrNum].ip[1], adr[adrNum].ip[2], adr[adrNum].ip[3],
+				BigShort( adr[adrNum].port ) );
 		}
 	}
 
@@ -3514,8 +3516,6 @@ void CL_GlobalServers_f( void ) {
 		cls.numglobalservers = -1;
 		cls.pingUpdateSource = AS_GLOBAL;
 	}
-	adr.type = NA_IP;
-	adr.port = BigShort(PORT_MASTER);
 
 	sprintf( command, "getservers %s", Cmd_Argv(2) );
 
@@ -3530,7 +3530,7 @@ void CL_GlobalServers_f( void ) {
 		buffptr += sprintf( buffptr, " demo" );
 	}
 
-	NET_OutOfBandPrint( NS_SERVER, adr, command );
+	NET_OutOfBandPrint( NS_SERVER, adr[adrNum], command );
 }
 
 
