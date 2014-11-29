@@ -174,9 +174,9 @@ CL_ChangeReliableCommand
 ======================
 */
 void CL_ChangeReliableCommand( void ) {
-	int r, index, l;
+	int index, l;
 
-	r = clc.reliableSequence - (random() * 5);
+	//r = clc.reliableSequence - (random() * 5);
 	index = clc.reliableSequence & ( MAX_RELIABLE_COMMANDS - 1 );
 	l = strlen(clc.reliableCommands[ index ]);
 	if ( l >= MAX_STRING_CHARS - 1 ) {
@@ -611,8 +611,7 @@ void CL_PlayDemo_f( void ) {
 	char		*arg, *ext_test;
 #ifdef USE_DEMO_FORMAT_42
 	int			r, len, v1, v2;
-	char		*s1, *s2;
-	const char  *serverInfo;
+	char		*s2;
 #else
 	int			protocol, i;
 	char		retry[MAX_OSPATH];
@@ -682,8 +681,8 @@ void CL_PlayDemo_f( void ) {
 
 		
 	//@Barbatos: get the mod version from the server
-	serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
-	s1 = Info_ValueForKey(serverInfo, "g_modversion");
+	//serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+	//s1 = Info_ValueForKey(serverInfo, "g_modversion");
 	
 	
 	r = FS_Read( &len, 4, clc.demofile );
@@ -2964,8 +2963,9 @@ void CL_Init( void ) {
 
 	// Master servers
 	cl_masterServers[0] = Cvar_Get ("cl_master", MASTER_SERVER_NAME, CVAR_ARCHIVE );
-	cl_masterServers[1] = Cvar_Get ("cl_master2", MASTER2_SERVER_NAME, CVAR_ARCHIVE );
-	cl_masterServers[2] = Cvar_Get ("cl_master3", MASTER3_SERVER_NAME, CVAR_ARCHIVE );
+	cl_masterServers[1] = Cvar_Get ("cl_master1", MASTER_SERVER_NAME, CVAR_ARCHIVE );
+	cl_masterServers[2] = Cvar_Get ("cl_master2", MASTER2_SERVER_NAME, CVAR_ARCHIVE );
+	cl_masterServers[3] = Cvar_Get ("cl_master3", MASTER3_SERVER_NAME, CVAR_ARCHIVE );
 
 	//
 	// register our commands
@@ -3231,10 +3231,8 @@ CL_GetServerStatus
 ===================
 */
 serverStatus_t *CL_GetServerStatus( netadr_t from ) {
-	serverStatus_t *serverStatus;
 	int i, oldest, oldestTime;
 
-	serverStatus = NULL;
 	for (i = 0; i < MAX_SERVERSTATUSREQUESTS; i++) {
 		if ( NET_CompareAdr( from, cl_serverStatusList[i].address ) ) {
 			return &cl_serverStatusList[i];
@@ -3484,7 +3482,7 @@ void CL_GlobalServers_f( void ) {
 			continue;
 		}
 
-		if ( cl_masterServers[adrNum]->modified ) {
+		if ( cl_masterServers[adrNum]->modified || !adr[adrNum].ip) {
 			cl_masterServers[adrNum]->modified = qfalse;
 	
 			Com_Printf( "Resolving %s\n", cl_masterServers[adrNum]->string );
@@ -3496,14 +3494,16 @@ void CL_GlobalServers_f( void ) {
 				cl_masterServers[adrNum]->modified = qfalse;
 				continue;
 			}
-			if ( !strchr( cl_masterServers[adrNum]->string, ':' ) ) {
-				adr[adrNum].type = NA_IP;
-				adr[adrNum].port = BigShort(PORT_MASTER);
-			}
-			Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", cl_masterServers[adrNum]->string,
-				adr[adrNum].ip[0], adr[adrNum].ip[1], adr[adrNum].ip[2], adr[adrNum].ip[3],
-				BigShort( adr[adrNum].port ) );
 		}
+		adr[adrNum].type = NA_IP;
+		if ( !strchr( cl_masterServers[adrNum]->string, ':' ) ) {
+			adr[adrNum].port = BigShort(PORT_MASTER);
+		}
+		Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", cl_masterServers[adrNum]->string,
+			adr[adrNum].ip[0], adr[adrNum].ip[1], adr[adrNum].ip[2], adr[adrNum].ip[3],
+			BigShort( adr[adrNum].port ) );
+
+		break;
 	}
 
 	// reset the list, waiting for response

@@ -391,7 +391,7 @@ extern  cvar_t  *authl; // Auth Login
 extern  cvar_t  *cl_mouseAccelOffset;
 extern  cvar_t  *cl_mouseAccelStyle;
 
-#define CL_MAX_MASTER_SERVERS 3
+#define CL_MAX_MASTER_SERVERS 4
 extern	cvar_t	*cl_masterServers[CL_MAX_MASTER_SERVERS];
 
 //=================================================
