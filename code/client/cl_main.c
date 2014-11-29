@@ -36,7 +36,6 @@ cvar_t	*rconAddress;
 cvar_t	*cl_timeout;
 cvar_t	*cl_maxpackets;
 cvar_t	*cl_packetdup;
-cvar_t	*cl_master;
 cvar_t	*cl_timeNudge;
 cvar_t	*cl_showTimeDelta;
 cvar_t	*cl_freezeDemo;
@@ -2860,7 +2859,6 @@ void CL_Init( void ) {
 	cl_motd = Cvar_Get ("cl_motd", "1", 0);
 
 	cl_timeout = Cvar_Get ("cl_timeout", "200", 0);
-	cl_master = Cvar_Get ("cl_master", MASTER_SERVER_NAME, CVAR_ARCHIVE);
 	cl_timeNudge = Cvar_Get ("cl_timeNudge", "0", CVAR_TEMP );
 	cl_shownet = Cvar_Get ("cl_shownet", "0", CVAR_TEMP );
 	cl_showSend = Cvar_Get ("cl_showSend", "0", CVAR_TEMP );
@@ -2961,6 +2959,11 @@ void CL_Init( void ) {
 
 	// cgame might not be initialized before menu is used
 	Cvar_Get ("cg_viewsize", "100", CVAR_ARCHIVE );
+
+	// Master servers
+	cl_masterServers[0] = Cvar_Get ("cl_master", MASTER_SERVER_NAME, CVAR_ARCHIVE );
+	cl_masterServers[1] = Cvar_Get ("cl_master2", MASTER2_SERVER_NAME, CVAR_ARCHIVE );
+	cl_masterServers[2] = Cvar_Get ("cl_master3", MASTER3_SERVER_NAME, CVAR_ARCHIVE );
 
 	//
 	// register our commands
@@ -3464,6 +3467,7 @@ void CL_GlobalServers_f( void ) {
 	int			count;
 	char		*buffptr;
 	char		command[1024];
+	static netadr_t	adr[CL_MAX_MASTER_SERVERS];
 	
 	if ( Cmd_Argc() < 3) {
 		Com_Printf( "usage: globalservers <master# 0-1> <protocol> [keywords]\n");
@@ -3474,21 +3478,44 @@ void CL_GlobalServers_f( void ) {
 
 	Com_Printf( "Requesting servers from the master...\n");
 
+	for ( i = 0 ; i < CL_MAX_MASTER_SERVERS ; i++ ) {
+		if ( !cl_masterServers[i]->string[0] ) {
+			continue;
+		}
+
+		if ( cl_masterServers[i]->modified ) {
+			cl_masterServers[i]->modified = qfalse;
+	
+			Com_Printf( "Resolving %s\n", cl_masterServers[i]->string );
+			if ( !NET_StringToAdr( cl_masterServers[i]->string, &adr ) ) {
+				// if the address failed to resolve, clear it
+				// so we don't take repeated dns hits
+				Com_Printf( "Couldn't resolve address: %s\n", cl_masterServers[i]->string );
+				Cvar_Set( cl_masterServers[i]->name, "" );
+				cl_masterServers[i]->modified = qfalse;
+				continue;
+			}
+			if ( !strchr( cl_masterServers[i]->string, ':' ) ) {
+				adr[i].port = BigShort( PORT_MASTER );
+			}
+			Com_Printf( "%s resolved to %i.%i.%i.%i:%i\n", cl_masterServers[i]->string,
+				adr[i].ip[0], adr[i].ip[1], adr[i].ip[2], adr[i].ip[3],
+				BigShort( adr[i].port ) );
+		}
+	}
+
 	// reset the list, waiting for response
 	// -1 is used to distinguish a "no response"
-
 	if( cls.masterNum == 1 ) {
-		NET_StringToAdr( cl_master->string, &to );
 		cls.nummplayerservers = -1;
 		cls.pingUpdateSource = AS_MPLAYER;
 	}
 	else {
-		NET_StringToAdr( cl_master->string, &to );
 		cls.numglobalservers = -1;
 		cls.pingUpdateSource = AS_GLOBAL;
 	}
-	to.type = NA_IP;
-	to.port = BigShort(PORT_MASTER);
+	adr.type = NA_IP;
+	adr.port = BigShort(PORT_MASTER);
 
 	sprintf( command, "getservers %s", Cmd_Argv(2) );
 
@@ -3503,7 +3530,7 @@ void CL_GlobalServers_f( void ) {
 		buffptr += sprintf( buffptr, " demo" );
 	}
 
-	NET_OutOfBandPrint( NS_SERVER, to, command );
+	NET_OutOfBandPrint( NS_SERVER, adr, command );
 }
 
 

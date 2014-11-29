@@ -241,6 +241,12 @@ extern int demo_protocols[];
 #ifndef MASTER_SERVER_NAME
 #define MASTER_SERVER_NAME	"master.urbanterror.info"
 #endif
+#ifndef MASTER2_SERVER_NAME
+#define MASTER2_SERVER_NAME	"master2.urbanterror.info"
+#endif
+#ifndef MASTER3_SERVER_NAME
+#define MASTER3_SERVER_NAME	"master3.urbanterror.info"
+#endif
 #ifndef AUTHORIZE_SERVER_NAME
 #define	AUTHORIZE_SERVER_NAME	"authorize.urbanterror.info"
 #endif
