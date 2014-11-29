@@ -987,6 +987,16 @@ void SV_InitGameProgs( void ) {
 		bot_enable = 0;
 	}
 
+	// Barbatos - force a DNS lookup for the master servers
+	// This way server admins don't have to restart their
+	// servers when a master server IP changes.
+	for ( i = 0 ; i < MAX_MASTER_SERVERS ; i++ ) {
+		if ( !sv_master[i]->string[0] ) {
+			continue;
+		}
+		sv_master[i]->modified = qtrue;
+	}
+
 	// load the dll or bytecode
 	gvm = VM_Create( "qagame", SV_GameSystemCalls, Cvar_VariableValue( "vm_game" ) );
 	if ( !gvm ) {
