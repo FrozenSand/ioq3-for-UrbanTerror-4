@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define	RF_THIRD_PERSON		2		// don't draw through eyes, only mirrors (player bodies, chat sprites)
 #define	RF_FIRST_PERSON		4		// only draw through eyes (view weapon, damage blood blob)
 #define	RF_DEPTHHACK		8		// for view weapon Z crunching
+#define	RF_SWAPCULL			16
 #define	RF_NOSHADOW			64		// don't add stencil shadows
 
 #define RF_LIGHTING_ORIGIN	128		// use refEntity->lightingOrigin instead of refEntity->origin
