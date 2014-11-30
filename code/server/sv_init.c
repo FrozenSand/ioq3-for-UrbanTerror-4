@@ -892,6 +892,7 @@ void SV_Init (void) {
 	sv_maxPing = Cvar_Get ("sv_maxPing", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_floodProtect = Cvar_Get ("sv_floodProtect", "1", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_newpurelist = Cvar_Get ("sv_newpurelist", "0", CVAR_ARCHIVE );
+	sv_clientsPerIp = Cvar_Get ("sv_clientsPerIp", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 
 	// systeminfo
 	Cvar_Get ("sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );

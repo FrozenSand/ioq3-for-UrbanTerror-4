@@ -181,7 +181,7 @@ A "connect" OOB command has been received
 void SV_DirectConnect(netadr_t from) {
 
     char            userinfo[MAX_INFO_STRING];
-    int             i;
+    int             i, j;
     client_t        temp;
     client_t       *cl, *newcl;
     sharedEntity_t *ent;
@@ -194,6 +194,7 @@ void SV_DirectConnect(netadr_t from) {
     int             startIndex;
     intptr_t        denied;
     int             count;
+    int             numIpClients = 0;
 
     Com_DPrintf("SV_DirectConnect()\n");
 
@@ -266,6 +267,23 @@ void SV_DirectConnect(netadr_t from) {
 
         // never reject a LAN client based on ping
         if (!Sys_IsLANAddress(from)) {
+
+            for (j=0,cl=svs.clients ; j < sv_maxclients->integer ; j++,cl++) {
+                if ( cl->state == CS_FREE ) {
+                    continue;
+                }   
+                if ( NET_CompareBaseAdr( from, cl->netchan.remoteAddress )
+                    && !( cl->netchan.qport == qport 
+                    || from.port == cl->netchan.remoteAddress.port ) ) {
+                    numIpClients++; 
+                }   
+            }
+
+            if (sv_clientsPerIp->integer && numIpClients >= sv_clientsPerIp->integer) {
+                NET_OutOfBandPrint(NS_SERVER, from, "print\nToo many connections from the same IP\n");
+                Com_DPrintf ("Client %i rejected due to too many connections from the same IP\n", i);
+                return;
+            }
 
             if (sv_minPing->value && ping < sv_minPing->value) {
                 NET_OutOfBandPrint(NS_SERVER, from, "print\nServer is for high pings only\n");
