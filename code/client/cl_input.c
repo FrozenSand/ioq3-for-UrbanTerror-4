@@ -520,7 +520,7 @@ void CL_CmdButtons( usercmd_t *cmd ) {
 		in_buttons[i].wasPressed = qfalse;
 	}
 
-	if ( cls.keyCatchers ) {
+	if ( cls.keyCatchers && !(cls.keyCatchers & KEYCATCH_RADIO) ) {
 		cmd->buttons |= BUTTON_TALK;
 	}
 

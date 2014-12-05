@@ -1232,6 +1232,10 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 			return;
 		}
 
+		if (cls.keyCatchers & KEYCATCH_RADIO) {
+			cls.keyCatchers &= ~KEYCATCH_RADIO;
+		}
+
 		if ( !( cls.keyCatchers & KEYCATCH_UI ) ) {
 			if ( cls.state == CA_ACTIVE && !clc.demoplaying ) {
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_INGAME );
@@ -1268,6 +1272,11 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 		return;
 	}
 
+	if ((cls.keyCatchers & KEYCATCH_RADIO) && !(cls.keyCatchers & KEYCATCH_CONSOLE)) {
+		if (key >= '0' && key <= '9') {
+			return;
+		}
+	}
 
 	// distribute the key down event to the apropriate handler
 	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
@@ -1296,6 +1305,7 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 			int i;
 			char button[1024], *buttonPtr;
 			buttonPtr = button;
+
 			for ( i = 0; ; i++ ) {
 				if ( kb[i] == ';' || !kb[i] ) {
 					*buttonPtr = '\0';
