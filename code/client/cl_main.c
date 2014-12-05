@@ -580,6 +580,24 @@ not have future usercmd_t executed before it is executed
 void CL_AddReliableCommand(const char *cmd, qboolean isDisconnectCmd)
 {
 	int unacknowledged = clc.reliableSequence - clc.reliableAcknowledge;
+	int i;
+	char realCommand[MAX_STRING_CHARS];
+
+	Cmd_TokenizeString(cmd);
+	Q_strncpyz(realCommand, cmd, sizeof(realCommand));
+
+	if (!Q_stricmp(Cmd_Argv(0), "say") ||
+		!Q_stricmp(Cmd_Argv(0), "say_team") ||
+		!Q_stricmp(Cmd_Argv(0), "ut_radio") ||
+		!Q_stricmp(Cmd_Argv(0), "tell") ||
+		!Q_stricmp(Cmd_Argv(0), "tell_target") ||
+		!Q_stricmp(Cmd_Argv(0), "tell_attacker")) {
+		for (i = 0; i < strlen(realCommand); i++) {
+			if (realCommand[i] == '%') {
+				realCommand[i] = 31;
+			}
+		}
+	}
 	
 	// if we would be losing an old command that hasn't been acknowledged,
 	// we must drop the connection
@@ -595,7 +613,7 @@ void CL_AddReliableCommand(const char *cmd, qboolean isDisconnectCmd)
 	}
 
 	Q_strncpyz(clc.reliableCommands[++clc.reliableSequence & (MAX_RELIABLE_COMMANDS - 1)],
-		   cmd, sizeof(*clc.reliableCommands));
+		   realCommand, sizeof(*clc.reliableCommands));
 }
 
 /*
