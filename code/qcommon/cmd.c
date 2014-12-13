@@ -480,7 +480,7 @@ void Cmd_Args_Sanitize( void ) {
 	int i;
 	for ( i = 1 ; i < cmd_argc ; i++ ) {
 		char* c = cmd_argv[i];
-		while ((c = strpbrk(c, "\n\r;"))) {
+		while ((c = strpbrk(c, "\n\r"))) {
 			*c = ' ';
 			++c;
 		}
