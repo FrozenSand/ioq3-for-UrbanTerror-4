@@ -1293,6 +1293,7 @@ void CL_Connect_f( void ) {
 	clc.serverMessage[0] = 0;
 
 	server = Cmd_Argv (1);
+	Q_strncpyz( cls.servername, server, sizeof(cls.servername) );
 
 	if ( com_sv_running->integer && !strcmp( server, "localhost" ) ) {
 		// if running a local server, kill it
@@ -1310,7 +1311,6 @@ void CL_Connect_f( void ) {
 	CL_FlushMemory( );
 	*/
 
-	Q_strncpyz( cls.servername, server, sizeof(cls.servername) );
 
 	if (!NET_StringToAdr( cls.servername, &clc.serverAddress) ) {
 		Com_Printf ("Bad server address\n");
