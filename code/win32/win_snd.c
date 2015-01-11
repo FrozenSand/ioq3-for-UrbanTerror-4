@@ -44,6 +44,7 @@ static LPGUID g_dsguid = NULL;
 
 extern cvar_t		*s_khz;
 extern cvar_t		*s_dev;
+extern cvar_t       *s_alttabmute;
 
 static const char *DSoundError( int error ) {
 	switch ( error ) {
@@ -293,6 +294,7 @@ int SNDDMA_InitDS ()
 
 	// Micah: take advantage of 2D hardware.if available.
 	dsbuf.dwFlags = DSBCAPS_LOCHARDWARE;
+    if (s_alttabmute->integer == 0) dsbuf.dwFlags |= DSBCAPS_STICKYFOCUS; // Keep playing when out of focus.
 	if (use8) {
 		dsbuf.dwFlags |= DSBCAPS_GETCURRENTPOSITION2;
 	}
@@ -312,6 +314,7 @@ int SNDDMA_InitDS ()
 		if (use8) {
 			dsbuf.dwFlags |= DSBCAPS_GETCURRENTPOSITION2;
 		}
+        if (s_alttabmute->integer == 0) dsbuf.dwFlags |= DSBCAPS_STICKYFOCUS; // Keep playing when out of focus.
 		if (DS_OK != pDS->lpVtbl->CreateSoundBuffer(pDS, &dsbuf, &pDSBuf, NULL)) {
 			Com_Printf( "failed\n" );
 			SNDDMA_Shutdown ();
