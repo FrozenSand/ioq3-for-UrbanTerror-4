@@ -321,6 +321,133 @@ int	SCR_GetBigStringWidth( const char *str ) {
 	return SCR_Strlen( str ) * BIGCHAR_WIDTH;
 }
 
+int SCR_FontWidth(const char *text, float scale) {
+	if (!cls.fontFont)
+		return;
+
+	int 		 count, len;
+	float		 out;
+	glyphInfo_t  *glyph;
+	float		 useScale;
+	const char	 *s    = text;
+	fontInfo_t	 *font = &cls.font;
+
+	useScale = scale * font->glyphScale;
+	out  = 0;
+
+	if (text) {
+		len = strlen(text);
+		count = 0;
+
+		while (s && *s && count < len) {
+			if (Q_IsColorString(s)) {
+				s += 2;
+				continue;
+			}
+
+			glyph = &font->glyphs[(int)*s];
+			out  += glyph->xSkip;
+			s++;
+			count++;
+		}
+	}
+	return out * useScale;
+}
+
+
+void SCR_DrawFontChar(float x, float y, float width, float height, float scale, float s, float t, float s2, float t2, qhandle_t hShader) {
+	if (!cls.fontFont)
+		return;
+
+	float  w, h;
+
+	w = width * scale;
+	h = height * scale;
+	SCR_AdjustFrom640(&x, &y, &w, &h);
+	re.DrawStretchPic(x, y, w, h, s, t, s2, t2, hShader);
+}
+
+void SCR_DrawFontText(float x, float y, float scale, vec4_t color, const char *text, int style) {
+	if (!cls.fontFont)
+		return;
+
+	int 	 len, count;
+	vec4_t		 newColor;
+	vec4_t		 black = {0.0f, 0.0f, 0.0f, 1.0f};
+	vec4_t       grey = { 0.2f, 0.2f, 0.2f, 1.0f };
+	glyphInfo_t  *glyph;
+	float		 useScale;
+	fontInfo_t	 *font = &cls.font;
+
+	useScale = scale * font->glyphScale;
+
+	if (text) {
+		const char	*s = text;
+		re.SetColor( color );
+		memcpy(&newColor[0], &color[0], sizeof(vec4_t));
+		len = strlen(text);
+
+		count = 0;
+
+		while (s && *s && count < len) {
+			glyph = &font->glyphs[(int)*s];
+
+			if (Q_IsColorString(s)) {
+				memcpy( newColor, g_color_table[ColorIndex(*(s + 1))], sizeof(newColor));
+				newColor[3] = color[3];
+				re.SetColor( newColor );
+				s += 2;
+				continue;
+			}
+
+			float  yadj = useScale * glyph->top;
+
+			if ((style == ITEM_TEXTSTYLE_SHADOWED) || (style == ITEM_TEXTSTYLE_SHADOWEDLESS)) {
+				black[3] = newColor[3];
+
+				if (style == ITEM_TEXTSTYLE_SHADOWEDLESS)
+					black[3] *= 0.7;
+
+				if (newColor[0] == 0.0f && newColor[1] == 0.0f && newColor[2] == 0.0f) {
+					grey[3] = black[3];
+					re.SetColor(grey);
+				} else {
+					re.SetColor(black);
+				}
+
+				SCR_DrawFontChar(x + 1, y - yadj + 1,
+						  glyph->imageWidth,
+						  glyph->imageHeight,
+						  useScale,
+						  glyph->s,
+						  glyph->t,
+						  glyph->s2,
+						  glyph->t2,
+						  glyph->glyph);
+
+				colorBlack[3] = 1.0;
+				re.SetColor(newColor);
+			}
+
+			SCR_DrawFontChar(x, y - yadj,
+					  glyph->imageWidth,
+					  glyph->imageHeight,
+					  useScale,
+					  glyph->s,
+					  glyph->t,
+					  glyph->s2,
+					  glyph->t2,
+					  glyph->glyph);
+			x += (glyph->xSkip * useScale);
+			s++;
+			count++;
+		}
+		re.SetColor(NULL);
+	}
+}
+
+
+
 
 //===============================================================================
 

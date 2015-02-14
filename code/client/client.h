@@ -353,12 +353,22 @@ typedef struct {
 	qhandle_t	charSetShader;
 	qhandle_t	whiteShader;
 	qhandle_t	consoleShader;
+
+	fontInfo_t  font;
+	qboolean    fontFont;
 } clientStatic_t;
 
 extern	clientStatic_t		cls;
 
 extern	char		cl_oldGame[MAX_QPATH];
 extern	qboolean	cl_oldGameSet;
+
+typedef enum {
+	ITEM_TEXTSTYLE_NORMAL,
+	ITEM_TEXTSTYLE_SHADOWED,
+	ITEM_TEXTSTYLE_SHADOWEDLESS
+} textStyle_t;
+
 
 //=============================================================================
 
@@ -599,6 +609,8 @@ void CIN_SetExtents (int handle, int x, int y, int w, int h);
 void CIN_SetLooping (int handle, qboolean loop);
 void CIN_UploadCinematic(int handle);
 void CIN_CloseAllVideos(void);
+
+void CL_DrawFontText(float x, float y, float scale, vec4_t color, const char *text, int style);
 
 //
 // cl_cgame.c

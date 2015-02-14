@@ -3295,6 +3295,13 @@ void CL_InitRenderer( void ) {
 	cls.charSetShader = re.RegisterShader( "gfx/2d/bigchars" );
 	cls.whiteShader = re.RegisterShader( "white" );
 	cls.consoleShader = re.RegisterShader( "console" );
+
+	if (FS_ReadFile("fonts/fontImage_20.dat", NULL) > 0) {
+		re.RegisterFont("fonts/fontImage_20.dat", 20, &cls.font);
+		cls.fontFont = qtrue;
+	}
+
+
 	g_console_field_width = cls.glconfig.vidWidth / SMALLCHAR_WIDTH - 2;
 	g_consoleField.widthInChars = g_console_field_width;
 }
