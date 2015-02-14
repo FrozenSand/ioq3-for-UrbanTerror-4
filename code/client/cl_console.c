@@ -250,7 +250,7 @@ void Con_CheckResize (void)
 	int		i, j, width, oldwidth, oldtotallines, numlines, numchars;
 	short	tbuf[CON_TEXTSIZE];
 
-	width = (SCREEN_WIDTH / SMALLCHAR_WIDTH) - 2;
+	width = (SCREEN_WIDTH / (SMALLCHAR_WIDTH - 1)) - 2;
 
 	if (width == con.linewidth)
 		return;
@@ -486,10 +486,10 @@ void Con_DrawInput (void) {
 
 	re.SetColor( con.color );
 
-	SCR_DrawSmallChar( con.xadjust + 1 * SMALLCHAR_WIDTH, y, ']' );
+	SCR_DrawSmallChar( con.xadjust + 1 * (SMALLCHAR_WIDTH - 1), y, ']' );
 
-	Field_Draw( &g_consoleField, con.xadjust + 2 * SMALLCHAR_WIDTH, y,
-		SCREEN_WIDTH - 3 * SMALLCHAR_WIDTH, qtrue );
+	Field_Draw( &g_consoleField, con.xadjust + 2 * (SMALLCHAR_WIDTH - 1), y,
+		SCREEN_WIDTH - 3 * (SMALLCHAR_WIDTH - 1), qtrue );
 }
 
 
@@ -537,7 +537,7 @@ void Con_DrawNotify (void)
 				currentColor = (text[x]>>8)&7;
 				re.SetColor( g_color_table[currentColor] );
 			}
-			SCR_DrawSmallChar( cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH, v, text[x] & 0xff );
+			SCR_DrawSmallChar( cl_conXOffset->integer + con.xadjust + (x+1)*(SMALLCHAR_WIDTH - 1), v, text[x] & 0xff );
 		}
 
 		v += SMALLCHAR_HEIGHT;
@@ -605,7 +605,9 @@ void Con_DrawSolidConsole( float frac ) {
 		y = 0;
 	}
 	else {
-		SCR_DrawPic( 0, 0, SCREEN_WIDTH, y, cls.consoleShader );
+		color[0] = color[1] = color[2] = 0;
+		color[3] = 0.85f;
+		SCR_FillRect(0, 0, SCREEN_WIDTH, y, color);
 	}
 
 	color[0] = 1;
@@ -623,7 +625,7 @@ void Con_DrawSolidConsole( float frac ) {
 
 	for (x=0 ; x<i ; x++) {
 
-		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x ) * SMALLCHAR_WIDTH, 
+		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x ) * (SMALLCHAR_WIDTH - 1), 
 
 			(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), SVN_VERSION[x] );
 
@@ -632,7 +634,7 @@ void Con_DrawSolidConsole( float frac ) {
 
 	// draw the text
 	con.vislines = lines;
-	rows = (lines-SMALLCHAR_WIDTH)/SMALLCHAR_WIDTH;		// rows of text to draw
+	rows = (lines-(SMALLCHAR_WIDTH - 1))/(SMALLCHAR_WIDTH - 1);		// rows of text to draw
 
 	y = lines - (SMALLCHAR_HEIGHT*3);
 
@@ -642,7 +644,7 @@ void Con_DrawSolidConsole( float frac ) {
 	// draw arrows to show the buffer is backscrolled
 		re.SetColor( g_color_table[ColorIndex(COLOR_RED)] );
 		for (x=0 ; x<con.linewidth ; x+=4)
-			SCR_DrawSmallChar( con.xadjust + (x+1)*SMALLCHAR_WIDTH, y, '^' );
+			SCR_DrawSmallChar( con.xadjust + (x+1)*(SMALLCHAR_WIDTH - 1), y, '^' );
 		y -= SMALLCHAR_HEIGHT;
 		rows--;
 	}
@@ -676,7 +678,7 @@ void Con_DrawSolidConsole( float frac ) {
 				currentColor = (text[x] >> 8) % 10;
 				re.SetColor( g_color_table[currentColor] );
 			}
-			SCR_DrawSmallChar(  con.xadjust + (x+1)*SMALLCHAR_WIDTH, y, text[x] & 0xff );
+			SCR_DrawSmallChar(  con.xadjust + (x+1)*(SMALLCHAR_WIDTH - 1), y, text[x] & 0xff );
 		}
 	}
 
