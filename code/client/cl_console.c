@@ -499,7 +499,9 @@ If no console is visible, the text will appear at the top of the game window
 */
 void CL_ConsolePrint( char *txt ) {
 	int i;
-	qboolean isKill, isHit, isChat;
+	qboolean isKill = qfalse;
+	qboolean isHit = qfalse;
+	qboolean isChat = qfalse;
 
 	qboolean skipnotify = qfalse; // NERVE - SMF
 	
@@ -525,6 +527,17 @@ void CL_ConsolePrint( char *txt ) {
 			Con_CheckResize (&consoles[i]);
 			consoles[i].initialized = qtrue;
 		}
+	}
+
+	if (txt[0] == 17) {
+		isKill = qtrue;
+		txt++;
+	} else if (txt[0] == 18) {
+		isHit = qtrue;
+		txt++;
+	} else if (txt[0] == 19) {
+		isChat = qtrue;
+		txt++;
 	}
 
 	writeTextToConsole(&consoles[CONSOLE_ALL], txt, skipnotify);
