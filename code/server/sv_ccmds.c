@@ -1572,112 +1572,6 @@ static void SV_CompleteMapName( char *args, int argNum ) {
 	}
 }*/
 
-#ifdef USE_AUTH
-/*
-==================
-SV_Auth_Whois_f
-
-Get user infos
-==================
-*/
-static void SV_Auth_Whois_f(void) {
-
-    int         i;
-    client_t    *cl;
-
-    // make sure server is running
-    if (!com_sv_running->integer) {
-        Com_Printf("Server is not running\n");
-        return;
-    }
-
-    if (Cmd_Argc() < 2) {
-        Com_Printf("Usage: auth-whois <client-or-all>\n");
-        return;
-    }
-
-    if (Cvar_VariableValue("auth") == 0) {
-        Com_Printf("Auth services are disabled\n");
-        return;
-    }
-
-    if (!Q_stricmp(Cmd_Argv(1), "all")) {
-
-        for (i = 0; i < sv_maxclients->integer; i++) {
-
-            cl = &svs.clients[i];
-
-            if (cl->state != CS_ACTIVE) {
-                continue;
-            }
-
-            VM_Call(gvm, GAME_AUTH_WHOIS, (int)(cl - svs.clients));
-        }
-
-    } else {
-
-        cl = SV_GetPlayerByHandle();
-
-        if (!cl) {
-            return;
-        }
-
-        VM_Call(gvm, GAME_AUTH_WHOIS, (int)(cl - svs.clients));
-
-    }
-
-}
-
-/*
-==================
-SV_Auth_Ban_f
-
-Ban a user from the server 
-and the group
-==================
-*/
-static void SV_Auth_Ban_f(void) {
-
-    client_t    *cl;
-    char        *d, *h, *m;
-
-    if (!com_sv_running->integer) {
-        Com_Printf("Server is not running.\n");
-        return;
-    }
-
-    if (Cvar_VariableValue("auth") == 0) {
-        Com_Printf("Auth services are disabled\n");
-        return;
-    }
-
-    if (Cmd_Argc() < 5) {
-        Com_Printf ("Usage: auth-ban <client> <days> <hours> <mins>\n");
-        return;
-    }
-
-    cl = SV_GetPlayerByHandle();
-
-    if (!cl) {
-        return;
-    }
-
-    if (cl->netchan.remoteAddress.type == NA_LOOPBACK) {
-        SV_SendServerCommand(NULL, "print \"%s\"", "Cannot ban host client\n");
-        return;
-    }
-
-    d = Cmd_Argv(2);
-    h = Cmd_Argv(3);
-    m = Cmd_Argv(4);
-
-    VM_Call(gvm, GAME_AUTH_BAN, (int)(cl - svs.clients), atoi(d), atoi(h), atoi(m));
-
-}
-
-#endif
-
-
 /*
 ==================
 SV_AddOperatorCommands
@@ -1716,12 +1610,6 @@ void SV_AddOperatorCommands( void ) {
         Cmd_AddCommand ("tell", SV_ConTell_f);
         Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
         Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);
-
-        //@Barbatos: auth system commands
-        #ifdef USE_AUTH
-        Cmd_AddCommand ("auth-whois", SV_Auth_Whois_f);
-        Cmd_AddCommand ("auth-ban", SV_Auth_Ban_f);
-        #endif
     }
 }
 
