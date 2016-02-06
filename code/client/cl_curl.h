@@ -30,11 +30,11 @@ extern cvar_t *cl_cURLLib;
 #include "../qcommon/qcommon.h"
 
 #ifdef WIN32
-#define DEFAULT_CURL_LIB "libcurl-3.dll"
+#define DEFAULT_CURL_LIB "libcurl-4.dll"
 #elif defined(MACOS_X)
 #define DEFAULT_CURL_LIB "libcurl.dylib"
 #else
-#define DEFAULT_CURL_LIB "libcurl.so.3"
+#define DEFAULT_CURL_LIB "libcurl.so.4"
 #endif
 
 #if USE_LOCAL_HEADERS
