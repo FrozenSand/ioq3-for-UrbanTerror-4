@@ -148,7 +148,7 @@ typedef struct client_s {
 	int				downloadSendTime;	// time we last got an ack from the client
 
 	int				deltaMessage;		// frame last client usercmd message
-	int				nextReliableTime;	// svs.time when another reliable command will be allowed
+	int				lastReliableTime;       // svs.time of the last reliable command received
 	int				nextReliableUserTime; // svs.time when another userinfo change will be allowed
 	int				lastPacketTime;		// svs.time when packet was last received
 	int				lastConnectTime;	// svs.time when connection started
