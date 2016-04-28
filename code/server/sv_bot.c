@@ -49,7 +49,8 @@ int SV_BotAllocateClient(void) {
 	client_t	*cl;
 
 	// find a client slot
-	for ( i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++ ) {
+	// Barbatos - do not allocate a private client slot to a bot
+	for ( i = sv_privateClients->integer, cl = &svs.clients[sv_privateClients->integer]; i < sv_maxclients->integer; i++, cl++ ) {
 		if ( cl->state == CS_FREE ) {
 			break;
 		}
