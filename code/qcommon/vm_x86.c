@@ -419,7 +419,6 @@ void VM_Compile( vm_t *vm, vmHeader_t *header ) {
 	int		maxLength;
 	int		v;
 	int		i;
-	qboolean opt;
 
 	// allocate a very large temp buffer, we will shrink it later
 	maxLength = header->codeLength * 8;
@@ -504,7 +503,7 @@ void VM_Compile( vm_t *vm, vmHeader_t *header ) {
 				break;
 			}
 			if (code[pc+4] == OP_STORE4) {
-				opt = EmitMovEBXEDI(vm, (vm->dataMask & ~3));
+				EmitMovEBXEDI(vm, (vm->dataMask & ~3));
 				EmitString( "B8" );			// mov	eax, 0x12345678
 				Emit4( Constant4() );
 //				if (!opt) {
@@ -519,7 +518,7 @@ void VM_Compile( vm_t *vm, vmHeader_t *header ) {
 				break;
 			}
 			if (code[pc+4] == OP_STORE2) {
-				opt = EmitMovEBXEDI(vm, (vm->dataMask & ~1));
+				EmitMovEBXEDI(vm, (vm->dataMask & ~1));
 				EmitString( "B8" );			// mov	eax, 0x12345678
 				Emit4( Constant4() );
 //				if (!opt) {
@@ -534,7 +533,7 @@ void VM_Compile( vm_t *vm, vmHeader_t *header ) {
 				break;
 			}
 			if (code[pc+4] == OP_STORE1) {
-				opt = EmitMovEBXEDI(vm, vm->dataMask);
+				EmitMovEBXEDI(vm, vm->dataMask);
 				EmitString( "B8" );			// mov	eax, 0x12345678
 				Emit4( Constant4() );
 //				if (!opt) {
@@ -1145,7 +1144,6 @@ This function is called directly by the generated code
 */
 int	VM_CallCompiled( vm_t *vm, int *args ) {
 	int		stack[1024];
-	int		programCounter;
 	int		programStack;
 	int		stackOnEntry;
 	byte	*image;
@@ -1169,8 +1167,6 @@ int	VM_CallCompiled( vm_t *vm, int *args ) {
 
 	// set up the stack frame 
 	image = vm->dataBase;
-
-	programCounter = 0;
 
 	programStack -= 48;
 

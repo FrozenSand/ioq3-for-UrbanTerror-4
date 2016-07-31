@@ -514,7 +514,7 @@ PART#02: dmaHD: Mixing
 
 static void dmaHD_PaintChannelFrom16_HHRTF(channel_t *ch, const sfx_t *sc, int count, int sampleOffset, int bufferOffset, int chan) 
 {
-	int data, vol, i, so;
+	int vol, i, so;
 	portable_samplepair_t *samp = &dmaHD_paintbuffer[bufferOffset];
 	short *samples;
 	short *tsamples;
@@ -624,7 +624,7 @@ static void dmaHD_PaintChannelFrom16_dmaEX2(channel_t *ch, const sfx_t *sc, int 
 
 static void dmaHD_PaintChannelFrom16_dmaEX(channel_t *ch, const sfx_t *sc, int count, int sampleOffset, int bufferOffset) 
 {
-	int rvol, lvol, i, j, so;
+	int rvol, lvol, i, so;
 	portable_samplepair_t *samp = &dmaHD_paintbuffer[bufferOffset];
 	short *samples, *bsamples;
 	int *out;

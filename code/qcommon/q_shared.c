@@ -884,7 +884,7 @@ int Q_stricmp (const char *s1, const char *s2) {
 ////////////////////////////////////////////////////////////////////////
 int Q_strsub (const char *s1, const char *s2) {
 
-    int i, j, match;
+    int i, j, match = 1;
     int len1 = strlen(s1);
     int len2 = strlen(s2);
 
@@ -919,7 +919,7 @@ int Q_strsub (const char *s1, const char *s2) {
 //////////////////////////////////////////////////////////////////////////
 int Q_strisub (const char *s1, const char *s2) {
 
-    int i, j, match;
+    int i, j, match = 1;
     int len1 = strlen(s1);
     int len2 = strlen(s2);
 

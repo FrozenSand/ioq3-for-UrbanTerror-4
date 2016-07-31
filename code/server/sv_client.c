@@ -186,7 +186,6 @@ void SV_DirectConnect(netadr_t from) {
     client_t       *cl, *newcl;
     sharedEntity_t *ent;
     char           *password;
-    char           *ip;
     int             clientNum;
     int             version;
     int             qport;
