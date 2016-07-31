@@ -109,8 +109,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __ppc__
 #define ARCH_STRING "ppc"
 #define Q3_BIG_ENDIAN
-#elif defined __i386__
-#define ARCH_STRING "i386"
+#elif defined __x86_64__
+#define ARCH_STRING "x86_64"
 #define Q3_LITTLE_ENDIAN
 #endif
 
