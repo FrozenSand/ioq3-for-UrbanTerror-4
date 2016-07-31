@@ -224,6 +224,12 @@ typedef struct {
 #define _3DFX_DRIVER_NAME	"libMesaVoodooGL.dylib"
 #define OPENGL_DRIVER_NAME	"/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib"
 
+#elif defined(__OpenBSD__)
+
+// must define 3dfx to a value to not break build
+#define _3DFX_DRIVER_NAME	"NotSupported"
+#define OPENGL_DRIVER_NAME	"libGL.so"
+
 #else
 
 #define _3DFX_DRIVER_NAME	"libMesaVoodooGL.so"

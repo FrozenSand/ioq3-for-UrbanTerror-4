@@ -77,7 +77,7 @@ int Sys_Milliseconds(void)
 	return curtime;
 }
 
-#if (defined(__linux__) || defined(__FreeBSD__) || defined(__sun)) && !defined(DEDICATED)
+#if (defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun)) && !defined(DEDICATED)
 /*
 ================
 Sys_XTimeToSysTime
@@ -439,7 +439,7 @@ char *Sys_GetCurrentUser( void )
 	return p->pw_name;
 }
 
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 // TTimo 
 // sysconf() in libc, POSIX.1 compliant
 unsigned int Sys_ProcessorCount(void)

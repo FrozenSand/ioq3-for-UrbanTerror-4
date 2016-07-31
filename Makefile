@@ -591,6 +591,103 @@ ifeq ($(PLATFORM),freebsd)
 else # ifeq freebsd
 
 #############################################################################
+# SETUP AND BUILD -- OPENBSD
+#############################################################################
+
+ifeq ($(PLATFORM),openbsd)
+
+  # Get the machine type
+  ARCH=$(shell uname -m)
+
+  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes
+
+  ifeq ($(USE_OPENAL),1)
+    BASE_CFLAGS += -DUSE_OPENAL
+    ifeq ($(USE_OPENAL_DLOPEN),1)
+      BASE_CFLAGS += -DUSE_OPENAL_DLOPEN
+    endif
+  endif
+
+  ifeq ($(USE_CURL),1)
+    BASE_CFLAGS += -DUSE_CURL=1
+    ifeq ($(USE_CURL_DLOPEN),1)
+      BASE_CFLAGS += -DUSE_CURL_DLOPEN=1
+    endif
+  endif
+
+  ifeq ($(USE_CODEC_VORBIS),1)
+    BASE_CFLAGS += -DUSE_CODEC_VORBIS
+  endif
+
+  ifeq ($(USE_SDL),1)
+    BASE_CFLAGS += -DUSE_SDL_VIDEO=1 -DUSE_SDL_SOUND=1 \
+	$(shell pkg-config sdl --cflags)
+  else
+    BASE_CFLAGS += -I/usr/X11R6/include
+  endif
+
+  ifeq ($(USE_ALTGAMMA), 1)
+        BASE_CFLAGS += -DUSE_ALTGAMMA=1
+  endif
+
+  OPTIMIZE = -O2 -ffast-math -funroll-loops -fomit-frame-pointer
+
+  ifeq ($(ARCH),amd64)
+    HAVE_VM_COMPILED = true
+  else
+  ifeq ($(ARCH),i386)
+    HAVE_VM_COMPILED=true
+  else
+  ifeq ($(ARCH),ppc)
+    BASE_CFLAGS += -maltivec
+    HAVE_VM_COMPILED=false
+  endif
+  endif
+  endif
+
+  ifneq ($(HAVE_VM_COMPILED),true)
+    BASE_CFLAGS += -DNO_VM_COMPILED
+  endif
+
+  DEBUG_CFLAGS=$(BASE_CFLAGS) -g -O0
+
+  RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG $(OPTIMIZE)
+
+  SHLIBEXT=so
+  SHLIBCFLAGS=-fPIC
+  SHLIBLDFLAGS=-shared $(LDFLAGS)
+
+  THREAD_LDFLAGS=-lpthread
+  LDFLAGS=-lm
+
+  ifeq ($(USE_SDL),1)
+    CLIENT_LDFLAGS=$(shell pkg-config sdl --libs)
+    ifeq ($(USE_ALTGAMMA), 1)
+      CLIENT_LDFLAGS += -lX11 -lXxf86vm
+    endif
+  else
+    CLIENT_LDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga -lXxf86vm
+  endif
+
+  ifeq ($(USE_OPENAL),1)
+    ifneq ($(USE_OPENAL_DLOPEN),1)
+      CLIENT_LDFLAGS += $(shell pkg-config openal --libs)
+    endif
+  endif
+
+  ifeq ($(USE_CURL),1)
+    ifneq ($(USE_CURL_DLOPEN),1)
+      CLIENT_LDFLAGS += -lcurl
+    endif
+  endif
+
+  ifeq ($(USE_CODEC_VORBIS),1)
+    CLIENT_LDFLAGS += -lvorbisfile -lvorbis -logg
+  endif
+
+else # ifeq openbsd
+
+#############################################################################
 # SETUP AND BUILD -- NETBSD
 #############################################################################
 
@@ -731,6 +828,7 @@ endif #Linux
 endif #darwin
 endif #mingw32
 endif #FreeBSD
+endif #OpenBSD
 endif #NetBSD
 endif #IRIX
 endif #SunOS
@@ -1121,6 +1219,9 @@ ifeq ($(HAVE_VM_COMPILED),true)
   ifeq ($(ARCH),x86_64)
     Q3OBJ += $(B)/client/vm_x86_64.o $(B)/client/vm_x86_64_assembler.o
   endif
+  ifeq ($(ARCH),amd64)
+    Q3OBJ += $(B)/client/vm_x86_64.o $(B)/client/vm_x86_64_assembler.o
+  endif
   ifeq ($(ARCH),ppc)
     Q3OBJ += $(B)/client/vm_ppc.o
   endif
@@ -1157,12 +1258,15 @@ else
     endif
   endif
 
-  Q3POBJ = \
-    $(B)/client/linux_glimp.o \
+  ifneq ($(PLATFORM),openbsd)
+    Q3POBJ += \
+      $(B)/clientsmp/linux_glimp.o
+  endif
+
+  Q3POBJ += \
     $(B)/client/sdl_glimp.o
 
   Q3POBJ_SMP = \
-    $(B)/clientsmp/linux_glimp.o \
     $(B)/clientsmp/sdl_glimp.o
 endif
 
@@ -1289,6 +1393,9 @@ ifeq ($(HAVE_VM_COMPILED),true)
     Q3DOBJ += $(B)/ded/vm_x86.o
   endif
   ifeq ($(ARCH),x86_64)
+    Q3DOBJ += $(B)/ded/vm_x86_64.o $(B)/client/vm_x86_64_assembler.o
+  endif
+  ifeq ($(ARCH),amd64)
     Q3DOBJ += $(B)/ded/vm_x86_64.o $(B)/client/vm_x86_64_assembler.o
   endif
   ifeq ($(ARCH),ppc)
