@@ -145,7 +145,7 @@ USE_LOCAL_HEADERS=1
 endif
 
 ifeq ($(PLATFORM),darwin)
-  BUILD_MACOSX_UB=i386
+  BUILD_MACOSX_UB=x86_64
 endif
 
 #############################################################################
@@ -351,19 +351,19 @@ ifeq ($(PLATFORM),darwin)
     # the -m linker flag, but you can't shut up the warnings
     USE_OPENAL_DLOPEN=1
   else
-  ifeq ($(BUILD_MACOSX_UB),i386)
+  ifeq ($(BUILD_MACOSX_UB),x86_64)
     CC=/Developer/usr/bin/gcc-4.2 # i686-apple-darwin10-gcc-4.2.1 (GCC) 4.2.1 (Apple Inc. build 5666) (dot 3) - from XCode 3.2.6, hacked install on a 10.7.4 OSX
-    BASE_CFLAGS += -arch i386 -DSMP \
+    BASE_CFLAGS += -arch x86_64 -DSMP \
       -mmacosx-version-min=10.5 -DMAC_OS_X_VERSION_MIN_REQUIRED=1050 \
       -nostdinc \
       -F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks \
       -I/Developer/SDKs/MacOSX10.5.sdk/usr/lib/gcc/i686-apple-darwin10/4.2.1/include \
       -isystem /Developer/SDKs/MacOSX10.5.sdk/usr/include
-    LDFLAGS = -arch i386 -mmacosx-version-min=10.5 \
-      -L/Developer/SDKs/MacOSX10.5.sdk/usr/lib/gcc/i686-apple-darwin10/4.2.1 \
+    LDFLAGS = -arch x86_64 -mmacosx-version-min=10.5 \
+      -L/Developer/SDKs/MacOSX10.5.sdk/usr/lib/gcc/i686-apple-darwin10/4.2.1/x86_64 \
       -F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks \
       -Wl,-syslibroot,/Developer/SDKs/MacOSX10.5.sdk
-    ARCH=i386
+    ARCH=x86_64
     BUILD_SERVER=0
   else
     # for whatever reason using the headers in the MacOSX SDKs tend to throw
@@ -377,11 +377,9 @@ ifeq ($(PLATFORM),darwin)
   ifeq ($(ARCH),ppc)
     OPTIMIZE += -faltivec -O3
   endif
-  ifeq ($(ARCH),i386)
-    OPTIMIZE += -march=prescott -mfpmath=sse
-    # x86 vm will crash without -mstackrealign since MMX instructions will be
-    # used no matter what and they corrupt the frame pointer in VM calls
-    BASE_CFLAGS += -mstackrealign
+  ifeq ($(ARCH),x86_64)
+    OPTIMIZE += -O3 -march=core2 -fomit-frame-pointer -ffast-math -funroll-loops \
+      -falign-loops=2 -falign-jumps=2 -falign-functions=2
   endif
 
   BASE_CFLAGS += -fno-strict-aliasing -DMACOS_X -fno-common -pipe
@@ -425,8 +423,6 @@ ifeq ($(PLATFORM),darwin)
     # !!! FIXME: frameworks: OpenGL, Carbon, etc...
     #CLIENT_LDFLAGS += -L/usr/X11R6/$(LIB) -lX11 -lXext -lXxf86dga -lXxf86vm
   endif
-
-  OPTIMIZE += -ffast-math -falign-loops=16
 
   ifneq ($(HAVE_VM_COMPILED),true)
     BASE_CFLAGS += -DNO_VM_COMPILED
