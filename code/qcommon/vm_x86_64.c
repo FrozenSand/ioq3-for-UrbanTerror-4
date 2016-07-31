@@ -536,9 +536,9 @@ void VM_Compile( vm_t *vm, vmHeader_t *header ) {
 		vm->codeLength = compiledOfs;
 #if defined(__OpenBSD__)
 // openbsd mmap(2) requires PROT_READ before PROT_WRITE
-		vm->codeBase = mmap(NULL, compiledOfs, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+		vm->codeBase = mmap(NULL, compiledOfs, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
 #else
-		vm->codeBase = mmap(NULL, compiledOfs, PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+		vm->codeBase = mmap(NULL, compiledOfs, PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
 #endif
 		if(vm->codeBase == (void*)-1)
 			Com_Error(ERR_DROP, "VM_CompileX86: can't mmap memory");
