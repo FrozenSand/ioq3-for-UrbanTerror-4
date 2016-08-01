@@ -319,7 +319,7 @@ int	SCR_GetBigStringWidth( const char *str ) {
 
 int SCR_FontWidth(const char *text, float scale) {
 	if (!cls.fontFont)
-		return;
+		return 0;
 
 	int 		 count, len;
 	float		 out;
