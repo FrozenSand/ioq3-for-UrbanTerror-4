@@ -286,7 +286,9 @@ static float dmaHD_InterpolateHermite4pt3oX(float x0, float x1, float x2, float 
 }
 static float dmaHD_NormalizeSamplePosition(float t, int samples) {
 	if (!samples) return t;
-	while (t<0.0) t+=(float)samples; while (t>=(float)samples) t-=(float)samples; return t;
+	while (t<0.0) t+=(float)samples;
+	while (t>=(float)samples) t-=(float)samples;
+	return t;
 }
 static int dmaHD_GetSampleRaw_8bit(int index, int samples, byte* data) 
 {
