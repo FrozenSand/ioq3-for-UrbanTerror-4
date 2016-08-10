@@ -153,8 +153,11 @@ cvar_t	*r_saveFontData;
 cvar_t	*r_GLlibCoolDownMsec;
 
 cvar_t	*r_maxpolys;
-int		max_polys;
 cvar_t	*r_maxpolyverts;
+
+cvar_t  *r_noborder;
+
+int		max_polys;
 int		max_polyverts;
 
 static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral )
@@ -1055,6 +1058,8 @@ void R_Register( void )
 	r_maxpolyverts = ri.Cvar_Get( "r_maxpolyverts", va("%d", MAX_POLYVERTS), 0);
 
 	r_GLlibCoolDownMsec = ri.Cvar_Get( "r_GLlibCoolDownMsec", "0", CVAR_ARCHIVE );
+
+	r_noborder = ri.Cvar_Get("r_noborder", "0", CVAR_ARCHIVE | CVAR_LATCH );
   
 	// make sure all the commands added here are also
 	// removed in R_Shutdown

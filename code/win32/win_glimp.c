@@ -655,7 +655,7 @@ static qboolean GLW_CreateWindow( const char *drivername, int width, int height,
 		else
 		{
 			exstyle = 0;
-			stylebits = WINDOW_STYLE|WS_SYSMENU|WS_MINIMIZEBOX;
+			stylebits = (r_noborder->integer == 1 && !cdsFullscreen) ? WS_EX_TOPMOST|WS_POPUP|WS_VISIBLE : WINDOW_STYLE|WS_SYSMENU|WS_MINIMIZEBOX;
 			AdjustWindowRect (&r, stylebits, FALSE);
 		}
 
