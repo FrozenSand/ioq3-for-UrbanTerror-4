@@ -669,25 +669,34 @@ static qboolean GLW_CreateWindow( const char *drivername, int width, int height,
 		}
 		else
 		{
-			vid_xpos = ri.Cvar_Get ("vid_xpos", "", 0);
-			vid_ypos = ri.Cvar_Get ("vid_ypos", "", 0);
-			x = vid_xpos->integer;
-			y = vid_ypos->integer;
-
-			// adjust window coordinates if necessary 
-			// so that the window is completely on screen
-			if ( x < 0 )
-				x = 0;
-			if ( y < 0 )
-				y = 0;
-
-			if ( w < glw_state.desktopWidth &&
-				 h < glw_state.desktopHeight )
+			if (r_noborder->integer == 1 && r_centerWindow->integer == 1) 
 			{
-				if ( x + w > glw_state.desktopWidth )
-					x = ( glw_state.desktopWidth - w );
-				if ( y + h > glw_state.desktopHeight )
-					y = ( glw_state.desktopHeight - h );
+				x = (glw_state.desktopWidth - r.right) / 2;
+				y = (glw_state.desktopHeight - r.bottom) / 2;
+			}
+			else 
+			{
+				vid_xpos = ri.Cvar_Get ("vid_xpos", "", 0);
+				vid_ypos = ri.Cvar_Get ("vid_ypos", "", 0);
+
+				x = vid_xpos->integer;
+				y = vid_ypos->integer;
+
+				// adjust window coordinates if necessary 
+				// so that the window is completely on screen
+				if ( x < 0 )
+					x = 0;
+				if ( y < 0 )
+					y = 0;
+
+				if ( w < glw_state.desktopWidth &&
+					 h < glw_state.desktopHeight )
+				{
+					if ( x + w > glw_state.desktopWidth )
+						x = ( glw_state.desktopWidth - w );
+					if ( y + h > glw_state.desktopHeight )
+						y = ( glw_state.desktopHeight - h );
+				}
 			}
 		}
 

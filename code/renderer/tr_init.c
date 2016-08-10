@@ -156,6 +156,7 @@ cvar_t	*r_maxpolys;
 cvar_t	*r_maxpolyverts;
 
 cvar_t  *r_noborder;
+cvar_t 	*r_centerWindow;
 
 int		max_polys;
 int		max_polyverts;
@@ -1060,6 +1061,7 @@ void R_Register( void )
 	r_GLlibCoolDownMsec = ri.Cvar_Get( "r_GLlibCoolDownMsec", "0", CVAR_ARCHIVE );
 
 	r_noborder = ri.Cvar_Get("r_noborder", "0", CVAR_ARCHIVE | CVAR_LATCH );
+	r_centerWindow = ri.Cvar_Get("r_centerWindow", "1", CVAR_ARCHIVE | CVAR_LATCH );
   
 	// make sure all the commands added here are also
 	// removed in R_Shutdown

@@ -759,7 +759,7 @@ static int GLW_SetMode( const char *drivername, int mode, qboolean fullscreen )
 
   if (r_noborder->integer == 1 && !fullscreen) 
     flags |= SDL_NOFRAME;
-  
+
   if (!r_colorbits->value)
     colorbits = 24;
   else
@@ -1123,6 +1123,8 @@ void GLimp_Init( void )
   r_allowSoftwareGL = ri.Cvar_Get( "r_allowSoftwareGL", "0", CVAR_LATCH );
 
   r_previousglDriver = ri.Cvar_Get( "r_previousglDriver", "", CVAR_ROM );
+
+  Sys_SetEnv( "SDL_VIDEO_CENTERED", r_centerWindow->integer ? "1" : "");
 
   InitSig();
 

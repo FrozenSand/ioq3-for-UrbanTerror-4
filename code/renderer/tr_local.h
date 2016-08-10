@@ -1107,6 +1107,7 @@ extern	cvar_t	*r_saveFontData;
 extern	cvar_t	*r_GLlibCoolDownMsec;
 
 extern 	cvar_t 	*r_noborder;
+extern 	cvar_t 	*r_centerWindow;
 
 //====================================================================
 

@@ -1085,6 +1085,8 @@ int Sys_MonkeyShouldBeSpanked( void );
 
 qboolean Sys_DetectAltivec( void );
 
+void Sys_SetEnv(const char *name, const char *value);
+
 /* This is based on the Adaptive Huffman algorithm described in Sayood's Data
  * Compression book.  The ranks are not actually stored, but implicitly defined
  * by the location of a node within a doubly-linked list */
