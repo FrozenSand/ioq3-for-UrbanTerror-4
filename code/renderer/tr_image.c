@@ -4164,7 +4164,7 @@ static void LoadPNG(const char *name, byte **pic, int *width, int *height)
         {
             case PNG_ColourType_Grey :
             {
-                if(!ChunkHeaderLength == 2)
+                if(ChunkHeaderLength != 2)
                 {
                     CloseBufferedFile(ThePNG);
   
@@ -4186,7 +4186,7 @@ static void LoadPNG(const char *name, byte **pic, int *width, int *height)
    
             case PNG_ColourType_True :
             {
-                if(!ChunkHeaderLength == 6)
+                if(ChunkHeaderLength != 6)
                 {
                     CloseBufferedFile(ThePNG);
   
