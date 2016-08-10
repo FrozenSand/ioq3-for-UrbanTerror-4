@@ -1538,6 +1538,22 @@ void Sys_ParseArgs( int argc, char* argv[] ) {
   }
 }
 
+/*
+==============
+Sys_SetEnv
+
+set/unset environment variables (empty value removes it)
+==============
+*/
+
+void Sys_SetEnv(const char *name, const char *value)
+{
+  if(value && *value)
+    setenv(name, value, 1);
+  else
+    unsetenv(name);
+}
+
 #ifdef MACOS_X
 /* 
 =================
