@@ -10,6 +10,7 @@ if ( __name__ == '__main__' ):
     build_dir = sys.argv[1]
     engine_exe = sys.argv[2].lstrip('/')
     engine_path = os.path.join( build_dir, engine_exe )
+    engine_name = os.path.basename( engine_exe )
     print( '%s -> %s' % ( repr( engine_path ), repr( ENGINE_PATH ) ) )
     shutil.copy( engine_path, ENGINE_PATH )
 
@@ -27,7 +28,7 @@ if ( __name__ == '__main__' ):
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>Quake3-UrT.i386</string>
+	<string>%s</string>
 	<key>CFBundleGetInfoString</key>
 	<string>%s</string>
 	<key>NSHumanReadableCopyright</key>
@@ -52,6 +53,6 @@ if ( __name__ == '__main__' ):
 	<string>NSApplication</string>
 </dict>
 </plist>
-''' % ( version, version, version ) )
+''' % ( engine_name, version, version, version ) )
 
     print( 'OSX binary is ready: %s' % version )

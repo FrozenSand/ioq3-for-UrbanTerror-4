@@ -8,9 +8,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>Quake3-UrT.i386</string>
+	<string>Quake3-UrT.x86_64</string>
 	<key>CFBundleGetInfoString</key>
-	<string>ioQ3 1.35 urt 4.3.0-RC4</string>
+	<string>ioQ3 1.35 urt 4.3.0</string>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
 	<key>CFBundleIconFile</key>
@@ -24,9 +24,9 @@
 	<key>CFBundleSignature</key>
 	<string>Q3URT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>ioQ3 1.35 urt 4.3.0-RC4</string>
+	<string>ioQ3 1.35 urt 4.3.0</string>
 	<key>CFBundleVersion</key>
-	<string>ioQ3 1.35 urt 4.3.0-RC4</string>
+	<string>ioQ3 1.35 urt 4.3.0</string>
 	<key>NSExtensions</key>
 	<dict/>
 	<key>NSPrincipalClass</key>
