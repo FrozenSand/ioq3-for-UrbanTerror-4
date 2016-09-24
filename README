@@ -118,7 +118,8 @@ New cvars
   cl_aviFrameRate                   - the framerate to use when capturing video
   cl_aviMotionJpeg                  - use the mjpeg codec when capturing video
   cl_mouseAccelStyle                - Set to 1 for QuakeLive mouse acceleration
-                                      behaviour, 0 for standard q3
+                                      behaviour, 2 for UrbanTerror newest mode
+                                      or set to 0 for standard q3 mode.
   cl_mouseAccelOffset               - Tuning the acceleration curve, see below
 
   s_useOpenAL                       - use the OpenAL sound backend if available
@@ -241,6 +242,28 @@ QuakeLive mouse acceleration (patch and this text written by TTimo from id)
   If you try the new acceleration code and start using it, I'd be very
   interested by your feedback.
 
+UrbanTerror newest mouse acceleration mode, enabled by set cl_mouseAccelStyle 2
+  It uses the same 3 cvars as QuakeLive mouse acceleration (see above).
+  The difference is that the curve used is a logistic one, and it is applied
+  to change sensitivity by a factor depending on mouse movement rate (speed).
+  For low speeds the factor is almost 1 (i.e., no acceleration), and for highest
+  speeds the factor is (1+cl_mouseAccel), that is the maximum acceleration.
+  
+  cl_mouseAccelOffset fixes the point where the acceleration in the factor 
+  applied to sensitivity will be half the maximum:  (1+0.5*cl_mouseAccel).
+  
+  The result is a controllable smooth transition into mouse acceleration, and
+  that the maximum acceleration is naturally limited (by the logistic curve).
+
+  To configure it, try to set sensitivity to a value confortable for fine aim
+  moving the mouse slowly, taking note of how much angle is turned by moving
+  slowly only the hand (wrist) from side to side. Then set cl_mouseAccel to
+  a value (greater than 0) to expand that range (e.g., value 1 will double it) 
+  to obtain the maximum range reachable with a very fast wrist turn. 
+  Then, adjust the value of cl_mouseOffset to feel confortable with transition.
+  
+  Of course, the operating system mouse acceleration (or in hardware) must be 
+  dissabled to obtain controllable results with any in-game acceleration.
 
 64bit mods
   If you wish to compile external mods as shared libraries on a 64bit platform,
