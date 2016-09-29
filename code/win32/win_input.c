@@ -827,7 +827,11 @@ void IN_Frame (void) {
 	if ( cls.keyCatchers & KEYCATCH_CONSOLE ) {
 		if ( Cvar_VariableValue ("r_fullscreen") == 0 )	{
 			IN_DeactivateMouse();
+			return;
 		}
+		int mx, my;
+		// capture mouse button input from DI
+		IN_DIMouse(&mx, &my);
 		return;
 	}
 
