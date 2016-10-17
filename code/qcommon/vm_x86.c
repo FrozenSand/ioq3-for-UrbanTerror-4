@@ -88,12 +88,12 @@ int qftol0F7F( void );
 static	int		ftolPtr = (int)qftol0F7F;
 #endif // FTOL_PTR
 
-void doAsmCall( void );
-static	int		asmCallPtr = (int)doAsmCall;
+void AsmCall(void);
+static void (*asmCallPtr)(void) = AsmCall;
 #endif
 
 
-static	int		callMask = 0;
+static	int	__attribute__((used))	callMask = 0;
 
 static	int	instruction, pass;
 static	int	lastConst = 0;
@@ -124,7 +124,7 @@ vm_t*	savedVM;
 __asm {
 	mov		eax, dword ptr [edi]
 	sub		edi, 4
-	or		eax,eax
+	test	eax,eax
 	jl		systemCall
 	// calling another vm function
 	shl		eax,2
@@ -137,8 +137,7 @@ systemCall:
 
 	// convert negative num to system call number
 	// and store right before the first arg
-	neg		eax
-	dec		eax
+	not		eax
 
 	push    ebp
 	mov     ebp, esp
@@ -180,68 +179,69 @@ _asm {
 #else //!_MSC_VER
 
 #if defined(__MINGW32__) || defined(MACOS_X) // _ is prepended to compiled symbols
-#define CMANG(sym) "_"#sym
+#define CMANGVAR(sym) "_"#sym
+#define CMANGFUNC(sym) "_"#sym
+#elif defined(__ICC) && (__ICC >= 1000)
+#define CMANGVAR(sym) #sym".0"
+#define CMANGFUNC(sym) #sym
 #else
-#define CMANG(sym) #sym
+#define CMANGVAR(sym) #sym
+#define CMANGFUNC(sym) #sym
 #endif
 
-static	int		callProgramStack;
-static	int		*callOpStack;
-static	int		callSyscallNum;
 
-void callAsmCall(void)
+static void __attribute__((cdecl, used)) CallAsmCall(int const syscallNum,
+                int const programStack, int* const opStack)
 {
-	vm_t	*savedVM;
-	int		*callOpStack2;
+        vm_t     *const vm   = currentVM;
+        intptr_t *const data = (intptr_t*)(vm->dataBase + programStack + 4);
 
-	savedVM = currentVM;
-	callOpStack2 = callOpStack;
+        // save the stack to allow recursive VM entry
+        vm->programStack = programStack - 4;
+        *data = syscallNum;
+        opStack[1] = vm->systemCall(data);
 
-	// save the stack to allow recursive VM entry
-	currentVM->programStack = callProgramStack - 4;
-	*(int *)((byte *)currentVM->dataBase + callProgramStack + 4) = callSyscallNum;
-	//VM_LogSyscalls((int *)((byte *)currentVM->dataBase + callProgramStack + 4) );
-	*(callOpStack2+1) = currentVM->systemCall( (intptr_t *)((byte *)currentVM->dataBase + callProgramStack + 4) );
-
- 	currentVM = savedVM;
+        currentVM = vm;
 }
 
-// Note the C space function AsmCall is never actually called, and is in fact
-// arbitrarily named (though this is not true for the MSC version).  When a vm
-// makes a system call, control jumps straight to the doAsmCall label.
-void AsmCall( void ) {
-	__asm__( CMANG(doAsmCall) ":				\n\t" \
-		"	movl (%%edi),%%eax			\n\t" \
-		"	subl $4,%%edi				\n\t" \
-		"	orl %%eax,%%eax				\n\t" \
-		"	jl systemCall				\n\t" \
-		"	shll $2,%%eax				\n\t" \
-		"	addl %3,%%eax				\n\t" \
-		"	call *(%%eax)				\n\t" \
-		"	movl (%%edi),%%eax			\n\t" \
-		"	andl " CMANG(callMask) ", %%eax		\n\t" \
-		"	jmp doret				\n\t" \
-		"systemCall:					\n\t" \
-		"	negl %%eax				\n\t" \
-		"	decl %%eax				\n\t" \
-		"	movl %%eax,%0				\n\t" \
-		"	movl %%esi,%1				\n\t" \
-		"	movl %%edi,%2				\n\t" \
-		"	pushl %%ecx				\n\t" \
-		"	pushl %%esi				\n\t" \
-		"	pushl %%edi				\n\t" \
-		"	call " CMANG(callAsmCall) "		\n\t" \
-		"	popl %%edi				\n\t" \
-		"	popl %%esi				\n\t" \
-		"	popl %%ecx				\n\t" \
-		"	addl $4,%%edi				\n\t" \
-		"doret:						\n\t" \
-		"	ret					\n\t" \
-		: "=rm" (callSyscallNum), "=rm" (callProgramStack), "=rm" (callOpStack) \
-		: "m" (instructionPointers) \
-		: "ax", "di", "si", "cx" \
-	);
-}
+__asm__(
+        ".text\n\t"
+        ".p2align 4,,15\n\t"
+#if defined __ELF__
+        ".type " CMANGFUNC(AsmCall) ", @function\n"
+#endif
+        CMANGFUNC(AsmCall) ":\n\t"
+        "movl  (%edi), %eax\n\t"
+        "subl  $4, %edi\n\t"
+        "testl %eax, %eax\n\t"
+        "jl    0f\n\t"
+        "shll  $2, %eax\n\t"
+        "addl  " CMANGVAR(instructionPointers) ", %eax\n\t"
+        "call  *(%eax)\n\t"
+        "movl  (%edi), %eax\n\t"
+        "andl  " CMANGVAR(callMask) ", %eax\n\t"
+        "ret\n"
+        "0:\n\t" // system call
+        "notl  %eax\n\t"
+        "pushl %ebp\n\t"
+        "movl  %esp, %ebp\n\t"
+        "andl $-16, %esp\n\t" // align the stack so engine can use sse
+        "pushl %ecx\n\t"
+        "pushl %edi\n\t" // opStack
+        "pushl %esi\n\t" // programStack
+        "pushl %eax\n\t" // syscallNum
+        "call  " CMANGFUNC(CallAsmCall) "\n\t"
+        "addl  $12, %esp\n\t"
+        "popl  %ecx\n\t"
+        "movl  %ebp, %esp\n\t"
+        "popl  %ebp\n\t"
+        "addl  $4, %edi\n\t"
+        "ret\n\t"
+#if defined __ELF__
+        ".size " CMANGFUNC(AsmCall)", .-" CMANGFUNC(AsmCall)
+#endif
+);
+
 #endif
 
 static int	Constant4( void ) {

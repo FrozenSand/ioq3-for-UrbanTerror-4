@@ -38,12 +38,15 @@ USE_OPENAL       =0
 USE_CURL         =1
 USE_CODEC_VORBIS =0
 
+# Use SSE/SSE2 optimized code
+USE_SSE          =1
+
 # Clearskies - X11-based gamma for Linux
-USE_ALTGAMMA	=1
+USE_ALTGAMMA     =1
 
 # Barbatos - Urban Terror 4.2 auth system
 # You're not forced to use it.
-USE_AUTH		=1
+USE_AUTH         =1
 
 # Holblin - Urban Terror 4.2 file demo system
 USE_DEMO_FORMAT_42	=1
@@ -378,7 +381,7 @@ ifeq ($(PLATFORM),darwin)
     OPTIMIZE += -faltivec -O3
   endif
   ifeq ($(ARCH),x86_64)
-    OPTIMIZE += -O3 -march=core2 -fomit-frame-pointer -ffast-math -funroll-loops \
+    OPTIMIZE += -O2 -march=core2 -fomit-frame-pointer -ffast-math -funroll-loops \
       -falign-loops=2 -falign-jumps=2 -falign-functions=2
   endif
 
@@ -472,10 +475,11 @@ endif
     BASE_CFLAGS += -DUSE_CODEC_VORBIS=1
   endif
 
-  #OPTIMIZE = -O3 -march=i586 -fomit-frame-pointer -ffast-math -falign-loops=2 \
-    -funroll-loops -falign-jumps=2 -falign-functions=2 -fstrength-reduce
-  OPTIMIZE = -O2 -march=i586 -fomit-frame-pointer -ffast-math -falign-loops=2 \
-    -funroll-loops -falign-jumps=2 -falign-functions=2 -fstrength-reduce -msse -msse2 
+  OPTIMIZE = -O2 -finline-functions -fweb -funit-at-a-time -funroll-loops -fpeel-loops -ffast-math
+  
+  ifeq ($(USE_SSE),1)
+    OPTIMIZE += -msse -msse2 -mfpmath=sse
+  endif
 
   HAVE_VM_COMPILED = true
 
@@ -1196,15 +1200,23 @@ ifeq ($(ARCH),i386)
   Q3OBJ += \
     $(B)/client/snd_mixa.o \
     $(B)/client/matha.o \
-    $(B)/client/ftola.o \
-    $(B)/client/snapvectora.o
+    $(B)/client/ftola.o
+ifeq ($(USE_SSE),1)
+  Q3OBJ += $(B)/client/snapvector_sse.o
+else
+  Q3OBJ += $(B)/client/snapvectora.o
+endif
 endif
 ifeq ($(ARCH),x86)
   Q3OBJ += \
     $(B)/client/snd_mixa.o \
     $(B)/client/matha.o \
-    $(B)/client/ftola.o \
-    $(B)/client/snapvectora.o
+    $(B)/client/ftola.o
+ifeq ($(USE_SSE),1)
+  Q3OBJ += $(B)/client/snapvector_sse.o
+else
+  Q3OBJ += $(B)/client/snapvectora.o
+endif
 endif
 
 ifeq ($(HAVE_VM_COMPILED),true)
@@ -1373,14 +1385,22 @@ endif
 ifeq ($(ARCH),i386)
   Q3DOBJ += \
       $(B)/ded/ftola.o \
-      $(B)/ded/snapvectora.o \
       $(B)/ded/matha.o
+ifeq ($(USE_SSE),1)
+  Q3DOBJ += $(B)/ded/snapvector_sse.o
+else
+  Q3DOBJ += $(B)/ded/snapvectora.o
+endif
 endif
 ifeq ($(ARCH),x86)
   Q3DOBJ += \
       $(B)/ded/ftola.o \
-      $(B)/ded/snapvectora.o \
       $(B)/ded/matha.o
+ifeq ($(USE_SSE),1)
+  Q3DOBJ += $(B)/ded/snapvector_sse.o
+else
+  Q3DOBJ += $(B)/ded/snapvectora.o
+endif
 endif
 
 ifeq ($(HAVE_VM_COMPILED),true)
