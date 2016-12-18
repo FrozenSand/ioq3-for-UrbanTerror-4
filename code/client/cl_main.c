@@ -2915,10 +2915,11 @@ void CL_Init( void ) {
 
 	// 0: legacy mouse acceleration
 	// 1: new implementation
+	// 2: newest implementation (limited and smooth)
 	cl_mouseAccelStyle = Cvar_Get( "cl_mouseAccelStyle", "0", CVAR_ARCHIVE );
 
-	// offset for the power function (for style 1, ignored otherwise)
-	// this should be set to the max rate value
+	// for style 1: offset for the power function, should be set to the max rate value
+	// for style 2: rate for which acceleration is half of the maximum.
 	cl_mouseAccelOffset = Cvar_Get( "cl_mouseAccelOffset", "5", CVAR_ARCHIVE );
 
 	cl_showMouseRate = Cvar_Get ("cl_showmouserate", "0", 0);
