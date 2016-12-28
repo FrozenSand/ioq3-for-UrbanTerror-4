@@ -533,6 +533,10 @@ ifeq ($(PLATFORM),freebsd)
 
    USE_SDL = 1
 
+   ifndef HOMEPATH
+     HOMEPATH = /.ioUrbanTerror
+   endif
+
   # flags
   BASE_CFLAGS = $(shell env MACHINE_ARCH=$(ARCH) make -f /dev/null -VCFLAGS) \
     -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
