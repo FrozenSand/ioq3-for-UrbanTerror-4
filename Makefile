@@ -537,6 +537,10 @@ ifeq ($(PLATFORM),freebsd)
      HOMEPATH = /.ioUrbanTerror
    endif
 
+   ifndef DEFAULT_LIBDIR
+     DEFAULT_LIBDIR = /usr/local/lib/iourbanterror
+   endif
+
   # flags
   BASE_CFLAGS = $(shell env MACHINE_ARCH=$(ARCH) make -f /dev/null -VCFLAGS) \
     -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
