@@ -40,6 +40,8 @@ static char cdPath[MAX_OSPATH];
 // Used to determine local installation path
 static char installPath[MAX_OSPATH];
 
+static char libPath[ MAX_OSPATH ] = { 0 };
+
 // Used to determine where to store user-specific files
 static char homePath[MAX_OSPATH];
 
@@ -386,6 +388,29 @@ char *Sys_DefaultInstallPath(void)
 {
 	if (*installPath)
 		return installPath;
+	else
+		return Sys_Cwd();
+}
+
+/*
+=================
+Sys_SetDefaultLibPath
+=================
+*/
+void Sys_SetDefaultLibPath(const char *path)
+{
+	Q_strncpyz(libPath, path, sizeof(libPath));
+}
+
+/*
+=================
+Sys_DefaultLibPath
+=================
+*/
+char *Sys_DefaultLibPath(void)
+{
+	if (*libPath)
+		return libPath;
 	else
 		return Sys_Cwd();
 }
