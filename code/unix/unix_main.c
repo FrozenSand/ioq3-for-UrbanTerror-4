@@ -1598,6 +1598,10 @@ char *Sys_StripAppBundle(char *dir)
   #endif
 #endif
 
+#ifndef DEFAULT_LIBDIR
+#	define DEFAULT_LIBDIR DEFAULT_BASEDIR
+#endif
+
 #include "../client/client.h"
 extern clientStatic_t cls;
 
