@@ -520,75 +520,91 @@ else # ifeq mingw32
 
 ifeq ($(PLATFORM),freebsd)
 
-  ifneq (,$(findstring alpha,$(shell uname -m)))
-    ARCH=axp
-  else #default to i386
-    ARCH=i386
-  endif #alpha test
+   ifeq ($(shell which pkg-config > /dev/null; echo $$?),0)
+     CURL_CFLAGS=$(shell pkg-config --cflags libcurl)
+     CURL_LIBS=$(shell pkg-config --libs libcurl)
+     OPENAL_CFLAGS=$(shell pkg-config --cflags openal)
+     OPENAL_LIBS=$(shell pkg-config --libs openal)
+     SDL_CFLAGS=$(shell pkg-config --cflags sdl|sed 's/-Dmain=SDL_main//')
+     SDL_LIBS=$(shell pkg-config --libs sdl)
+     VORBIS_CFLAGS=$(shell pkg-config --silence-errors --cflags vorbis vorbisfile)
+     VORBIS_LIBS=$(shell pkg-config --silence-errors --libs vorbis vorbisfile)
+   endif
 
+   USE_SDL = 1
 
-  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
-                -I/usr/X11R6/include
+   ifndef HOMEPATH
+     HOMEPATH = /.ioUrbanTerror
+   endif
 
-  DEBUG_CFLAGS=$(BASE_CFLAGS) -g
+   ifndef DEFAULT_LIBDIR
+     DEFAULT_LIBDIR = /usr/local/lib/iourbanterror
+   endif
 
-  ifeq ($(USE_OPENAL),1)
-    BASE_CFLAGS += -DUSE_OPENAL=1
-    ifeq ($(USE_OPENAL_DLOPEN),1)
-      BASE_CFLAGS += -DUSE_OPENAL_DLOPEN=1
-    endif
-  endif
+  # flags
+  BASE_CFLAGS = $(shell env MACHINE_ARCH=$(ARCH) make -f /dev/null -VCFLAGS) \
+    -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
+    -DHOMEPATH=\\\"$(HOMEPATH)\\\" \
+    -DDEFAULT_LIBDIR=\\\"$(DEFAULT_LIBDIR)\\\" \
+    -DUSE_ICON -DMAP_ANONYMOUS=MAP_ANON
+  CLIENT_CFLAGS += $(SDL_CFLAGS)
+  HAVE_VM_COMPILED = true
 
-  ifeq ($(USE_CODEC_VORBIS),1)
-    BASE_CFLAGS += -DUSE_CODEC_VORBIS=1
-  endif
-
-  ifeq ($(USE_SDL),1)
-    BASE_CFLAGS += $(shell sdl-config --cflags) -DUSE_SDL_VIDEO=1 -DUSE_SDL_SOUND=1
-  endif
-
-  ifeq ($(ARCH),axp)
-    BASE_CFLAGS += -DNO_VM_COMPILED
-    RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -ffast-math -funroll-loops \
-      -fomit-frame-pointer -fexpensive-optimizations
-  else
-  ifeq ($(ARCH),i386)
-    RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -mtune=pentiumpro \
-      -march=pentium -fomit-frame-pointer -pipe -ffast-math \
-      -falign-loops=2 -falign-jumps=2 -falign-functions=2 \
-      -funroll-loops -fstrength-reduce
-    HAVE_VM_COMPILED=true
-  else
-    BASE_CFLAGS += -DNO_VM_COMPILED
-  endif
-  endif
+  OPTIMIZEVM = -O3 -funroll-loops -fomit-frame-pointer
+  OPTIMIZE = $(OPTIMIZEVM) -ffast-math
 
   SHLIBEXT=so
   SHLIBCFLAGS=-fPIC
   SHLIBLDFLAGS=-shared $(LDFLAGS)
 
   THREAD_LDFLAGS=-lpthread
-  # don't need -ldl (FreeBSD)
   LDFLAGS=-lm
 
-  CLIENT_LDFLAGS =
+  CLIENT_LDFLAGS = $(SDL_LIBS) -lX11  -lXxf86dga -lXxf86vm
 
-  ifeq ($(USE_SDL),1)
-    CLIENT_LDFLAGS += $(shell sdl-config --libs)
-  else
-    CLIENT_LDFLAGS += -L/usr/X11R6/$(LIB) -lGL -lX11 -lXext -lXxf86dga -lXxf86vm
+  # optional features/libraries
+  ifeq ($(USE_OPENAL),1)
+    CLIENT_LDFLAGS += $(THREAD_LIBS) $(OPENAL_LIBS)
+    CLIENT_CFLAGS += -DUSE_OPENAL
+    ifneq ($(USE_LOCAL_HEADERS),1)
+      CLIENT_CFLAGS += $(OPENAL_CFLAGS)
+    endif
   endif
 
-  ifeq ($(USE_OPENAL),1)
-    ifneq ($(USE_OPENAL_DLOPEN),1)
-      CLIENT_LDFLAGS += $(THREAD_LDFLAGS) -lopenal
+  ifeq ($(USE_CURL),1)
+    CLIENT_LDFLAGS += $(CURL_LIBS)
+    CLIENT_CFLAGS += -DUSE_CURL
+    ifneq ($(USE_LOCAL_HEADERS),1)
+      CLIENT_CFLAGS += $(CURL_CFLAGS)
     endif
   endif
 
   ifeq ($(USE_CODEC_VORBIS),1)
-    CLIENT_LDFLAGS += -lvorbisfile -lvorbis -logg
+    CLIENT_LDFLAGS += $(VORBIS_LIBS)
+    CLIENT_CFLAGS += -DUSE_CODEC_VORBIS
+    ifneq ($(USE_LOCAL_HEADERS),1)
+      CLIENT_CFLAGS += $(VORBIS_CFLAGS)
+    endif
   endif
 
+  ifeq ($(BUILD_CLIENT),1)
+    BASE_CFLAGS += $(CLIENT_CFLAGS)
+  endif
+
+  # cross-compiling tweaks
+  ifeq ($(ARCH),i386)
+    ifeq ($(CROSS_COMPILING),1)
+      BASE_CFLAGS += -m32
+    endif
+  endif
+  ifeq ($(ARCH),amd64)
+    ifeq ($(CROSS_COMPILING),1)
+      BASE_CFLAGS += -m64
+    endif
+  endif
+
+  RELEASE_CFLAGS = $(BASE_CFLAGS)
+  DEBUG_CFLAGS = $(BASE_CFLAGS) -g
 
 else # ifeq freebsd
 

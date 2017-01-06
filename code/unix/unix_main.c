@@ -738,6 +738,7 @@ changed the load procedure to match VFS logic, and allow developer use
 #1 look down current path
 #2 look in fs_homepath
 #3 look in fs_basepath
+#4 look in fs_libpath
 =================
 */
 
@@ -780,6 +781,7 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
   char  curpath[MAX_OSPATH];
   char  fname[MAX_OSPATH];
   char  *basepath;
+  char  *libpath;
   char  *homepath;
   char  *pwdpath;
   char  *cdpath;
@@ -795,6 +797,7 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
   // TODO: use fs_searchpaths from files.c
   pwdpath = Sys_Cwd();
   basepath = Cvar_VariableString( "fs_basepath" );
+  libpath = Cvar_VariableString( "fs_libpath" );
   homepath = Cvar_VariableString( "fs_homepath" );
   cdpath = Cvar_VariableString( "fs_cdpath" );
   gamedir = Cvar_VariableString( "fs_game" );
@@ -803,6 +806,9 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
 
   if(!libHandle && homepath)
     libHandle = try_dlopen(homepath, gamedir, fname, fqpath);
+
+  if(!libHandle && libpath)
+    libHandle = try_dlopen(libpath, gamedir, fname, fqpath);
 
   if(!libHandle && basepath)
     libHandle = try_dlopen(basepath, gamedir, fname, fqpath);
@@ -1592,6 +1598,10 @@ char *Sys_StripAppBundle(char *dir)
   #endif
 #endif
 
+#ifndef DEFAULT_LIBDIR
+#	define DEFAULT_LIBDIR DEFAULT_BASEDIR
+#endif
+
 #include "../client/client.h"
 extern clientStatic_t cls;
 
@@ -1609,6 +1619,7 @@ int main ( int argc, char* argv[] )
   Sys_SetDefaultCDPath(dirname(cdpath));
 
   Sys_SetDefaultInstallPath(DEFAULT_BASEDIR);
+  Sys_SetDefaultLibPath(DEFAULT_LIBDIR);
 
   // merge the command line, this is kinda silly
   for (len = 1, i = 1; i < argc; i++)
