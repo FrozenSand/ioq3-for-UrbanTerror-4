@@ -427,7 +427,8 @@ static void HandleEvents(void)
     case SDL_MOUSEMOTION:
       if (mouse_active)
       {
-        Sys_QueEvent( t, SE_MOUSE, e.motion.xrel, e.motion.yrel, 0, NULL );
+        if (e.motion.xrel != 0 || e.motion.yrel != 0)
+            Sys_QueEvent( t, SE_MOUSE, e.motion.xrel, e.motion.yrel, 0, NULL );
       }
       break;
 
