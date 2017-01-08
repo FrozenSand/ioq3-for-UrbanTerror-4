@@ -996,7 +996,7 @@ void SV_Shutdown( char *finalmsg ) {
 	Com_Printf( "----- Server Shutdown (%s) -----\n", finalmsg );
 
 	// stop server-side demos (if any)
-	if (com_dedicated->integer) {
+	if (com_dedicated->integer)
 		Cbuf_ExecuteText(EXEC_NOW, "stopserverdemo all");
 	
 	if ( svs.clients && !com_errorEntered ) {
