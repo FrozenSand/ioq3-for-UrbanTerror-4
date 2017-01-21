@@ -547,44 +547,6 @@ static void SV_BuildClientSnapshot( client_t *client ) {
 
 
 /*
-====================
-SV_RateMsec
-
-Return the number of msec a given size message is supposed
-to take to clear, based on the current rate
-====================
-*/
-#define	HEADER_RATE_BYTES	48		// include our header, IP header, and some overhead
-static int SV_RateMsec( client_t *client, int messageSize ) {
-	int		rate;
-	int		rateMsec;
-
-	// individual messages will never be larger than fragment size
-	if ( messageSize > 1500 ) {
-		messageSize = 1500;
-	}
-	rate = client->rate;
-	if ( sv_maxRate->integer ) {
-		if ( sv_maxRate->integer < 1000 ) {
-			Cvar_Set( "sv_MaxRate", "1000" );
-		}
-		if ( sv_maxRate->integer < rate ) {
-			rate = sv_maxRate->integer;
-		}
-	}
-	if ( sv_minRate->integer ) {
-		if ( sv_minRate->integer < 1000 )
-			Cvar_Set( "sv_minRate", "1000" );
-		if ( sv_minRate->integer > rate )
-			rate = sv_minRate->integer;
-	}
-
-	rateMsec = ( messageSize + HEADER_RATE_BYTES ) * 1000 / ((int) (rate * com_timescale->value));
-
-	return rateMsec;
-}
-
-/*
 =======================
 SV_SendMessageToClient
 
@@ -618,7 +580,7 @@ void SV_SendMessageToClient( msg_t *msg, client_t *client ) {
 	}
 	
 	// normal rate / snapshotMsec calculation
-	rateMsec = SV_RateMsec(client, msg->cursize);
+	rateMsec = SV_RateMsec(client);
 
 	if ( rateMsec < client->snapshotMsec * com_timescale->value) {
 		// never send more packets than this, no matter what the rate is at
@@ -712,7 +674,7 @@ void SV_SendClientMessages( void ) {
 		// was too large to send at once
 		if ( c->netchan.unsentFragments ) {
 			c->nextSnapshotTime = svs.time + 
-				SV_RateMsec( c, c->netchan.unsentLength - c->netchan.unsentFragmentStart );
+				SV_RateMsec( c);
 			SV_Netchan_TransmitNextFragment( c );
 			continue;
 		}

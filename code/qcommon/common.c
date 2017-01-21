@@ -2701,13 +2701,35 @@ int Com_ModifyMsec( int msec ) {
 
 /*
 =================
+Com_TimeVal
+=================
+*/
+
+int Com_TimeVal(int minMsec)
+{
+	int timeVal;
+
+	timeVal = Sys_Milliseconds() - com_frameTime;
+
+	if(timeVal >= minMsec)
+		timeVal = 0;
+	else
+		timeVal = minMsec - timeVal;
+
+	return timeVal;
+}
+
+
+/*
+=================
 Com_Frame
 =================
 */
 void Com_Frame( void ) {
 
 	int		      msec, minMsec;
-	static int	  lastTime;
+	int		timeVal, timeValSV;
+	static int	  lastTime = 0, bias = 0;
  
 	int		      timeBeforeFirstEvents;
 	int           timeBeforeServer;
@@ -2753,19 +2775,57 @@ void Com_Frame( void ) {
 		timeBeforeFirstEvents = Sys_Milliseconds ();
 	}
 
-	// we may want to spin here if things are going too fast
-	if ( !com_dedicated->integer && com_maxfps->integer > 0 && !com_timedemo->integer && !CL_IsDownloading()) {
-		minMsec = 1000 / com_maxfps->integer;
-	} else {
-		minMsec = 1;
-	}
-	do {
-		com_frameTime = Com_EventLoop();
-		if ( lastTime > com_frameTime ) {
-			lastTime = com_frameTime;		// possible on first frame
+// Figure out how much time we have
+	if(!com_timedemo->integer)
+	{
+		if(com_dedicated->integer)
+			minMsec = SV_FrameMsec();
+		else
+		{
+			if(com_maxfps->integer > 0 && !com_timedemo->integer && !CL_IsDownloading())
+				minMsec = 1000 / com_maxfps->integer;
+			else
+				minMsec = 1;
+
+			timeVal = com_frameTime - lastTime;
+			bias += timeVal - minMsec;
+
+			if(bias > minMsec)
+				bias = minMsec;
+
+			// Adjust minMsec if previous frame took too long to render so
+			// that framerate is stable at the requested value.
+			minMsec -= bias;
 		}
-		msec = com_frameTime - lastTime;
-	} while ( msec < minMsec );
+	}
+	else
+		minMsec = 1;
+
+	do
+	{
+		if(com_sv_running->integer)
+		{
+			timeValSV = SV_SendQueuedPackets();
+
+			timeVal = Com_TimeVal(minMsec);
+
+			if(timeValSV < timeVal)
+				timeVal = timeValSV;
+		}
+		else
+			timeVal = Com_TimeVal(minMsec);
+
+		if(timeVal < 1)
+			NET_Sleep(0);
+		else
+			NET_Sleep(timeVal - 1);
+	} while(Com_TimeVal(minMsec));
+
+	lastTime = com_frameTime;
+	com_frameTime = Com_EventLoop();
+
+	msec = com_frameTime - lastTime;
+
 	Cbuf_Execute ();
 
 	if (com_altivec->modified)
@@ -2774,10 +2834,7 @@ void Com_Frame( void ) {
 		com_altivec->modified = qfalse;
 	}
 
-	lastTime = com_frameTime;
-
 	// mess with msec if needed
-	com_frameMsec = msec;
 	msec = Com_ModifyMsec( msec );
 
 	//
@@ -2834,6 +2891,8 @@ void Com_Frame( void ) {
 			timeAfter = Sys_Milliseconds ();
 		}
 	}
+
+	NET_FlushPacketQueue();
 
 	//
 	// report timing information
