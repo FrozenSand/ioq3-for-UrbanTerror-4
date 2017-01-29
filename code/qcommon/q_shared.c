@@ -58,20 +58,15 @@ char *COM_SkipPath (char *pathname)
 COM_GetExtension
 ============
 */
-const char *COM_GetExtension( const char *name ) {
-	int length, i;
-
-	length = strlen(name)-1;
-	i = length;
-
-	while (name[i] != '.')
-	{
-		i--;
-		if (name[i] == '/' || i == 0)
-			return ""; // no extension
+const char *COM_GetExtension(const char *name) {
+	if (!name || !*name)
+		return "";
+	else {
+		size_t i = strlen(name) - 1;
+		while (i > 0 && name[i] != '.' && name[i] != '/')
+			--i;
+		return (name[i] == '.' ? &name[i + 1] : "");
 	}
-
-	return &name[i+1];
 }
 
 
@@ -1037,25 +1032,31 @@ int Q_PrintStrlen( const char *string ) {
 }
 
 
-char *Q_CleanStr( char *string ) {
-	char*	d;
-	char*	s;
-	int		c;
+char *Q_CleanStr(char *string) {
 
-	s = string;
-	d = string;
-	while ((c = *s) != 0 ) {
-		if ( Q_IsColorString( s ) ) {
-			s++;
-		}		
-		else if ( c >= 0x20 && c <= 0x7E ) {
-			*d++ = c;
-		}
-		s++;
-	}
-	*d = '\0';
+    char  *d;
+    char  *s;
+    int   c;
 
-	return string;
+    s = string;
+    d = string;
+
+    while ((c = *s) != 0) {
+        if ((*s == '^') && (*(s + 1) == '^')) {
+            s++;
+        } else if (Q_IsColorString( s )) {
+            s++;
+            s++;
+        } else if (c >= 0x20 && c <= 0x7E) {
+            *d++ = c;
+            s++;
+        } else {
+            s++;
+        }
+    }
+    *d = '\0';
+
+    return string;
 }
 
 
