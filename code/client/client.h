@@ -297,12 +297,16 @@ typedef struct {
 	int			netType;
 	int			gameType;
 	int		  	clients;
+	int         bots;
 	int		  	maxClients;
 	int			minPing;
 	int			maxPing;
 	int			ping;
 	qboolean	visible;
 	int			punkbuster;
+	int			auth; //@Barbatos: auth system
+	int			password; //@Barbatos: passworded server?
+	char 		modversion[MAX_NAME_LENGTH]; //@Barbatos - g_modversion
 	int			g_humanplayers;
 	int			g_needpass;
 } serverInfo_t;
