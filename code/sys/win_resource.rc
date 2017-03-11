@@ -54,9 +54,9 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 #ifndef __MINGW32__
-IDI_ICON1               ICON    DISCARDABLE     "../quake3.ico"
+IDI_ICON1               ICON    DISCARDABLE     "../urbanterror.ico"
 #else
-IDI_ICON1               ICON    DISCARDABLE     "misc/quake3.ico"
+IDI_ICON1               ICON    DISCARDABLE     "misc/urbanterror.ico"
 #endif
 
 
@@ -67,7 +67,7 @@ IDI_ICON1               ICON    DISCARDABLE     "misc/quake3.ico"
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_STRING1             "Quake3"
+    IDS_STRING1             "UrbanTerror"
 END
 
 #endif    // English (U.S.) resources
