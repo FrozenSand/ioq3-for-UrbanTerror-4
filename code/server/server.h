@@ -334,9 +334,10 @@ extern	int serverBansCount;
 extern	cvar_t	*sv_voip;
 extern	cvar_t	*sv_voipProtocol;
 #endif
-
-
 extern	cvar_t	*sv_demonotice;
+
+extern  cvar_t  *sv_demofolder;
+
 
 //===========================================================
 

@@ -35,6 +35,9 @@ endif
 ifndef BUILD_RENDERER_OPENGL2
   BUILD_RENDERER_OPENGL2=
 endif
+ifndef USE_DEMO_FORMAT_42
+  USE_DEMO_FORMAT_42=1
+endif
 
 #############################################################################
 #
@@ -1075,6 +1078,11 @@ endif
 
 ifeq ("$(CC)", $(findstring "$(CC)", "clang" "clang++"))
   BASE_CFLAGS += -Qunused-arguments
+endif
+
+#Barbatos
+ifeq ($(USE_DEMO_FORMAT_42),1)
+  BASE_CFLAGS += -DUSE_DEMO_FORMAT_42=1
 endif
 
 ifdef DEFAULT_BASEDIR

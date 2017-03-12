@@ -613,7 +613,6 @@ CL_WriteDemoMessage
 Dumps the current net message, prefixed by the length
 ====================
 */
-
 void CL_WriteDemoMessage ( msg_t *msg, int headerBytes ) {
 	int		len, swlen;
 
@@ -621,11 +620,17 @@ void CL_WriteDemoMessage ( msg_t *msg, int headerBytes ) {
 	len = clc.serverMessageSequence;
 	swlen = LittleLong( len );
 	FS_Write (&swlen, 4, clc.demofile);
+
 	// skip the packet sequencing information
 	len = msg->cursize - headerBytes;
 	swlen = LittleLong(len);
 	FS_Write (&swlen, 4, clc.demofile);
 	FS_Write ( msg->data + headerBytes, len, clc.demofile );
+
+#ifdef USE_DEMO_FORMAT_42
+	// add size of packet in the end for backward play /* holblin */
+	FS_Write (&swlen, 4, clc.demofile);
+#endif
 }
 
 
@@ -660,7 +665,7 @@ void CL_StopRecord_f( void ) {
 CL_DemoFilename
 ================== 
 */  
-void CL_DemoFilename( int number, char *fileName, int fileNameSize ) {
+void CL_DemoFilename( int number, char *fileName ) {
 	int		a,b,c,d;
 
 	if(number < 0 || number > 9999)
@@ -674,7 +679,7 @@ void CL_DemoFilename( int number, char *fileName, int fileNameSize ) {
 	number -= c*10;
 	d = number;
 
-	Com_sprintf( fileName, fileNameSize, "demo%i%i%i%i"
+	Com_sprintf( fileName, MAX_OSPATH, "demo%i%i%i%i"
 		, a, b, c, d );
 }
 
@@ -697,6 +702,11 @@ void CL_Record_f( void ) {
 	entityState_t	*ent;
 	entityState_t	nullstate;
 	char		*s;
+#ifdef USE_DEMO_FORMAT_42
+	char		*s2;
+	int			size, v;
+	const char  *serverInfo;
+#endif
 
 	if ( Cmd_Argc() > 2 ) {
 		Com_Printf ("record <demoname>\n");
@@ -723,24 +733,33 @@ void CL_Record_f( void ) {
 	if ( Cmd_Argc() == 2 ) {
 		s = Cmd_Argv(1);
 		Q_strncpyz( demoName, s, sizeof( demoName ) );
-#ifdef LEGACY_PROTOCOL
+#ifdef USE_DEMO_FORMAT_42
+		Com_sprintf (name, sizeof(name), "demos/%s.urtdemo", demoName );
+#else
+#	ifdef LEGACY_PROTOCOL
 		if(clc.compat)
 			Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_legacyprotocol->integer);
 		else
-#endif
+#	endif
 			Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_protocol->integer);
+#endif
 	} else {
 		int		number;
 
 		// scan for a free demo name
 		for ( number = 0 ; number <= 9999 ; number++ ) {
-			CL_DemoFilename( number, demoName, sizeof( demoName ) );
-#ifdef LEGACY_PROTOCOL
+			CL_DemoFilename( number, demoName );
+#ifdef USE_DEMO_FORMAT_42
+			Com_sprintf (name, sizeof(name), "demos/%s.urtdemo", demoName );
+#else
+#	ifdef LEGACY_PROTOCOL
 			if(clc.compat)
 				Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_legacyprotocol->integer);
 			else
-#endif
+#	endif
 				Com_sprintf(name, sizeof(name), "demos/%s.%s%d", demoName, DEMOEXT, com_protocol->integer);
+#endif
+
 
 			if (!FS_FileExists(name))
 				break;	// file doesn't exist
@@ -755,12 +774,38 @@ void CL_Record_f( void ) {
 		Com_Printf ("ERROR: couldn't open.\n");
 		return;
 	}
+
+	
+	/* HOLBLIN entete demo */ 
+#ifdef USE_DEMO_FORMAT_42
+
+	//@Barbatos: get the mod version from the server
+	serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+	s2 = Info_ValueForKey(serverInfo, "g_modversion");
+
+	size = strlen( s2 );
+	len = LittleLong( size );
+	FS_Write( &len, 4, clc.demofile );
+	FS_Write( s2 , size ,  clc.demofile );
+		
+	v = LittleLong( DEMO_VERSION );
+	FS_Write ( &v, 4 , clc.demofile );
+		
+	len = 0;
+	len = LittleLong( len );
+	FS_Write ( &len, 4 , clc.demofile );
+	FS_Write ( &len, 4 , clc.demofile );
+		
+#endif
+	/* END HOLBLIN entete demo */ 
+	
 	clc.demorecording = qtrue;
 	if (Cvar_VariableValue("ui_recordSPDemo")) {
 	  clc.spDemoRecording = qtrue;
 	} else {
 	  clc.spDemoRecording = qfalse;
 	}
+
 
 	Q_strncpyz( clc.demoName, demoName, sizeof( clc.demoName ) );
 
@@ -819,6 +864,11 @@ void CL_Record_f( void ) {
 	FS_Write (&len, 4, clc.demofile);
 	FS_Write (buf.data, buf.cursize, clc.demofile);
 
+#ifdef USE_DEMO_FORMAT_42
+	// add size of packet in the end for backward play /* holblin */
+	FS_Write (&len, 4, clc.demofile);
+#endif
+	
 	// the rest of the demo file will be copied from net messages
 }
 
@@ -937,6 +987,11 @@ void CL_ReadDemoMessage( void ) {
 	msg_t		buf;
 	byte		bufData[ MAX_MSGLEN ];
 	int			s;
+	
+#ifdef USE_DEMO_FORMAT_42
+	// skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
+	int length_backward;
+#endif
 
 	if ( !clc.demofile ) {
 		CL_DemoCompleted ();
@@ -965,6 +1020,14 @@ void CL_ReadDemoMessage( void ) {
 		CL_DemoCompleted ();
 		return;
 	}
+	
+#ifdef USE_DEMO_FORMAT_42
+	if ( buf.cursize == 0 ) { // backward read gain the header demo /* holblin */
+		CL_DemoCompleted ();
+		return;
+	}
+#endif
+	
 	if ( buf.cursize > buf.maxsize ) {
 		Com_Error (ERR_DROP, "CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN");
 	}
@@ -974,6 +1037,21 @@ void CL_ReadDemoMessage( void ) {
 		CL_DemoCompleted ();
 		return;
 	}
+	
+#ifdef USE_DEMO_FORMAT_42
+	// skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
+	r = FS_Read (&length_backward, 4, clc.demofile);
+	if ( r != 4 ) {
+		CL_DemoCompleted ();
+		return;
+	}
+	// now, check demo file format !!! /* holblin */
+	length_backward = LittleLong( length_backward );
+	if ( length_backward != buf.cursize ){
+		CL_DemoCompleted ();
+		return;
+	}
+#endif
 
 	clc.lastPacketTime = cls.realtime;
 	buf.readcount = 0;
@@ -985,6 +1063,7 @@ void CL_ReadDemoMessage( void ) {
 CL_WalkDemoExt
 ====================
 */
+#ifndef USE_DEMO_FORMAT_42
 static int CL_WalkDemoExt(char *arg, char *name, int *demofile)
 {
 	int i = 0;
@@ -1004,7 +1083,7 @@ static int CL_WalkDemoExt(char *arg, char *name, int *demofile)
 	}
 	
 	if(com_protocol->integer != com_legacyprotocol->integer)
-#endif
+#	endif
 	{
 		Com_sprintf(name, MAX_OSPATH, "demos/%s.%s%d", arg, DEMOEXT, com_protocol->integer);
 		FS_FOpenFileRead(name, demofile, qtrue);
@@ -1020,10 +1099,10 @@ static int CL_WalkDemoExt(char *arg, char *name, int *demofile)
 
 	while(demo_protocols[i])
 	{
-#ifdef LEGACY_PROTOCOL
+#	ifdef LEGACY_PROTOCOL
 		if(demo_protocols[i] == com_legacyprotocol->integer)
 			continue;
-#endif
+#	endif
 		if(demo_protocols[i] == com_protocol->integer)
 			continue;
 	
@@ -1039,9 +1118,9 @@ static int CL_WalkDemoExt(char *arg, char *name, int *demofile)
 			Com_Printf("Not found: %s\n", name);
 		i++;
 	}
-	
 	return -1;
 }
+#endif /* USE_DEMO_FORMAT_42 */
 
 /*
 ====================
@@ -1052,12 +1131,20 @@ static void CL_CompleteDemoName( char *args, int argNum )
 {
 	if( argNum == 2 )
 	{
+#ifndef USE_DEMO_FORMAT_42
 		char demoExt[ 16 ];
-
+#	ifdef LEGACY_PROTOCOL
+		Com_sprintf(demoExt, sizeof(demoExt), ".%s%d", DEMOEXT, com_legacyprotocol->integer);
+#	else
 		Com_sprintf(demoExt, sizeof(demoExt), ".%s%d", DEMOEXT, com_protocol->integer);
+#	endif
 		Field_CompleteFilename( "demos", demoExt, qtrue, qtrue );
+#else
+		Field_CompleteFilename( "demos", ".urtdemo", qtrue, qtrue );
+#endif
 	}
 }
+
 
 /*
 ====================
@@ -1070,9 +1157,14 @@ demo <demoname>
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH];
 	char		*arg, *ext_test;
+#ifdef USE_DEMO_FORMAT_42
+	int			r, len, v1, v2;
+	char		*s2;
+#else
 	int			protocol, i;
 	char		retry[MAX_OSPATH];
-
+#endif
+	
 	if (Cmd_Argc() != 2) {
 		Com_Printf ("demo <demoname>\n");
 		return;
@@ -1082,6 +1174,7 @@ void CL_PlayDemo_f( void ) {
 	// 2 means don't force disconnect of local client
 	Cvar_Set( "sv_killserver", "2" );
 
+
 	// open the demo file
 	arg = Cmd_Argv(1);
 	
@@ -1089,31 +1182,37 @@ void CL_PlayDemo_f( void ) {
 
 	// check for an extension .DEMOEXT_?? (?? is protocol)
 	ext_test = strrchr(arg, '.');
-	
+#ifdef USE_DEMO_FORMAT_42	
+	// check for .urtdemo extension
+	if (ext_test && !Q_stricmp(ext_test, ".urtdemo")) {
+		Com_sprintf (name, sizeof(name), "demos/%s", arg);
+	} else {
+		Com_sprintf(name, sizeof(name), "demos/%s.urtdemo", arg);
+	}
+	FS_FOpenFileRead( name, &clc.demofile, qtrue );
+#else
 	if(ext_test && !Q_stricmpn(ext_test + 1, DEMOEXT, ARRAY_LEN(DEMOEXT) - 1))
 	{
 		protocol = atoi(ext_test + ARRAY_LEN(DEMOEXT));
 
 		for(i = 0; demo_protocols[i]; i++)
 		{
-			if(demo_protocols[i] == protocol)
+			if (demo_protocols[i] == protocol)
 				break;
 		}
-
 		if(demo_protocols[i] || protocol == com_protocol->integer
-#ifdef LEGACY_PROTOCOL
+#	ifdef LEGACY_PROTOCOL
 		   || protocol == com_legacyprotocol->integer
-#endif
+#	endif
 		  )
 		{
-			Com_sprintf(name, sizeof(name), "demos/%s", arg);
-			FS_FOpenFileRead(name, &clc.demofile, qtrue);
+			Com_sprintf (name, sizeof(name), "demos/%s", arg);
+			FS_FOpenFileRead( name, &clc.demofile, qtrue );
 		}
 		else
 		{
 			int len;
-
-			Com_Printf("Protocol %d not supported for demos\n", protocol);
+				Com_Printf("Protocol %d not supported for demos\n", protocol);
 			len = ext_test - arg;
 
 			if(len >= ARRAY_LEN(retry))
@@ -1126,6 +1225,7 @@ void CL_PlayDemo_f( void ) {
 	}
 	else
 		protocol = CL_WalkDemoExt(arg, name, &clc.demofile);
+#endif /* USE_DEMO_FORMAT_42 */
 	
 	if (!clc.demofile) {
 		Com_Error( ERR_DROP, "couldn't open %s", name);
@@ -1135,17 +1235,81 @@ void CL_PlayDemo_f( void ) {
 
 	Con_Close();
 
+	/* HOLBLIN TODO entete demo */ 
+#ifdef USE_DEMO_FORMAT_42	
+	//@Barbatos: get the mod version from the server
+	//serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+	//s1 = Info_ValueForKey(serverInfo, "g_modversion");
+
+	r = FS_Read( &len, 4, clc.demofile );
+	if ( r != 4 ) {
+		CL_DemoCompleted ();
+		return;
+	}
+		
+	len = LittleLong( len );
+
+	s2 = malloc( len + 1 );
+	r = FS_Read( s2 , len ,  clc.demofile );
+	if ( r != len ) {
+		CL_DemoCompleted ();
+		free(s2);
+		return;
+	}
+	s2[len] = '\0';
+
+	v1 = LittleLong( DEMO_VERSION );
+	r = FS_Read ( &v2, 4 , clc.demofile );
+	if ( r != 4 ) {
+		CL_DemoCompleted ();
+		free(s2);
+		return;
+	}
+		
+	//@Barbatos: FIXME
+	/*if ( strcmp(s1, s2) ){
+		Com_Printf("Game version %s not supported for demos\n", s2);
+		free(s2);
+		CL_DemoCompleted ();
+		return;
+	}
+	*/
+	free(s2);
+		
+	if ( v1 != v2 ){
+		Com_Printf("Protocol %d not supported for demos\n", v2);
+		CL_DemoCompleted ();
+		return;
+	}
+
+	r = FS_Read( &len, 4, clc.demofile );
+	len = LittleLong( len );
+	if ( r != 4 || len != 0) {
+		CL_DemoCompleted ();
+		return;
+	}
+		
+	r = FS_Read( &len, 4, clc.demofile );
+	len = LittleLong( len );
+	if ( r != 4 || len != 0) {
+		CL_DemoCompleted ();
+		return;
+	}
+#endif
+	/* END HOLBLIN entete demo */ 
+
 	clc.state = CA_CONNECTED;
 	clc.demoplaying = qtrue;
 	Q_strncpyz( clc.servername, arg, sizeof( clc.servername ) );
 
-#ifdef LEGACY_PROTOCOL
+#ifdef USE_DEMO_FORMAT_42
+	clc.compat = qtrue;
+#elif defined(LEGACY_PROTOCOL)
 	if(protocol <= com_legacyprotocol->integer)
 		clc.compat = qtrue;
 	else
 		clc.compat = qfalse;
 #endif
-
 	// read demo messages until connected
 	while ( clc.state >= CA_CONNECTED && clc.state < CA_PRIMED ) {
 		CL_ReadDemoMessage();
