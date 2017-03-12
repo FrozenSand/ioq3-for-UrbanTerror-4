@@ -184,6 +184,12 @@ typedef struct client_s {
 	netchan_buffer_t *netchan_start_queue;
 	netchan_buffer_t **netchan_end_queue;
 
+	qboolean	demo_recording;	// are we currently recording this client?
+	fileHandle_t	demo_file;	// the file we are writing the demo to
+	qboolean	demo_waiting;	// are we still waiting for the first non-delta frame?
+	int		demo_backoff;	// how many packets (-1 actually) between non-delta frames?
+	int		demo_deltas;	// how many delta frames did we let through so far?
+
 #ifdef USE_VOIP
 	qboolean hasVoip;
 	qboolean muteAllVoip;
@@ -330,6 +336,8 @@ extern	cvar_t	*sv_voipProtocol;
 #endif
 
 
+extern	cvar_t	*sv_demonotice;
+
 //===========================================================
 
 //
@@ -415,6 +423,7 @@ int SV_SendQueuedMessages(void);
 // sv_ccmds.c
 //
 void SV_Heartbeat_f( void );
+void SVD_WriteDemoFile(const client_t*, const msg_t*);
 
 //
 // sv_snapshot.c

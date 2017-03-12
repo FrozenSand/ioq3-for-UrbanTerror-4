@@ -66,6 +66,8 @@ cvar_t	*sv_banFile;
 serverBan_t serverBans[SERVER_MAXBANS];
 int serverBansCount = 0;
 
+cvar_t	*sv_demonotice;		// notice to print to a client being recorded server-side
+
 /*
 =============================================================================
 

@@ -556,6 +556,13 @@ gotnewcl:
 	// init the netchan queue
 	newcl->netchan_end_queue = &newcl->netchan_start_queue;
 
+	// clear server-side demo recording
+	newcl->demo_recording = qfalse;
+	newcl->demo_file = -1;
+	newcl->demo_waiting = qfalse;
+	newcl->demo_backoff = 1;
+	newcl->demo_deltas = 0;
+	
 	// save the userinfo
 	Q_strncpyz( newcl->userinfo, userinfo, sizeof(newcl->userinfo) );
 
@@ -1208,6 +1215,10 @@ The client is going to disconnect, so remove the connection immediately  FIXME: 
 =================
 */
 static void SV_Disconnect_f( client_t *cl ) {
+	// stop server-side demo (if any)
+	if (cl->demo_recording) {
+		Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(cl-svs.clients)));
+	}
 	SV_DropClient( cl, "disconnected" );
 }
 
