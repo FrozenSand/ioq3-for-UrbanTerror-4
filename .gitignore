@@ -3,6 +3,11 @@ Makefile.local
 *.swp
 *tags
 *~
+*.orig
+*_BASE_*
+*_REMOTE_*
+*_LOCAL_*
+*_BACKUP_*
 
 # OS X
 ####################
