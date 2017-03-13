@@ -2354,7 +2354,7 @@ A download completed or failed
 void CL_NextDownload(void)
 {
 	char *s;
-	char *remoteName, *localName;
+	char *remoteName, *localName, localPath[MAX_QPATH];
 	qboolean useCURL = qfalse;
 
 	// A download has finished, check whether this matches a referenced checksum
@@ -2388,10 +2388,17 @@ void CL_NextDownload(void)
 
 		*s++ = 0;
 		localName = s;
+
 		if ( (s = strchr(s, '@')) != NULL )
 			*s++ = 0;
 		else
 			s = localName + strlen(localName); // point at the nul byte
+
+		localName = COM_SkipPath(localName);
+		Com_sprintf(localPath, sizeof(localPath), "%s/download/%s",
+			FS_GetCurrentGameDir(),
+			localName);
+
 #ifdef USE_CURL
 		if(!(cl_allowDownload->integer & DLF_NO_REDIRECT)) {
 			if(clc.sv_allowDownload & DLF_NO_REDIRECT) {
@@ -2410,7 +2417,7 @@ void CL_NextDownload(void)
 					"cURL library\n");
 			}
 			else {
-				CL_cURL_BeginDownload(localName, va("%s/%s",
+				CL_cURL_BeginDownload(localPath, va("%s/%s",
 					clc.sv_dlURL, remoteName));
 				useCURL = qtrue;
 			}
@@ -2431,7 +2438,7 @@ void CL_NextDownload(void)
 				return;	
 			}
 			else {
-				CL_BeginDownload( localName, remoteName );
+				CL_BeginDownload( localPath, remoteName );
 			}
 		}
 		clc.downloadRestart = qtrue;

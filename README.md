@@ -12,17 +12,18 @@ This ioquake3 README can be found here: [README](README.ioq3.md).
 - [ ] Auth system
 
 ### Client
+- [x] Make /reconnect work across restarts
+- [x] Use `download` folder for downloads
+- [x] Disallow QVMs in download folder
 - [ ] Fancy tabbed console
 - [ ] dmaHD
 - [ ] Prompt before auto download
-- [ ] Use `download` folder for downloads
 - [ ] Client commands changes/additions
-- [x] Make /reconnect work across restarts
 - [ ] Alt-tab
 - [ ] r_minimize cvar
-- [ ] sv_sayprefix / sv_tellprefix cvars
 
 ### Server
 - [x] Server demos
 - [ ] Server commands changes/additions
+- [ ] sv_sayprefix / sv_tellprefix cvars
 - [ ] sv_clientsPerIP cvar

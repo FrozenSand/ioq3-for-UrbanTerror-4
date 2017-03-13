@@ -544,6 +544,26 @@ void CL_ParseGamestate( msg_t *msg ) {
 
 	FS_ConditionalRestart(clc.checksumFeed, qfalse);
 
+	if (fs_foreignQVMsFound) {
+		char QVMList[MAX_STRING_CHARS] = {0};
+		for (i = 0; i < fs_foreignQVMsFound; i++) {
+			Q_strcat(QVMList, sizeof(QVMList), va("%s.pk3, ", fs_foreignQVMNames[i]));
+		}
+
+		QVMList[strlen(QVMList) - 2] = 0;
+
+		Cvar_Set("com_errorMessage", va(
+			"^1WARNING! ^7QVM found in downloaded pk3%s\n\n%s\n\n"
+			"You should go delete %s immediately. %s could contain malicious code.",
+			fs_foreignQVMsFound == 1 ? ":" : "s:",
+			QVMList,
+			fs_foreignQVMsFound == 1 ? "that file" : "those files",
+			fs_foreignQVMsFound == 1 ? "It" : "They"));
+
+		VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN);
+		return;
+	}
+
 	// This used to call CL_StartHunkUsers, but now we enter the download state before loading the
 	// cgame
 	CL_InitDownloads();

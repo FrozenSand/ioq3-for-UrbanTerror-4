@@ -604,7 +604,9 @@ issues.
 #define NUM_ID_PAKS		9
 #define NUM_TA_PAKS		4
 
-#define	MAX_FILE_HANDLES	64
+#define MAX_FILE_HANDLES	64
+#define MAX_ZPATH		256
+#define MAX_SEARCH_PATHS	4096
 
 #ifdef DEDICATED
 #	define Q3CONFIG_CFG "q3config_server.cfg"
@@ -747,6 +749,9 @@ void	FS_FilenameCompletion( const char *dir, const char *ext,
 
 const char *FS_GetCurrentGameDir(void);
 qboolean FS_Which(const char *filename, void *searchPath);
+
+extern int	fs_foreignQVMsFound;
+extern char	fs_foreignQVMNames[MAX_ZPATH][MAX_SEARCH_PATHS];
 
 /*
 ==============================================================
