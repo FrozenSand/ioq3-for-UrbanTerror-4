@@ -325,6 +325,7 @@ extern	cvar_t	*sv_lanForceRate;
 #ifndef STANDALONE
 extern	cvar_t	*sv_strictAuth;
 #endif
+extern	cvar_t	*sv_clientsPerIp;
 extern	cvar_t	*sv_banFile;
 
 extern	serverBan_t serverBans[SERVER_MAXBANS];

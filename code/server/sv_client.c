@@ -335,6 +335,7 @@ void SV_DirectConnect( netadr_t from ) {
 	int			startIndex;
 	intptr_t		denied;
 	int			count;
+	int			numIpClients = 0;
 	char		*ip;
 #ifdef LEGACY_PROTOCOL
 	qboolean	compat = qfalse;
@@ -432,8 +433,25 @@ void SV_DirectConnect( netadr_t from ) {
 
 		ping = svs.time - challengeptr->pingTime;
 
-		// never reject a LAN client based on ping
+
 		if ( !Sys_IsLANAddress( from ) ) {
+			// reject clients with too many connections from the same IP
+			for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++) {
+				if ( cl->state == CS_FREE ) {
+					continue;
+				}
+				if ( NET_CompareBaseAdr( from, cl->netchan.remoteAddress ) ) {
+					numIpClients++;
+				}
+			}
+
+			if (sv_clientsPerIp->integer && numIpClients >= sv_clientsPerIp->integer) {
+				NET_OutOfBandPrint(NS_SERVER, from, "print\nToo many connections from the same IP\n");
+				Com_DPrintf ("Client %i rejected due to too many connections from the same IP\n", i);
+				return;
+			}
+
+			// never reject a LAN client based on ping
 			if ( sv_minPing->value && ping < sv_minPing->value ) {
 				NET_OutOfBandPrint( NS_SERVER, from, "print\nServer is for high pings only\n" );
 				Com_DPrintf ("Client %i rejected on a too low ping\n", i);
