@@ -338,7 +338,8 @@ extern	cvar_t	*sv_voipProtocol;
 extern	cvar_t	*sv_demonotice;
 
 extern  cvar_t  *sv_demofolder;
-
+extern  cvar_t  *sv_sayprefix;
+extern  cvar_t  *sv_tellprefix;
 
 //===========================================================
 

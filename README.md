@@ -24,6 +24,6 @@ This ioquake3 README can be found here: [README](README.ioq3.md).
 
 ### Server
 - [x] Server demos
+- [x] sv_clientsPerIP cvar
+- [x] sv_sayprefix / sv_tellprefix cvars
 - [ ] Server commands changes/additions
-- [ ] sv_sayprefix / sv_tellprefix cvars
-- [ ] sv_clientsPerIP cvar
