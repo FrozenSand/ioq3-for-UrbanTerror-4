@@ -121,13 +121,13 @@ cvar_t	*cl_guidServerUniq;
 cvar_t	*cl_consoleKeys;
 
 cvar_t	*cl_rate;
+cvar_t  *cl_reconnectArgs;
 
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
 vm_t				*cgvm;
 
-char				cl_reconnectArgs[MAX_OSPATH];
 char				cl_oldGame[MAX_QPATH];
 qboolean			cl_oldGameSet;
 
@@ -1841,10 +1841,10 @@ CL_Reconnect_f
 ================
 */
 void CL_Reconnect_f( void ) {
-	if ( !strlen( cl_reconnectArgs ) )
+	if ( !*cl_reconnectArgs->string )
 		return;
 	Cvar_Set("ui_singlePlayerActive", "0");
-	Cbuf_AddText( va("connect %s\n", cl_reconnectArgs ) );
+	Cbuf_AddText( va("connect %s\n", cl_reconnectArgs->string ) );
 }
 
 /*
@@ -1879,7 +1879,7 @@ void CL_Connect_f( void ) {
 	}
 
 	// save arguments for reconnect
-	Q_strncpyz( cl_reconnectArgs, Cmd_Args(), sizeof( cl_reconnectArgs ) );
+	Cvar_Set("cl_reconnectArgs", Cmd_Args());
 
 	Cvar_Set("ui_singlePlayerActive", "0");
 
@@ -3819,6 +3819,8 @@ void CL_Init( void ) {
 	Cvar_Get ("cg_viewsize", "100", CVAR_ARCHIVE );
 	// Make sure cg_stereoSeparation is zero as that variable is deprecated and should not be used anymore.
 	Cvar_Get ("cg_stereoSeparation", "0", CVAR_ROM);
+
+	cl_reconnectArgs = Cvar_Get ("cl_reconnectArgs", "", CVAR_ARCHIVE);
 
 	//
 	// register our commands

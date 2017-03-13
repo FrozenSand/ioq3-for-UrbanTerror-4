@@ -17,7 +17,7 @@ This ioquake3 README can be found here: [README](README.ioq3.md).
 - [ ] Prompt before auto download
 - [ ] Use `download` folder for downloads
 - [ ] Client commands changes/additions
-- [ ] Make /reconnect work across restarts
+- [x] Make /reconnect work across restarts
 - [ ] Alt-tab
 - [ ] r_minimize cvar
 - [ ] sv_sayprefix / sv_tellprefix cvars
