@@ -731,6 +731,18 @@ void Console_Key (int key) {
 		return;
 	}
 
+	// shift-right, console tabs: next tab
+	if ((key == K_RIGHTARROW && keys[K_SHIFT].down) || (key == K_MOUSE2)) {
+		Con_NextTab();
+		return;
+	}
+
+	// shift-left, console tabs: previous tab
+	if ((key == K_LEFTARROW && keys[K_SHIFT].down) || (key == K_MOUSE1)) {
+		Con_PrevTab();
+		return;
+	}
+
 	// pass to the normal editline routine
 	Field_KeyDownEvent( &g_consoleField, key );
 }

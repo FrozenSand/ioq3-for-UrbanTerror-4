@@ -553,9 +553,8 @@ qboolean CL_UpdateVisiblePings_f( int source );
 //
 void Con_DrawCharacter (int cx, int line, int num);
 
-void Con_CheckResize (void);
-void Con_Init(void);
-void Con_Shutdown(void);
+void Con_Init (void);
+void Con_Shutdown (void);
 void Con_Clear_f (void);
 void Con_ToggleConsole_f (void);
 void Con_DrawNotify (void);
@@ -567,6 +566,9 @@ void Con_PageDown( void );
 void Con_Top( void );
 void Con_Bottom( void );
 void Con_Close( void );
+
+void Con_NextTab(void);
+void Con_PrevTab(void);
 
 void CL_LoadConsoleHistory( void );
 void CL_SaveConsoleHistory( void );
@@ -610,7 +612,8 @@ void CIN_SetLooping (int handle, qboolean loop);
 void CIN_UploadCinematic(int handle);
 void CIN_CloseAllVideos(void);
 
-void CL_DrawFontText(float x, float y, float scale, vec4_t color, const char *text, int style);
+int     SCR_FontWidth(const char *text, float scale);
+void    SCR_DrawFontText(float x, float y, float scale, vec4_t color, const char *text, int style);
 
 //
 // cl_cgame.c

@@ -15,12 +15,13 @@ This ioquake3 README can be found here: [README](README.ioq3.md).
 - [x] Make /reconnect work across restarts
 - [x] Use `download` folder for downloads
 - [x] Disallow QVMs in download folder
-- [ ] Fancy tabbed console
+- [x] Fancy tabbed console
 - [ ] dmaHD
 - [ ] Prompt before auto download
 - [ ] Client commands changes/additions
 - [ ] Alt-tab
 - [ ] r_minimize cvar
+- [ ] New mouse acceleration style (cl_mouseAccel 2)
 
 ### Server
 - [x] Server demos
