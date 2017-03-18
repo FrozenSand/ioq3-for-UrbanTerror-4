@@ -228,11 +228,6 @@ VORBISDIR=$(MOUNT_DIR)/libvorbis-1.3.4
 OPUSDIR=$(MOUNT_DIR)/opus-1.1
 OPUSFILEDIR=$(MOUNT_DIR)/opusfile-0.5
 ZDIR=$(MOUNT_DIR)/zlib
-Q3ASMDIR=$(MOUNT_DIR)/tools/asm
-LBURGDIR=$(MOUNT_DIR)/tools/lcc/lburg
-Q3CPPDIR=$(MOUNT_DIR)/tools/lcc/cpp
-Q3LCCETCDIR=$(MOUNT_DIR)/tools/lcc/etc
-Q3LCCSRCDIR=$(MOUNT_DIR)/tools/lcc/src
 LOKISETUPDIR=misc/setup
 NSISDIR=misc/nsis
 SDLHDIR=$(MOUNT_DIR)/SDL2
@@ -285,10 +280,6 @@ INSTALL=install
 MKDIR=mkdir
 EXTRA_FILES=
 CLIENT_EXTRA_FILES=
-
-ifneq (,$(findstring "$(COMPILE_PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu" "gnu"))
-  TOOLS_CFLAGS += -DARCH_STRING=\"$(COMPILE_ARCH)\"
-endif
 
 ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu" "gnu"))
   BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
@@ -541,15 +532,6 @@ ifdef MINGW
   SHLIBLDFLAGS=-shared $(LDFLAGS)
 
   BINEXT=.exe
-
-  ifeq ($(CROSS_COMPILING),0)
-    TOOLS_BINEXT=.exe
-  endif
-
-  ifeq ($(COMPILE_PLATFORM),cygwin)
-    TOOLS_BINEXT=.exe
-    TOOLS_CC=$(CC)
-  endif
 
   LIBS= -lws2_32 -lwinmm -lpsapi
   # clang 3.4 doesn't support this
@@ -1233,163 +1215,6 @@ makedirs:
 	@if [ ! -d $(B)/renderergl2 ];then $(MKDIR) $(B)/renderergl2;fi
 	@if [ ! -d $(B)/renderergl2/glsl ];then $(MKDIR) $(B)/renderergl2/glsl;fi
 	@if [ ! -d $(B)/ded ];then $(MKDIR) $(B)/ded;fi
-	@if [ ! -d $(B)/tools ];then $(MKDIR) $(B)/tools;fi
-	@if [ ! -d $(B)/tools/asm ];then $(MKDIR) $(B)/tools/asm;fi
-	@if [ ! -d $(B)/tools/etc ];then $(MKDIR) $(B)/tools/etc;fi
-	@if [ ! -d $(B)/tools/rcc ];then $(MKDIR) $(B)/tools/rcc;fi
-	@if [ ! -d $(B)/tools/cpp ];then $(MKDIR) $(B)/tools/cpp;fi
-	@if [ ! -d $(B)/tools/lburg ];then $(MKDIR) $(B)/tools/lburg;fi
-
-#############################################################################
-# QVM BUILD TOOLS
-#############################################################################
-
-ifndef TOOLS_CC
-  # A compiler which probably produces native binaries
-  TOOLS_CC = gcc
-endif
-
-ifndef YACC
-  YACC = yacc
-endif
-
-TOOLS_OPTIMIZE = -g -Wall -fno-strict-aliasing
-TOOLS_CFLAGS += $(TOOLS_OPTIMIZE) \
-                -DTEMPDIR=\"$(TEMPDIR)\" -DSYSTEM=\"\" \
-                -I$(Q3LCCSRCDIR) \
-                -I$(LBURGDIR)
-TOOLS_LIBS =
-TOOLS_LDFLAGS =
-
-ifeq ($(GENERATE_DEPENDENCIES),1)
-  TOOLS_CFLAGS += -MMD
-endif
-
-define DO_YACC
-$(echo_cmd) "YACC $<"
-$(Q)$(YACC) $<
-$(Q)mv -f y.tab.c $@
-endef
-
-define DO_TOOLS_CC
-$(echo_cmd) "TOOLS_CC $<"
-$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) -o $@ -c $<
-endef
-
-define DO_TOOLS_CC_DAGCHECK
-$(echo_cmd) "TOOLS_CC_DAGCHECK $<"
-$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) -Wno-unused -o $@ -c $<
-endef
-
-LBURG       = $(B)/tools/lburg/lburg$(TOOLS_BINEXT)
-DAGCHECK_C  = $(B)/tools/rcc/dagcheck.c
-Q3RCC       = $(B)/tools/q3rcc$(TOOLS_BINEXT)
-Q3CPP       = $(B)/tools/q3cpp$(TOOLS_BINEXT)
-Q3LCC       = $(B)/tools/q3lcc$(TOOLS_BINEXT)
-Q3ASM       = $(B)/tools/q3asm$(TOOLS_BINEXT)
-
-LBURGOBJ= \
-  $(B)/tools/lburg/lburg.o \
-  $(B)/tools/lburg/gram.o
-
-# override GNU Make built-in rule for converting gram.y to gram.c
-%.c: %.y
-ifeq ($(USE_YACC),1)
-	$(DO_YACC)
-endif
-
-$(B)/tools/lburg/%.o: $(LBURGDIR)/%.c
-	$(DO_TOOLS_CC)
-
-$(LBURG): $(LBURGOBJ)
-	$(echo_cmd) "LD $@"
-	$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
-
-Q3RCCOBJ = \
-  $(B)/tools/rcc/alloc.o \
-  $(B)/tools/rcc/bind.o \
-  $(B)/tools/rcc/bytecode.o \
-  $(B)/tools/rcc/dag.o \
-  $(B)/tools/rcc/dagcheck.o \
-  $(B)/tools/rcc/decl.o \
-  $(B)/tools/rcc/enode.o \
-  $(B)/tools/rcc/error.o \
-  $(B)/tools/rcc/event.o \
-  $(B)/tools/rcc/expr.o \
-  $(B)/tools/rcc/gen.o \
-  $(B)/tools/rcc/init.o \
-  $(B)/tools/rcc/inits.o \
-  $(B)/tools/rcc/input.o \
-  $(B)/tools/rcc/lex.o \
-  $(B)/tools/rcc/list.o \
-  $(B)/tools/rcc/main.o \
-  $(B)/tools/rcc/null.o \
-  $(B)/tools/rcc/output.o \
-  $(B)/tools/rcc/prof.o \
-  $(B)/tools/rcc/profio.o \
-  $(B)/tools/rcc/simp.o \
-  $(B)/tools/rcc/stmt.o \
-  $(B)/tools/rcc/string.o \
-  $(B)/tools/rcc/sym.o \
-  $(B)/tools/rcc/symbolic.o \
-  $(B)/tools/rcc/trace.o \
-  $(B)/tools/rcc/tree.o \
-  $(B)/tools/rcc/types.o
-
-$(DAGCHECK_C): $(LBURG) $(Q3LCCSRCDIR)/dagcheck.md
-	$(echo_cmd) "LBURG $(Q3LCCSRCDIR)/dagcheck.md"
-	$(Q)$(LBURG) $(Q3LCCSRCDIR)/dagcheck.md $@
-
-$(B)/tools/rcc/dagcheck.o: $(DAGCHECK_C)
-	$(DO_TOOLS_CC_DAGCHECK)
-
-$(B)/tools/rcc/%.o: $(Q3LCCSRCDIR)/%.c
-	$(DO_TOOLS_CC)
-
-$(Q3RCC): $(Q3RCCOBJ)
-	$(echo_cmd) "LD $@"
-	$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
-
-Q3CPPOBJ = \
-  $(B)/tools/cpp/cpp.o \
-  $(B)/tools/cpp/lex.o \
-  $(B)/tools/cpp/nlist.o \
-  $(B)/tools/cpp/tokens.o \
-  $(B)/tools/cpp/macro.o \
-  $(B)/tools/cpp/eval.o \
-  $(B)/tools/cpp/include.o \
-  $(B)/tools/cpp/hideset.o \
-  $(B)/tools/cpp/getopt.o \
-  $(B)/tools/cpp/unix.o
-
-$(B)/tools/cpp/%.o: $(Q3CPPDIR)/%.c
-	$(DO_TOOLS_CC)
-
-$(Q3CPP): $(Q3CPPOBJ)
-	$(echo_cmd) "LD $@"
-	$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
-
-Q3LCCOBJ = \
-	$(B)/tools/etc/lcc.o \
-	$(B)/tools/etc/bytecode.o
-
-$(B)/tools/etc/%.o: $(Q3LCCETCDIR)/%.c
-	$(DO_TOOLS_CC)
-
-$(Q3LCC): $(Q3LCCOBJ) $(Q3RCC) $(Q3CPP)
-	$(echo_cmd) "LD $@"
-	$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $(Q3LCCOBJ) $(TOOLS_LIBS)
-
-Q3ASMOBJ = \
-  $(B)/tools/asm/q3asm.o \
-  $(B)/tools/asm/cmdlib.o
-
-$(B)/tools/asm/%.o: $(Q3ASMDIR)/%.c
-	$(DO_TOOLS_CC)
-
-$(Q3ASM): $(Q3ASMOBJ)
-	$(echo_cmd) "LD $@"
-	$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
 
 
 #############################################################################
@@ -2222,7 +2047,6 @@ endif
 #############################################################################
 
 OBJ = $(Q3OBJ) $(Q3ROBJ) $(Q3R2OBJ) $(Q3DOBJ) $(JPGOBJ)
-TOOLSOBJ = $(LBURGOBJ) $(Q3CPPOBJ) $(Q3RCCOBJ) $(Q3LCCOBJ) $(Q3ASMOBJ)
 STRINGOBJ = $(Q3R2STRINGOBJ)
 
 
@@ -2267,21 +2091,7 @@ clean2:
 	@rm -f $(STRINGOBJ)
 	@rm -f $(TARGETS)
 
-toolsclean: toolsclean-debug toolsclean-release
-
-toolsclean-debug:
-	@$(MAKE) toolsclean2 B=$(BD)
-
-toolsclean-release:
-	@$(MAKE) toolsclean2 B=$(BR)
-
-toolsclean2:
-	@echo "TOOLS_CLEAN $(B)"
-	@rm -f $(TOOLSOBJ)
-	@rm -f $(TOOLSOBJ_D_FILES)
-	@rm -f $(LBURG) $(DAGCHECK_C) $(Q3RCC) $(Q3CPP) $(Q3LCC) $(Q3ASM)
-
-distclean: clean toolsclean
+distclean: clean
 	@rm -rf $(BUILD_DIR)
 
 installer: release
@@ -2307,15 +2117,13 @@ dist:
 
 ifneq ($(B),)
   OBJ_D_FILES=$(filter %.d,$(OBJ:%.o=%.d))
-  TOOLSOBJ_D_FILES=$(filter %.d,$(TOOLSOBJ:%.o=%.d))
-  -include $(OBJ_D_FILES) $(TOOLSOBJ_D_FILES)
+  -include $(OBJ_D_FILES)
 endif
 
 .PHONY: all clean clean2 clean-debug clean-release copyfiles \
 	debug default dist distclean installer makedirs \
 	release targets \
-	toolsclean toolsclean2 toolsclean-debug toolsclean-release \
-	$(OBJ_D_FILES) $(TOOLSOBJ_D_FILES)
+	$(OBJ_D_FILES)
 
 # If the target name contains "clean", don't do a parallel build
 ifneq ($(findstring clean, $(MAKECMDGOALS)),)
