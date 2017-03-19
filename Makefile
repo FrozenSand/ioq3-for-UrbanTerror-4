@@ -115,6 +115,14 @@ ifndef MOUNT_DIR
 MOUNT_DIR=code
 endif
 
+ifndef EXTERNAL_DIR
+EXTERNAL_DIR=external
+endif
+
+ifndef LIBS_DIR
+LIBS_DIR=libs
+endif
+
 ifndef BUILD_DIR
 BUILD_DIR=build
 endif
@@ -199,10 +207,6 @@ ifndef USE_RENDERER_DLOPEN
 USE_RENDERER_DLOPEN=1
 endif
 
-ifndef USE_YACC
-USE_YACC=0
-endif
-
 ifndef DEBUG_CFLAGS
 DEBUG_CFLAGS=-ggdb -O0
 endif
@@ -222,16 +226,16 @@ ASMDIR=$(MOUNT_DIR)/asm
 SYSDIR=$(MOUNT_DIR)/sys
 BLIBDIR=$(MOUNT_DIR)/botlib
 NDIR=$(MOUNT_DIR)/null
-JPDIR=$(MOUNT_DIR)/jpeg-8c
-OGGDIR=$(MOUNT_DIR)/libogg-1.3.1
-VORBISDIR=$(MOUNT_DIR)/libvorbis-1.3.4
-OPUSDIR=$(MOUNT_DIR)/opus-1.1
-OPUSFILEDIR=$(MOUNT_DIR)/opusfile-0.5
-ZDIR=$(MOUNT_DIR)/zlib
+JPDIR=$(EXTERNAL_DIR)/jpeg-8c
+OGGDIR=$(EXTERNAL_DIR)/libogg-1.3.1
+VORBISDIR=$(EXTERNAL_DIR)/libvorbis-1.3.4
+OPUSDIR=$(EXTERNAL_DIR)/opus-1.1
+OPUSFILEDIR=$(EXTERNAL_DIR)/opusfile-0.5
+ZDIR=$(EXTERNAL_DIR)/zlib
 LOKISETUPDIR=misc/setup
 NSISDIR=misc/nsis
-SDLHDIR=$(MOUNT_DIR)/SDL2
-LIBSDIR=$(MOUNT_DIR)/libs
+SDLHDIR=$(EXTERNAL_DIR)/SDL2
+LIBSDIR=$(LIBS_DIR)
 
 bin_path=$(shell which $(1) 2> /dev/null)
 
