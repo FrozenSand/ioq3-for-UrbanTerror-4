@@ -1,9 +1,8 @@
 [Desktop Entry]
-Name=ioquake3
-Exec=ioquake3
-Icon=quake3
+Name=UrbanTerror
+Exec=urbanterror
+Icon=urbanterror
 Type=Application
 Terminal=false
 Encoding=UTF-8
 Categories=Game;ActionGame;
-X-SuSE-translate=false

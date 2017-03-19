@@ -1,0 +1,10 @@
+[Unit]
+Description=UrbanTerror server
+
+[Service]
+User=urbanterror
+ExecStart=/opt/urbanterror/ioq3ded +set dedicated 2
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

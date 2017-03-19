@@ -232,8 +232,6 @@ VORBISDIR=$(EXTERNAL_DIR)/libvorbis-1.3.4
 OPUSDIR=$(EXTERNAL_DIR)/opus-1.1
 OPUSFILEDIR=$(EXTERNAL_DIR)/opusfile-0.5
 ZDIR=$(EXTERNAL_DIR)/zlib
-LOKISETUPDIR=misc/setup
-NSISDIR=misc/nsis
 SDLHDIR=$(EXTERNAL_DIR)/SDL2
 LIBSDIR=$(LIBS_DIR)
 
@@ -2076,11 +2074,6 @@ ifneq ($(BUILD_SERVER),0)
 endif
 
 clean: clean-debug clean-release
-ifeq ($(PLATFORM),mingw32)
-	@$(MAKE) -C $(NSISDIR) clean
-else
-	@$(MAKE) -C $(LOKISETUPDIR) clean
-endif
 
 clean-debug:
 	@$(MAKE) clean2 B=$(BD)
@@ -2098,20 +2091,6 @@ clean2:
 distclean: clean
 	@rm -rf $(BUILD_DIR)
 
-installer: release
-ifdef MINGW
-	@$(MAKE) VERSION=$(VERSION) -C $(NSISDIR) V=$(V) \
-		SDLDLL=$(SDLDLL) \
-		USE_RENDERER_DLOPEN=$(USE_RENDERER_DLOPEN) \
-		USE_OPENAL_DLOPEN=$(USE_OPENAL_DLOPEN) \
-		USE_CURL_DLOPEN=$(USE_CURL_DLOPEN) \
-		USE_INTERNAL_OPUS=$(USE_INTERNAL_OPUS) \
-		USE_INTERNAL_ZLIB=$(USE_INTERNAL_ZLIB) \
-		USE_INTERNAL_JPEG=$(USE_INTERNAL_JPEG)
-else
-	@$(MAKE) VERSION=$(VERSION) -C $(LOKISETUPDIR) V=$(V)
-endif
-
 dist:
 	git archive --format zip --output $(CLIENTBIN)-$(VERSION).zip HEAD
 
@@ -2125,7 +2104,7 @@ ifneq ($(B),)
 endif
 
 .PHONY: all clean clean2 clean-debug clean-release copyfiles \
-	debug default dist distclean installer makedirs \
+	debug default dist distclean makedirs \
 	release targets \
 	$(OBJ_D_FILES)
 
