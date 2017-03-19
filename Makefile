@@ -12,7 +12,7 @@ ifeq ($(COMPILE_PLATFORM),sunos)
 endif
 
 ifndef BUILD_STANDALONE
-  BUILD_STANDALONE =
+  BUILD_STANDALONE =1
 endif
 ifndef BUILD_CLIENT
   BUILD_CLIENT     =
