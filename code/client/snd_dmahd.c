@@ -290,15 +290,31 @@ static float dmaHD_NormalizeSamplePosition(float t, int samples) {
 	while (t>=(float)samples) t-=(float)samples;
 	return t;
 }
-static int dmaHD_GetSampleRaw_8bit(int index, int samples, byte* data) 
+static int dmaHD_GetSampleRaw_8bitMono(int index, int samples, byte* data)
 {
 	if (index < 0) index += samples; else if (index >= samples) index -= samples;
 	return (int)(((byte)(data[index])-128)<<8);
 }
-static int dmaHD_GetSampleRaw_16bit(int index, int samples, byte* data) 
+static int dmaHD_GetSampleRaw_16bitMono(int index, int samples, byte* data)
 {
 	if (index < 0) index += samples; else if (index >= samples) index -= samples;
 	return (int)LittleShort(((short*)data)[index]);
+}
+static int dmaHD_GetSampleRaw_8bitStereo(int index, int samples, byte* data)
+{
+	int left, right;
+	if (index < 0) index += samples; else if (index >= samples) index -= samples;
+	left = (int)(((byte)(data[index * 2])-128)<<8);
+	right = (int)(((byte)(data[index * 2 + 1])-128)<<8);
+	return (left + right) / 2;
+}
+static int dmaHD_GetSampleRaw_16bitStereo(int index, int samples, byte* data)
+{
+	int left, right;
+	if (index < 0) index += samples; else if (index >= samples) index -= samples;
+	left = (int)LittleShort(((short*)data)[index * 2]);
+	right = (int)LittleShort(((short*)data)[index * 2 + 1]);
+	return (left + right) / 2;
 }
 
 // Get only decimal part (a - floor(a))
@@ -392,27 +408,27 @@ dmaHD_ResampleSfx
 resample / decimate to the current source rate
 ================
 */
-void dmaHD_ResampleSfx( sfx_t *sfx, int inrate, int inwidth, byte *data, qboolean compressed) 
+void dmaHD_ResampleSfx( sfx_t *sfx, int channels, int inrate, int inwidth, byte *data, qboolean compressed)
 {
 	short* buffer;
-	int (*dmaHD_GetSampleRaw)(int, int, byte*) = 
-		(inwidth == 2) ? dmaHD_GetSampleRaw_16bit : dmaHD_GetSampleRaw_8bit;
+	int (*dmaHD_GetSampleRaw)(int, int, byte*);
 	float stepscale, idx_smp, sample, bsample;
 	float lp_inva, lp_a, hp_a, lp_data, lp_last, hp_data, hp_last, hp_lastsample;
 	int outcount, idx_hp, idx_lp;
-	
+
 	stepscale = (float)inrate/(float)dma.speed;
 	outcount = (int)((float)sfx->soundLength / stepscale);
-
-
-
-
 
 	// Create secondary buffer for bass sound while performing lowpass filter;
 	buffer = dmaHD_AllocateSoundBuffer(outcount * 2);
 
 	// Check if this is a weapon sound.
 	sfx->weaponsound = (memcmp(sfx->soundName, "sound/weapons/", 14) == 0) ? qtrue : qfalse;
+
+	if (channels == 2)
+		dmaHD_GetSampleRaw = (inwidth == 2) ? dmaHD_GetSampleRaw_16bitStereo : dmaHD_GetSampleRaw_8bitStereo;
+	else
+		dmaHD_GetSampleRaw = (inwidth == 2) ? dmaHD_GetSampleRaw_16bitMono : dmaHD_GetSampleRaw_8bitMono;
 
 	// Get last sample from sound effect.
 	idx_smp = -(stepscale * 4.0f);
@@ -500,7 +516,7 @@ qboolean dmaHD_LoadSound(sfx_t *sfx)
 	sfx->soundCompressionMethod = 0;
 	sfx->soundLength = info.samples;
 	sfx->soundData = NULL;
-	dmaHD_ResampleSfx(sfx, info.rate, info.width, data + info.dataofs, qfalse);
+	dmaHD_ResampleSfx(sfx, info.channels, info.rate, info.width, data + info.dataofs, qfalse);
 	
 	// Free data allocated by Codec
 	Z_Free(data);
