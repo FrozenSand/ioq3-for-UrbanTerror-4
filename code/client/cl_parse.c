@@ -552,15 +552,14 @@ void CL_ParseGamestate( msg_t *msg ) {
 
 		PakList[strlen(PakList) - 2] = 0;
 
-		Cvar_Set("com_errorMessage", va(
+		Com_Error(ERR_DROP,
 			"^1WARNING! ^7Dangerous file(s) found in downloaded pk3%s:\n\n%s\n\n"
 			"You should go delete %s immediately. %s could lead to malicious code execution.",
 			fs_dangerousPaksFound == 1 ? "" : "s",
 			PakList,
 			fs_dangerousPaksFound == 1 ? "that file" : "those files",
-			fs_dangerousPaksFound == 1 ? "It" : "They"));
+			fs_dangerousPaksFound == 1 ? "It" : "They");
 
-		VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN);
 		return;
 	}
 
