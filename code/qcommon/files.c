@@ -193,8 +193,8 @@ static const unsigned pak_checksums[] = {
 static int pak_purechecksums[1];
 
 
-int foreignQVMsFound;
-char foreignQVMNames[MAX_ZPATH][MAX_SEARCH_PATHS];
+int dangerousPaksFound;
+char dangerousPakNames[MAX_ZPATH][MAX_SEARCH_PATHS];
 
 // if this is defined, the executable positively won't work with any paks other
 // than the demo pak, even if productid is present.  This is only used for our
@@ -503,6 +503,26 @@ static qboolean FS_CreatePath (char *OSPath) {
 
 /*
 =================
+FS_CheckFilenameIsMutable
+
+ERR_FATAL if trying to maniuplate a file with the platform library, QVM, or pk3 extension
+=================
+ */
+static void FS_CheckFilenameIsMutable( const char *filename,
+		const char *function )
+{
+	// Check if the filename ends with the library, QVM, or pk3 extension
+	if( COM_CompareExtension( filename, DLL_EXT )
+		|| COM_CompareExtension( filename, ".qvm" )
+		|| COM_CompareExtension( filename, ".pk3" ) )
+	{
+		Com_Error( ERR_FATAL, "%s: Not allowed to manipulate '%s' due "
+			"to %s extension", function, filename, COM_GetExtension( filename ) );
+	}
+}
+
+/*
+=================
 FS_CopyFile
 
 Copy a fully specified file from one place to another
@@ -556,6 +576,8 @@ FS_Remove
 ===========
 */
 void FS_Remove( const char *osPath ) {
+	FS_CheckFilenameIsMutable( osPath, __func__ );
+
 	remove( osPath );
 }
 
@@ -566,6 +588,8 @@ FS_HomeRemove
 ===========
 */
 void FS_HomeRemove( const char *homePath ) {
+	FS_CheckFilenameIsMutable( homePath, __func__ );
+
 	remove( FS_BuildOSPath( fs_homepath->string,
 			fs_gamedir, homePath ) );
 }
@@ -642,6 +666,8 @@ fileHandle_t FS_SV_FOpenFileWrite( const char *filename ) {
 	if ( fs_debug->integer ) {
 		Com_Printf( "FS_SV_FOpenFileWrite: %s\n", ospath );
 	}
+
+	FS_CheckFilenameIsMutable( ospath, __func__ );
 
 	if( FS_CreatePath( ospath ) ) {
 		return 0;
@@ -751,6 +777,8 @@ void FS_SV_Rename( const char *from, const char *to ) {
 		Com_Printf( "FS_SV_Rename: %s --> %s\n", from_ospath, to_ospath );
 	}
 
+	FS_CheckFilenameIsMutable( to_ospath, __func__ );
+
 	if (rename( from_ospath, to_ospath )) {
 		// Failed, try copying it and deleting the original
 		FS_CopyFile ( from_ospath, to_ospath );
@@ -782,6 +810,8 @@ void FS_Rename( const char *from, const char *to ) {
 	if ( fs_debug->integer ) {
 		Com_Printf( "FS_Rename: %s --> %s\n", from_ospath, to_ospath );
 	}
+
+	FS_CheckFilenameIsMutable( to_ospath, __func__ );
 
 	if (rename( from_ospath, to_ospath )) {
 		// Failed, try copying it and deleting the original
@@ -844,6 +874,8 @@ fileHandle_t FS_FOpenFileWrite( const char *filename ) {
 		Com_Printf( "FS_FOpenFileWrite: %s\n", ospath );
 	}
 
+	FS_CheckFilenameIsMutable( ospath, __func__ );
+
 	if( FS_CreatePath( ospath ) ) {
 		return 0;
 	}
@@ -889,6 +921,8 @@ fileHandle_t FS_FOpenFileAppend( const char *filename ) {
 	if ( fs_debug->integer ) {
 		Com_Printf( "FS_FOpenFileAppend: %s\n", ospath );
 	}
+
+	FS_CheckFilenameIsMutable( ospath, __func__ );
 
 	if( FS_CreatePath( ospath ) ) {
 		return 0;
@@ -961,6 +995,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 	FILE			*temp;
 	int				l;
 	char demoExt[16];
+	qboolean isLocalConfig, isQVM;
 
 	hash = 0;
 
@@ -968,11 +1003,21 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization\n" );
 	}
 
+	isLocalConfig = !Q_stricmp(filename, "autoexec.cfg") || !Q_stricmp(filename, "q3config.cfg");
+	isQVM = COM_CompareExtension(filename, ".qvm");
+
 	if ( file == NULL ) {
 		// just wants to see if file is there
 		for ( search = fs_searchpaths ; search ; search = search->next ) {
-			//
 			if ( search->pack ) {
+				// autoexec.cfg and q3config.cfg can only be loaded outside of pk3 files.
+				if (isLocalConfig)
+					continue;
+
+				// QVMs can't be loaded from pk3 in the "download" directory
+				if (isQVM && !Q_stricmp(search->pack->pakGamename, "download"))
+					continue;
+
 				hash = FS_HashFileName(filename, search->pack->hashSize);
 			}
 			// is the element a pak file?
@@ -1041,8 +1086,15 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 	fsh[*file].handleFiles.unique = uniqueFILE;
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
-		//
 		if ( search->pack ) {
+			// autoexec.cfg and q3config.cfg can only be loaded outside of pk3 files.
+			if (isLocalConfig)
+				continue;
+
+			// QVMs can't be loaded from pk3 in the "download" directory
+			if (isQVM && !Q_stricmp(search->pack->pakGamename, "download"))
+				continue;
+
 			hash = FS_HashFileName(filename, search->pack->hashSize);
 		}
 		// is the element a pak file?
@@ -1647,7 +1699,7 @@ Creates a new pak_t in the search chain for the contents
 of a zip file.
 =================
 */
-static pack_t *FS_LoadZipFile( char *zipfile, const char *basename )
+static pack_t *FS_LoadZipFile( char *zipfile, const char *basename, const char *gamename )
 {
 	fileInPack_t	*buildBuffer;
 	pack_t			*pack;
@@ -1661,7 +1713,7 @@ static pack_t *FS_LoadZipFile( char *zipfile, const char *basename )
 	int				fs_numHeaderLongs;
 	int				*fs_headerLongs;
 	char			*namePtr;
-	qboolean		alreadyForeign = qfalse;
+	qboolean		alreadydangerous = qfalse;
 
 	fs_numHeaderLongs = 0;
 
@@ -1707,6 +1759,7 @@ static pack_t *FS_LoadZipFile( char *zipfile, const char *basename )
 
 	Q_strncpyz( pack->pakFilename, zipfile, sizeof( pack->pakFilename ) );
 	Q_strncpyz( pack->pakBasename, basename, sizeof( pack->pakBasename ) );
+	Q_strncpyz( pack->pakGamename, gamename, sizeof( pack->pakGamename ) );
 
 	// strip .pk3 if needed
 	if ( strlen( pack->pakBasename ) > 4 && !Q_stricmp( pack->pakBasename + strlen( pack->pakBasename ) - 4, ".pk3" ) ) {
@@ -1724,17 +1777,27 @@ static pack_t *FS_LoadZipFile( char *zipfile, const char *basename )
 			break;
 		}
 
-		if (strstr(filename_inzip, ".qvm") && strstr(pack->pakFilename, "download/")) {
-			for (j = 0; j < foreignQVMsFound; j++) {
-				if (!strcmp(foreignQVMNames[j], pack->pakBasename)) {
-					alreadyForeign = qtrue;
+		if (!Q_stricmp(pack->pakGamename, "download") && (
+				COM_CompareExtension(filename_inzip, ".qvm") ||
+				!Q_stricmp(filename_inzip, "autoexec.cfg") ||
+				!Q_stricmp(filename_inzip, "q3config.cfg")))
+		{
+
+			for (j = 0; j < dangerousPaksFound; j++) {
+				if (!strcmp(dangerousPakNames[j], pack->pakBasename)) {
+					alreadydangerous = qtrue;
+					break;
 				}
 			}
 
-			if (!alreadyForeign) {
-				Com_sprintf(foreignQVMNames[foreignQVMsFound], MAX_ZPATH, pack->pakBasename);
-				foreignQVMsFound++;
+			if (!alreadydangerous) {
+				Q_strncpyz(dangerousPakNames[dangerousPaksFound], pack->pakBasename, MAX_ZPATH);
+				dangerousPaksFound++;
 			}
+
+			Com_Printf(S_COLOR_RED "Dangerous file %s found in %s\n",
+					filename_inzip,
+					pack->pakFilename);
 		}
 
 		if (file_info.uncompressed_size > 0) {
@@ -2464,10 +2527,8 @@ void FS_AddGameDirectory( const char *path, const char *dir ) {
 
 	for ( i = 0 ; i < numfiles ; i++ ) {
 		pakfile = FS_BuildOSPath( path, dir, pakfiles[i] );
-		if ( ( pak = FS_LoadZipFile( pakfile, pakfiles[i] ) ) == 0 )
+		if ( ( pak = FS_LoadZipFile( pakfile, pakfiles[i], dir ) ) == 0 )
 			continue;
-		// store the game name for downloading
-		strcpy(pak->pakGamename, dir);
 
 		search = Z_Malloc (sizeof(searchpath_t));
 		search->pack = pak;
@@ -2742,7 +2803,7 @@ static void FS_Startup( const char *gameName )
 
 	Com_Printf( "----- FS_Startup -----\n" );
 
-	foreignQVMsFound = 0;
+	dangerousPaksFound = 0;
 
 	fs_debug = Cvar_Get( "fs_debug", "0", 0 );
 	fs_basepath = Cvar_Get ("fs_basepath", Sys_DefaultInstallPath(), CVAR_INIT );

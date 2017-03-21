@@ -709,21 +709,21 @@ void CL_ParseGamestate( msg_t *msg ) {
 	// reinitialize the filesystem if the game directory has changed
 	FS_ConditionalRestart( clc.checksumFeed );
 
-	if (foreignQVMsFound) {
-		char QVMList[MAX_STRING_CHARS];
-		for (i = 0; i < foreignQVMsFound; i++) {
-			strcat(QVMList, va("%s.pk3, ", foreignQVMNames[i]));
+	if (dangerousPaksFound) {
+		char PakList[MAX_STRING_CHARS];
+		for (i = 0; i < dangerousPaksFound; i++) {
+			Q_strcat(PakList, sizeof(PakList), va("%s.pk3, ", dangerousPakNames[i]));
 		}
 
-		QVMList[strlen(QVMList) - 2] = 0;
+		PakList[strlen(PakList) - 2] = 0;
 
 		Cvar_Set("com_errorMessage", va(
-			"^1WARNING! ^7QVM found in downloaded pk3%s\n\n%s\n\n"
-			"You should go delete %s immediately. %s could contain malicious code.",
-			foreignQVMsFound == 1 ? ":" : "s:",
-			QVMList,
-			foreignQVMsFound == 1 ? "that file" : "those files",
-			foreignQVMsFound == 1 ? "It" : "They"));
+			"^1WARNING! ^7Dangerous file(s) found in downloaded pk3%s:\n\n%s\n\n"
+			"You should go delete %s immediately. %s could lead to malicious code execution.",
+			dangerousPaksFound == 1 ? "" : "s",
+			PakList,
+			dangerousPaksFound == 1 ? "that file" : "those files",
+			dangerousPaksFound == 1 ? "It" : "They"));
 
 		VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN);
 		return;
