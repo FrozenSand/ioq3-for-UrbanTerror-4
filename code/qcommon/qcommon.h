@@ -750,8 +750,8 @@ void	FS_FilenameCompletion( const char *dir, const char *ext,
 const char *FS_GetCurrentGameDir(void);
 qboolean FS_Which(const char *filename, void *searchPath);
 
-extern int	fs_foreignQVMsFound;
-extern char	fs_foreignQVMNames[MAX_ZPATH][MAX_SEARCH_PATHS];
+extern int	fs_dangerousPaksFound;
+extern char	fs_dangerousPakNames[MAX_ZPATH][MAX_SEARCH_PATHS];
 
 /*
 ==============================================================

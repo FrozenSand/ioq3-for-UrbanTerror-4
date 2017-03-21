@@ -544,21 +544,21 @@ void CL_ParseGamestate( msg_t *msg ) {
 
 	FS_ConditionalRestart(clc.checksumFeed, qfalse);
 
-	if (fs_foreignQVMsFound) {
-		char QVMList[MAX_STRING_CHARS] = {0};
-		for (i = 0; i < fs_foreignQVMsFound; i++) {
-			Q_strcat(QVMList, sizeof(QVMList), va("%s.pk3, ", fs_foreignQVMNames[i]));
+	if (fs_dangerousPaksFound) {
+		char PakList[MAX_STRING_CHARS];
+		for (i = 0; i < fs_dangerousPaksFound; i++) {
+			Q_strcat(PakList, sizeof(PakList), va("%s.pk3, ", fs_dangerousPakNames[i]));
 		}
 
-		QVMList[strlen(QVMList) - 2] = 0;
+		PakList[strlen(PakList) - 2] = 0;
 
 		Cvar_Set("com_errorMessage", va(
-			"^1WARNING! ^7QVM found in downloaded pk3%s\n\n%s\n\n"
-			"You should go delete %s immediately. %s could contain malicious code.",
-			fs_foreignQVMsFound == 1 ? ":" : "s:",
-			QVMList,
-			fs_foreignQVMsFound == 1 ? "that file" : "those files",
-			fs_foreignQVMsFound == 1 ? "It" : "They"));
+			"^1WARNING! ^7Dangerous file(s) found in downloaded pk3%s:\n\n%s\n\n"
+			"You should go delete %s immediately. %s could lead to malicious code execution.",
+			fs_dangerousPaksFound == 1 ? "" : "s",
+			PakList,
+			fs_dangerousPaksFound == 1 ? "that file" : "those files",
+			fs_dangerousPaksFound == 1 ? "It" : "They"));
 
 		VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN);
 		return;
