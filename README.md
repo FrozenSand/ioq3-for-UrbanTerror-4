@@ -17,7 +17,7 @@ This ioquake3 README can be found here: [README](README.ioq3.md).
 - [x] Disallow QVMs in download folder
 - [x] Fancy tabbed console
 - [x] dmaHD
-- [ ] Prompt before auto download
+- [x] Prompt before auto download
 - [ ] Client commands changes/additions
 - [ ] Alt-tab
 - [ ] r_minimize cvar

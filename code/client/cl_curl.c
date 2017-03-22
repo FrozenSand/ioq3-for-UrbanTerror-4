@@ -198,6 +198,11 @@ void CL_cURL_Cleanup(void)
 		qcurl_easy_cleanup(clc.downloadCURL);
 		clc.downloadCURL = NULL;
 	}
+
+	if (clc.download) {
+		FS_FCloseFile(clc.download);
+		clc.download = 0;
+	}
 }
 
 static int CL_cURL_CallbackProgress( void *dummy, double dltotal, double dlnow,
@@ -247,7 +252,6 @@ void CL_cURL_BeginDownload( const char *localName, const char *remoteURL )
 {
 	CURLMcode result;
 
-	clc.cURLUsed = qtrue;
 	Com_Printf("URL: %s\n", remoteURL);
 	Com_DPrintf("***** CL_cURL_BeginDownload *****\n"
 		"Localname: %s\n"
@@ -265,7 +269,6 @@ void CL_cURL_BeginDownload( const char *localName, const char *remoteURL )
 	Cvar_Set("cl_downloadCount", "0");
 	Cvar_SetValue("cl_downloadTime", cls.realtime);
 
-	clc.downloadBlock = 0; // Starting new file
 	clc.downloadCount = 0;
 
 	clc.downloadCURL = qcurl_easy_init();
@@ -315,7 +318,7 @@ void CL_cURL_BeginDownload( const char *localName, const char *remoteURL )
 		return;
 	}
 
-	if(!(clc.sv_allowDownload & DLF_NO_DISCONNECT) &&
+	if(!(cl_allowDownload->integer & DLF_NO_DISCONNECT) &&
 		!clc.cURLDisconnected) {
 
 		CL_AddReliableCommand("disconnect", qtrue);

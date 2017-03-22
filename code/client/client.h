@@ -199,21 +199,19 @@ typedef struct {
 	char		downloadTempName[MAX_OSPATH];
 	char		downloadName[MAX_OSPATH];
 #ifdef USE_CURL
+	qboolean	dlquerying; // if true, we're expecting the user to respond to the download prompt
 	qboolean	cURLEnabled;
-	qboolean	cURLUsed;
 	qboolean	cURLDisconnected;
 	char		downloadURL[MAX_OSPATH];
 	CURL		*downloadCURL;
 	CURLM		*downloadCURLM;
-#endif /* USE_CURL */
-	int		sv_allowDownload;
 	char		sv_dlURL[MAX_CVAR_VALUE_STRING];
-	int			downloadNumber;
-	int			downloadBlock;	// block we are waiting for
-	int			downloadCount;	// how many bytes we got
-	int			downloadSize;	// how many bytes we got
+	int			downloadCount;	// how many bytes we got so far
+	int			downloadSize;	// how many bytes there are total
+	char		mapname[MAX_CVAR_VALUE_STRING];
 	char		downloadList[MAX_INFO_STRING]; // list of paks we need to download
 	qboolean	downloadRestart;	// if true, we need to do another FS_Restart because we downloaded a pak
+#endif /* USE_CURL */
 
 	// demo information
 	char		demoName[MAX_QPATH];
@@ -485,7 +483,11 @@ void CL_ReadDemoMessage( void );
 void CL_StopRecord_f(void);
 
 void CL_InitDownloads(void);
+
+#ifdef USE_CURL
 void CL_NextDownload(void);
+void CL_DownloadMenu(int key);
+#endif
 
 void CL_GetPing( int n, char *buf, int buflen, int *pingtime );
 void CL_GetPingInfo( int n, char *buf, int buflen );

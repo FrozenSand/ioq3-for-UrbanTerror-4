@@ -36,7 +36,6 @@ cvar_t	*sv_timeout;			// seconds without any message
 cvar_t	*sv_zombietime;			// seconds to sink messages after disconnect
 cvar_t	*sv_rconPassword;		// password for remote server commands
 cvar_t	*sv_privatePassword;		// password for the privateClient slots
-cvar_t	*sv_allowDownload;
 cvar_t	*sv_maxclients;
 
 cvar_t	*sv_privateClients;		// number of clients reserved for password

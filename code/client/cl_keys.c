@@ -1264,6 +1264,14 @@ void CL_KeyDownEvent( int key, unsigned time )
 		return;
 	}
 
+#ifdef USE_CURL
+	// This is for the hacked download query, whether user trusts data from server
+	if (clc.dlquerying && !(Key_GetCatcher() & KEYCATCH_CONSOLE))
+	{
+		CL_DownloadMenu(key);
+		return;
+	}
+#endif
 
 	// keys can still be used for bound actions
 	if ( ( key < 128 || key == K_MOUSE1 ) &&

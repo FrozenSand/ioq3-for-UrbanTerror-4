@@ -442,16 +442,20 @@ CL_ParseServerInfo
 */
 static void CL_ParseServerInfo(void)
 {
+#ifdef USE_CURL
 	const char *serverInfo;
 
 	serverInfo = cl.gameState.stringData
 		+ cl.gameState.stringOffsets[ CS_SERVERINFO ];
 
-	clc.sv_allowDownload = atoi(Info_ValueForKey(serverInfo,
-		"sv_allowDownload"));
 	Q_strncpyz(clc.sv_dlURL,
 		Info_ValueForKey(serverInfo, "sv_dlURL"),
 		sizeof(clc.sv_dlURL));
+
+	Q_strncpyz(clc.mapname,
+		Info_ValueForKey(serverInfo, "mapname"),
+		sizeof(clc.mapname));
+#endif
 }
 
 /*
@@ -573,102 +577,6 @@ void CL_ParseGamestate( msg_t *msg ) {
 
 
 //=====================================================================
-
-/*
-=====================
-CL_ParseDownload
-
-A download message has been received from the server
-=====================
-*/
-void CL_ParseDownload ( msg_t *msg ) {
-	int		size;
-	unsigned char data[MAX_MSGLEN];
-	uint16_t block;
-
-	if (!*clc.downloadTempName) {
-		Com_Printf("Server sending download, but no download was requested\n");
-		CL_AddReliableCommand("stopdl", qfalse);
-		return;
-	}
-
-	// read the data
-	block = MSG_ReadShort ( msg );
-
-	if(!block && !clc.downloadBlock)
-	{
-		// block zero is special, contains file size
-		clc.downloadSize = MSG_ReadLong ( msg );
-
-		Cvar_SetValue( "cl_downloadSize", clc.downloadSize );
-
-		if (clc.downloadSize < 0)
-		{
-			Com_Error( ERR_DROP, "%s", MSG_ReadString( msg ) );
-			return;
-		}
-	}
-
-	size = MSG_ReadShort ( msg );
-	if (size < 0 || size > sizeof(data))
-	{
-		Com_Error(ERR_DROP, "CL_ParseDownload: Invalid size %d for download chunk", size);
-		return;
-	}
-	
-	MSG_ReadData(msg, data, size);
-
-	if((clc.downloadBlock & 0xFFFF) != block)
-	{
-		Com_DPrintf( "CL_ParseDownload: Expected block %d, got %d\n", (clc.downloadBlock & 0xFFFF), block);
-		return;
-	}
-
-	// open the file if not opened yet
-	if (!clc.download)
-	{
-		clc.download = FS_SV_FOpenFileWrite( clc.downloadTempName );
-
-		if (!clc.download) {
-			Com_Printf( "Could not create %s\n", clc.downloadTempName );
-			CL_AddReliableCommand("stopdl", qfalse);
-			CL_NextDownload();
-			return;
-		}
-	}
-
-	if (size)
-		FS_Write( data, size, clc.download );
-
-	CL_AddReliableCommand(va("nextdl %d", clc.downloadBlock), qfalse);
-	clc.downloadBlock++;
-
-	clc.downloadCount += size;
-
-	// So UI gets access to it
-	Cvar_SetValue( "cl_downloadCount", clc.downloadCount );
-
-	if (!size) { // A zero length block means EOF
-		if (clc.download) {
-			FS_FCloseFile( clc.download );
-			clc.download = 0;
-
-			// rename the file
-			FS_SV_Rename ( clc.downloadTempName, clc.downloadName, qfalse );
-		}
-
-		// send intentions now
-		// We need this because without it, we would hold the last nextdl and then start
-		// loading right away.  If we take a while to load, the server is happily trying
-		// to send us that last block over and over.
-		// Write it twice to help make sure we acknowledge the download
-		CL_WritePacket();
-		CL_WritePacket();
-
-		// get another file if needed
-		CL_NextDownload ();
-	}
-}
 
 #ifdef USE_VOIP
 static
@@ -933,7 +841,7 @@ void CL_ParseServerMessage( msg_t *msg ) {
 			CL_ParseSnapshot( msg );
 			break;
 		case svc_download:
-			CL_ParseDownload( msg );
+			// We don't use support UDP downloads
 			break;
 		case svc_voipSpeex:
 #ifdef USE_VOIP
