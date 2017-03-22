@@ -23,8 +23,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "server.h"
 
-static void SV_CloseDownload( client_t *cl );
-
 /*
 =================
 SV_GetChallenge
@@ -648,7 +646,6 @@ void SV_FreeClient(client_t *client)
 #endif
 
 	SV_Netchan_FreeQueue(client);
-	SV_CloseDownload(client);
 }
 
 /*
@@ -845,47 +842,6 @@ CLIENT COMMAND EXECUTION
 
 /*
 ==================
-SV_CloseDownload
-
-clear/free any download vars
-==================
-*/
-static void SV_CloseDownload( client_t *cl ) {
-	int i;
-
-	// EOF
-	if (cl->download) {
-		FS_FCloseFile( cl->download );
-	}
-	cl->download = 0;
-	*cl->downloadName = 0;
-
-	// Free the temporary buffer space
-	for (i = 0; i < MAX_DOWNLOAD_WINDOW; i++) {
-		if (cl->downloadBlocks[i]) {
-			Z_Free(cl->downloadBlocks[i]);
-			cl->downloadBlocks[i] = NULL;
-		}
-	}
-
-}
-
-/*
-==================
-SV_StopDownload_f
-
-Abort a download if in progress
-==================
-*/
-static void SV_StopDownload_f( client_t *cl ) {
-	if (*cl->downloadName)
-		Com_DPrintf( "clientDownload: %d : file \"%s\" aborted\n", (int) (cl - svs.clients), cl->downloadName );
-
-	SV_CloseDownload( cl );
-}
-
-/*
-==================
 SV_DoneDownload_f
 
 Downloads are finished
@@ -898,241 +854,6 @@ static void SV_DoneDownload_f( client_t *cl ) {
 	Com_DPrintf( "clientDownload: %s Done\n", cl->name);
 	// resend the game state to update any clients that entered during the download
 	SV_SendClientGameState(cl);
-}
-
-/*
-==================
-SV_NextDownload_f
-
-The argument will be the last acknowledged block from the client, it should be
-the same as cl->downloadClientBlock
-==================
-*/
-static void SV_NextDownload_f( client_t *cl )
-{
-	int block = atoi( Cmd_Argv(1) );
-
-	if (block == cl->downloadClientBlock) {
-		Com_DPrintf( "clientDownload: %d : client acknowledge of block %d\n", (int) (cl - svs.clients), block );
-
-		// Find out if we are done.  A zero-length block indicates EOF
-		if (cl->downloadBlockSize[cl->downloadClientBlock % MAX_DOWNLOAD_WINDOW] == 0) {
-			Com_Printf( "clientDownload: %d : file \"%s\" completed\n", (int) (cl - svs.clients), cl->downloadName );
-			SV_CloseDownload( cl );
-			return;
-		}
-
-		cl->downloadSendTime = svs.time;
-		cl->downloadClientBlock++;
-		return;
-	}
-	// We aren't getting an acknowledge for the correct block, drop the client
-	// FIXME: this is bad... the client will never parse the disconnect message
-	//			because the cgame isn't loaded yet
-	SV_DropClient( cl, "broken download" );
-}
-
-/*
-==================
-SV_BeginDownload_f
-==================
-*/
-static void SV_BeginDownload_f( client_t *cl ) {
-
-	// Kill any existing download
-	SV_CloseDownload( cl );
-
-	// cl->downloadName is non-zero now, SV_WriteDownloadToClient will see this and open
-	// the file itself
-	Q_strncpyz( cl->downloadName, Cmd_Argv(1), sizeof(cl->downloadName) );
-}
-
-/*
-==================
-SV_WriteDownloadToClient
-
-Check to see if the client wants a file, open it if needed and start pumping the client
-Fill up msg with data, return number of download blocks added
-==================
-*/
-int SV_WriteDownloadToClient(client_t *cl, msg_t *msg)
-{
-	int curindex;
-	int unreferenced = 1;
-	char errorMessage[1024];
-	char pakbuf[MAX_QPATH], *pakptr;
-	int numRefPaks;
-
-	if (!*cl->downloadName)
-		return 0;	// Nothing being downloaded
-
-	if(!cl->download)
-	{
-		qboolean gamePak = qfalse;
-	
- 		// Chop off filename extension.
-		Com_sprintf(pakbuf, sizeof(pakbuf), "%s", cl->downloadName);
-		pakptr = strrchr(pakbuf, '.');
-		
-		if(pakptr)
-		{
-			*pakptr = '\0';
-
-			// Check for pk3 filename extension
-			if(!Q_stricmp(pakptr + 1, "pk3"))
-			{
-				const char *referencedPaks = FS_ReferencedPakNames();
-
-				// Check whether the file appears in the list of referenced
-				// paks to prevent downloading of arbitrary files.
-				Cmd_TokenizeStringIgnoreQuotes(referencedPaks);
-				numRefPaks = Cmd_Argc();
-
-				for(curindex = 0; curindex < numRefPaks; curindex++)
-				{
-					if(!FS_FilenameCompare(Cmd_Argv(curindex), pakbuf))
-					{
-						unreferenced = 0;
-
-						// now that we know the file is referenced,
-						// check whether it's legal to download it.
-						gamePak = FS_GamePak(pakbuf);
-						break;
-					}
-				}
-			}
-		}
-
-		cl->download = 0;
-
-		// We open the file here
-		if ( !(sv_allowDownload->integer & DLF_ENABLE) ||
-			(sv_allowDownload->integer & DLF_NO_UDP) ||
-			gamePak || unreferenced ||
-			( cl->downloadSize = FS_SV_FOpenFileRead( cl->downloadName, &cl->download ) ) < 0 ) {
-			// cannot auto-download file
-			if(unreferenced)
-			{
-				Com_Printf("clientDownload: %d : \"%s\" is not referenced and cannot be downloaded.\n", (int) (cl - svs.clients), cl->downloadName);
-				Com_sprintf(errorMessage, sizeof(errorMessage), "File \"%s\" is not referenced and cannot be downloaded.", cl->downloadName);
-			}
-			else if (gamePak) {
-				Com_Printf("clientDownload: %d : \"%s\" cannot download game pk3 files\n", (int) (cl - svs.clients), cl->downloadName);
-				Com_sprintf(errorMessage, sizeof(errorMessage), "Cannot autodownload game pk3 file \"%s\"", cl->downloadName);
-			}
-			else if ( !(sv_allowDownload->integer & DLF_ENABLE) ||
-				(sv_allowDownload->integer & DLF_NO_UDP) ) {
-
-				Com_Printf("clientDownload: %d : \"%s\" download disabled\n", (int) (cl - svs.clients), cl->downloadName);
-				if (sv_pure->integer) {
-					Com_sprintf(errorMessage, sizeof(errorMessage), "Could not download \"%s\" because autodownloading is disabled on the server.\n\n"
-										"You will need to get this file elsewhere before you "
-										"can connect to this pure server.\n", cl->downloadName);
-				} else {
-					Com_sprintf(errorMessage, sizeof(errorMessage), "Could not download \"%s\" because autodownloading is disabled on the server.\n\n"
-                    "The server you are connecting to is not a pure server, "
-                    "set autodownload to No in your settings and you might be "
-                    "able to join the game anyway.\n", cl->downloadName);
-				}
-			} else {
-        // NOTE TTimo this is NOT supposed to happen unless bug in our filesystem scheme?
-        //   if the pk3 is referenced, it must have been found somewhere in the filesystem
-				Com_Printf("clientDownload: %d : \"%s\" file not found on server\n", (int) (cl - svs.clients), cl->downloadName);
-				Com_sprintf(errorMessage, sizeof(errorMessage), "File \"%s\" not found on server for autodownloading.\n", cl->downloadName);
-			}
-			MSG_WriteByte( msg, svc_download );
-			MSG_WriteShort( msg, 0 ); // client is expecting block zero
-			MSG_WriteLong( msg, -1 ); // illegal file size
-			MSG_WriteString( msg, errorMessage );
-
-			*cl->downloadName = 0;
-			
-			if(cl->download)
-				FS_FCloseFile(cl->download);
-			
-			return 1;
-		}
- 
-		Com_Printf( "clientDownload: %d : beginning \"%s\"\n", (int) (cl - svs.clients), cl->downloadName );
-		
-		// Init
-		cl->downloadCurrentBlock = cl->downloadClientBlock = cl->downloadXmitBlock = 0;
-		cl->downloadCount = 0;
-		cl->downloadEOF = qfalse;
-	}
-
-	// Perform any reads that we need to
-	while (cl->downloadCurrentBlock - cl->downloadClientBlock < MAX_DOWNLOAD_WINDOW &&
-		cl->downloadSize != cl->downloadCount) {
-
-		curindex = (cl->downloadCurrentBlock % MAX_DOWNLOAD_WINDOW);
-
-		if (!cl->downloadBlocks[curindex])
-			cl->downloadBlocks[curindex] = Z_Malloc(MAX_DOWNLOAD_BLKSIZE);
-
-		cl->downloadBlockSize[curindex] = FS_Read( cl->downloadBlocks[curindex], MAX_DOWNLOAD_BLKSIZE, cl->download );
-
-		if (cl->downloadBlockSize[curindex] < 0) {
-			// EOF right now
-			cl->downloadCount = cl->downloadSize;
-			break;
-		}
-
-		cl->downloadCount += cl->downloadBlockSize[curindex];
-
-		// Load in next block
-		cl->downloadCurrentBlock++;
-	}
-
-	// Check to see if we have eof condition and add the EOF block
-	if (cl->downloadCount == cl->downloadSize &&
-		!cl->downloadEOF &&
-		cl->downloadCurrentBlock - cl->downloadClientBlock < MAX_DOWNLOAD_WINDOW) {
-
-		cl->downloadBlockSize[cl->downloadCurrentBlock % MAX_DOWNLOAD_WINDOW] = 0;
-		cl->downloadCurrentBlock++;
-
-		cl->downloadEOF = qtrue;  // We have added the EOF block
-	}
-
-	if (cl->downloadClientBlock == cl->downloadCurrentBlock)
-		return 0; // Nothing to transmit
-
-	// Write out the next section of the file, if we have already reached our window,
-	// automatically start retransmitting
-	if (cl->downloadXmitBlock == cl->downloadCurrentBlock)
-	{
-		// We have transmitted the complete window, should we start resending?
-		if (svs.time - cl->downloadSendTime > 1000)
-			cl->downloadXmitBlock = cl->downloadClientBlock;
-		else
-			return 0;
-	}
-
-	// Send current block
-	curindex = (cl->downloadXmitBlock % MAX_DOWNLOAD_WINDOW);
-
-	MSG_WriteByte( msg, svc_download );
-	MSG_WriteShort( msg, cl->downloadXmitBlock );
-
-	// block zero is special, contains file size
-	if ( cl->downloadXmitBlock == 0 )
-		MSG_WriteLong( msg, cl->downloadSize );
-
-	MSG_WriteShort( msg, cl->downloadBlockSize[curindex] );
-
-	// Write the block
-	if(cl->downloadBlockSize[curindex])
-		MSG_WriteData(msg, cl->downloadBlocks[curindex], cl->downloadBlockSize[curindex]);
-
-	Com_DPrintf( "clientDownload: %d : writing block %d\n", (int) (cl - svs.clients), cl->downloadXmitBlock );
-
-	// Move on to the next block
-	// It will get sent with next snap shot.  The rate will keep us in line.
-	cl->downloadXmitBlock++;
-	cl->downloadSendTime = svs.time;
-
-	return 1;
 }
 
 /*
@@ -1168,44 +889,6 @@ int SV_SendQueuedMessages(void)
 	return retval;
 }
 
-
-/*
-==================
-SV_SendDownloadMessages
-
-Send one round of download messages to all clients
-==================
-*/
-
-int SV_SendDownloadMessages(void)
-{
-	int i, numDLs = 0, retval;
-	client_t *cl;
-	msg_t msg;
-	byte msgBuffer[MAX_MSGLEN];
-	
-	for(i=0; i < sv_maxclients->integer; i++)
-	{
-		cl = &svs.clients[i];
-		
-		if(cl->state && *cl->downloadName)
-		{
-			MSG_Init(&msg, msgBuffer, sizeof(msgBuffer));
-			MSG_WriteLong(&msg, cl->lastClientCommand);
-			
-			retval = SV_WriteDownloadToClient(cl, &msg);
-				
-			if(retval)
-			{
-				MSG_WriteByte(&msg, svc_EOF);
-				SV_Netchan_Transmit(cl, &msg);
-				numDLs += retval;
-			}
-		}
-	}
-
-	return numDLs;
-}
 
 /*
 =================
@@ -1553,9 +1236,6 @@ static ucmd_t ucmds[] = {
 	{"disconnect", SV_Disconnect_f},
 	{"cp", SV_VerifyPaks_f},
 	{"vdr", SV_ResetPureClient_f},
-	{"download", SV_BeginDownload_f},
-	{"nextdl", SV_NextDownload_f},
-	{"stopdl", SV_StopDownload_f},
 	{"donedl", SV_DoneDownload_f},
 
 #ifdef USE_VOIP
@@ -1921,8 +1601,6 @@ void SV_UserVoip(client_t *cl, msg_t *msg, qboolean ignoreData)
 			continue;  // client is ignoring everyone.
 		else if (client->ignoreVoipFromClient[sender])
 			continue;  // client is ignoring this talker.
-		else if (*cl->downloadName)   // !!! FIXME: possible to DoS?
-			continue;  // no VoIP allowed if downloading, to save bandwidth.
 
 		if(Com_IsVoipTarget(recips, sizeof(recips), i))
 			flags |= VOIP_DIRECT;
@@ -2004,17 +1682,7 @@ void SV_ExecuteClientMessage( client_t *cl, msg_t *msg ) {
 	}
 	// if this is a usercmd from a previous gamestate,
 	// ignore it or retransmit the current gamestate
-	// 
-	// if the client was downloading, let it stay at whatever serverId and
-	// gamestate it was at.  This allows it to keep downloading even when
-	// the gamestate changes.  After the download is finished, we'll
-	// notice and send it a new game state
-	//
-	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=536
-	// don't drop as long as previous command was a nextdl, after a dl is done, downloadName is set back to ""
-	// but we still need to read the next message to move to next download or send gamestate
-	// I don't like this hack though, it must have been working fine at some point, suspecting the fix is somewhere else
-	if ( serverId != sv.serverId && !*cl->downloadName && !strstr(cl->lastClientCommandString, "nextdl") ) {
+	if ( serverId != sv.serverId ) {
 		if ( serverId >= sv.restartedServerId && serverId < sv.serverId ) { // TTimo - use a comparison here to catch multiple map_restart
 			// they just haven't caught the map_restart yet
 			Com_DPrintf("%s : ignoring pre map_restart / outdated client message\n", cl->name);
