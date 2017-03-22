@@ -39,9 +39,9 @@ float Com_Clamp( float min, float max, float value ) {
 COM_SkipPath
 ============
 */
-char *COM_SkipPath (char *pathname)
+const char *COM_SkipPath (const char *pathname)
 {
-	char	*last;
+	const char	*last;
 	
 	last = pathname;
 	while (*pathname)
