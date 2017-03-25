@@ -256,6 +256,7 @@ static	cvar_t		*fs_basepath;
 static	cvar_t		*fs_basegame;
 static	cvar_t		*fs_gamedirvar;
 static	searchpath_t	*fs_searchpaths;
+static	cvar_t		*fs_lowPriorityDownloads;
 static	int			fs_readCount;			// total bytes read
 static	int			fs_loadCount;			// total files read
 static	int			fs_loadStack;			// total files in memory
@@ -3342,6 +3343,8 @@ static void FS_Startup( const char *gameName )
 	fs_debug = Cvar_Get( "fs_debug", "0", 0 );
 	fs_basepath = Cvar_Get ("fs_basepath", Sys_DefaultInstallPath(), CVAR_INIT|CVAR_PROTECTED );
 	fs_basegame = Cvar_Get ("fs_basegame", "", CVAR_INIT );
+	fs_lowPriorityDownloads = Cvar_Get ("fs_lowPriorityDownloads", "1", CVAR_ARCHIVE|CVAR_LATCH);
+
 	homePath = Sys_DefaultHomePath();
 	if (!homePath || !homePath[0]) {
 		homePath = fs_basepath->string;
@@ -3350,12 +3353,17 @@ static void FS_Startup( const char *gameName )
 	fs_gamedirvar = Cvar_Get ("fs_game", "", CVAR_INIT|CVAR_SYSTEMINFO );
 
 	// add search path elements in reverse priority order
+
+	if (fs_lowPriorityDownloads->integer) {
+		// put the downloaded paks at the lowest priority so they don't override anything
+		FS_AddGameDirectory(va("%s/%s", fs_homepath->string, gameName), "download");
+	}
+
 	fs_steampath = Cvar_Get ("fs_steampath", Sys_SteamPath(), CVAR_INIT|CVAR_PROTECTED );
 	if (fs_steampath->string[0]) {
 		FS_AddGameDirectory( fs_steampath->string, gameName );
 	}
 	if (fs_basepath->string[0]) {
-		FS_AddGameDirectory(va("%s/%s", fs_basepath->string, gameName), "download");
 		FS_AddGameDirectory( fs_basepath->string, gameName );
 	}
 	// fs_homepath is somewhat particular to *nix systems, only add if relevant
@@ -3370,8 +3378,11 @@ static void FS_Startup( const char *gameName )
 	// NOTE: same filtering below for mods and basegame
 	if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string,fs_basepath->string)) {
 		FS_CreatePath ( fs_homepath->string );
-		FS_AddGameDirectory(va("%s/%s", fs_homepath->string, gameName), "download");
 		FS_AddGameDirectory ( fs_homepath->string, gameName );
+	}
+
+	if (!fs_lowPriorityDownloads->integer) {
+		FS_AddGameDirectory(va("%s/%s", fs_homepath->string, gameName), "download");
 	}
 
 	// check for additional base game so mods can be based upon other mods
