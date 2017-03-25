@@ -369,3 +369,7 @@ char *Sys_DefaultInstallPath(void)
 	return Sys_Cwd();
 }
 
+char *Sys_DefaultLibPath(void)
+{
+	return Sys_Cwd();
+}
