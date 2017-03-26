@@ -225,6 +225,7 @@ typedef struct {
 	int				numfiles;					// number of files in pk3
 	int				referenced;					// referenced file flags
 	int				hashSize;					// hash table size (power of 2)
+	qboolean		downloaded;					// pak comes from a download directory and can't be trusted
 	fileInPack_t*	*hashTable;					// hash table
 	fileInPack_t*	buildBuffer;				// buffer with the filenames etc.
 } pack_t;
@@ -1161,8 +1162,8 @@ long FS_FOpenFileReadDir(const char *filename, searchpath_t *search, fileHandle_
 		isQVM = COM_CompareExtension(filename, ".qvm");
 
 		// autoexec.cfg and q3config.cfg can only be loaded outside of pk3 files.
-		// QVMs can't be loaded from pk3 in the "download" directory
-		if (isLocalConfig || (isQVM && !Q_stricmp(search->pack->pakGamename, "download"))) {
+		// QVMs can't be loaded from pk3 in the download directory
+		if (isLocalConfig || (isQVM && search->pack->downloaded)) {
 			if (file == NULL)
 				return 0;
 			*file = 0;
@@ -2056,6 +2057,7 @@ static pack_t *FS_LoadZipFile(const char *zipfile, const char *basename, const c
 	int				*fs_headerLongs;
 	char			*namePtr;
 	qboolean		alreadydangerous = qfalse;
+	char			*download;
 
 	fs_numHeaderLongs = 0;
 
@@ -2101,6 +2103,15 @@ static pack_t *FS_LoadZipFile(const char *zipfile, const char *basename, const c
 	Q_strncpyz( pack->pakBasename, basename, sizeof( pack->pakBasename ) );
 	Q_strncpyz( pack->pakGamename, gamename, sizeof( pack->pakGamename ) );
 
+	download = strrchr(pack->pakGamename, '/');
+
+	if (download && !strcmp(download, "/download")) {
+		pack->downloaded = qtrue;
+		*download = 0; // strip the /download suffix from the gamename
+	} else {
+		pack->downloaded = qfalse;
+	}
+
 	// strip .pk3 if needed
 	if ( strlen( pack->pakBasename ) > 4 && !Q_stricmp( pack->pakBasename + strlen( pack->pakBasename ) - 4, ".pk3" ) ) {
 		pack->pakBasename[strlen( pack->pakBasename ) - 4] = 0;
@@ -2117,10 +2128,9 @@ static pack_t *FS_LoadZipFile(const char *zipfile, const char *basename, const c
 			break;
 		}
 
-		if (!Q_stricmp(pack->pakGamename, "download") && (
-				COM_CompareExtension(filename_inzip, ".qvm") ||
-				!Q_stricmp(filename_inzip, "autoexec.cfg") ||
-				!Q_stricmp(filename_inzip, "q3config.cfg")))
+		if (pack->downloaded && (COM_CompareExtension(filename_inzip, ".qvm")
+		                         || !Q_stricmp(filename_inzip, "autoexec.cfg")
+		                         || !Q_stricmp(filename_inzip, "q3config.cfg")))
 		{
 
 			for (j = 0; j < fs_dangerousPaksFound; j++) {
@@ -3356,7 +3366,7 @@ static void FS_Startup( const char *gameName )
 
 	if (fs_lowPriorityDownloads->integer) {
 		// put the downloaded paks at the lowest priority so they don't override anything
-		FS_AddGameDirectory(va("%s/%s", fs_homepath->string, gameName), "download");
+		FS_AddGameDirectory(fs_homepath->string, va("%s/download", gameName));
 	}
 
 	fs_steampath = Cvar_Get ("fs_steampath", Sys_SteamPath(), CVAR_INIT|CVAR_PROTECTED );
@@ -3382,7 +3392,7 @@ static void FS_Startup( const char *gameName )
 	}
 
 	if (!fs_lowPriorityDownloads->integer) {
-		FS_AddGameDirectory(va("%s/%s", fs_homepath->string, gameName), "download");
+		FS_AddGameDirectory(fs_homepath->string, va("%s/download", gameName));
 	}
 
 	// check for additional base game so mods can be based upon other mods
