@@ -434,7 +434,7 @@ void SV_DirectConnect( netadr_t from ) {
 
 		if ( !Sys_IsLANAddress( from ) ) {
 			// reject clients with too many connections from the same IP
-			for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++) {
+			for (cl=svs.clients ; cl < svs.clients + sv_maxclients->integer ; cl++) {
 				if ( cl->state == CS_FREE ) {
 					continue;
 				}

@@ -2516,9 +2516,7 @@ void CL_InitDownloads(void) {
 
 		Com_Printf("Need paks: %s\n", clc.downloadList );
 
-		Com_Printf(S_COLOR_RED "download clc state: %d -> %d\n", clc.state, CA_CONNECTED);
 		clc.state = CA_CONNECTED;
-
 
 		CL_PromptDownload();
 		return;
