@@ -542,7 +542,7 @@ ifeq ($(PLATFORM),freebsd)
    endif
 
   # flags
-  BASE_CFLAGS = $(shell env MACHINE_ARCH=$(ARCH) make -f /dev/null -VCFLAGS) \
+  BASE_CFLAGS = \
     -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
     -DHOMEPATH=\\\"$(HOMEPATH)\\\" \
     -DDEFAULT_LIBDIR=\\\"$(DEFAULT_LIBDIR)\\\" \
