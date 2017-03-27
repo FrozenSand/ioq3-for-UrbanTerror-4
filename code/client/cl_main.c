@@ -1138,9 +1138,9 @@ static void CL_CompleteDemoName( char *args, int argNum )
 #	else
 		Com_sprintf(demoExt, sizeof(demoExt), ".%s%d", DEMOEXT, com_protocol->integer);
 #	endif
-		Field_CompleteFilename( "demos", demoExt, qtrue, qtrue );
+		Field_CompleteFilename( "demos", demoExt, qtrue, qtrue, qtrue );
 #else
-		Field_CompleteFilename( "demos", ".urtdemo", qtrue, qtrue );
+		Field_CompleteFilename( "demos", ".urtdemo", qtrue, qtrue, qtrue );
 #endif
 	}
 }

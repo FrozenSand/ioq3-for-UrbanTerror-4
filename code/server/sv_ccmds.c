@@ -164,7 +164,7 @@ static void SV_Map_f( void ) {
 	// make sure the level exists before trying to change, so that
 	// a typo at the server console won't end the game
 	Com_sprintf (expanded, sizeof(expanded), "maps/%s.bsp", map);
-	if ( FS_ReadFile (expanded, NULL) == -1 ) {
+	if ( !FS_FOpenFileRead (expanded, NULL, qfalse) ) {
 		Com_Printf ("Can't find map %s\n", expanded);
 		return;
 	}
@@ -1910,7 +1910,7 @@ SV_CompleteMapName
 */
 static void SV_CompleteMapName( char *args, int argNum ) {
 	if( argNum == 2 ) {
-		Field_CompleteFilename( "maps", "bsp", qtrue, qfalse );
+		Field_CompleteFilename( "maps", "bsp", qtrue, qtrue, qtrue );
 	}
 }
 

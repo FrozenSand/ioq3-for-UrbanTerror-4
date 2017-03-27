@@ -2286,7 +2286,7 @@ Returns a uniqued list of files that match the given criteria
 from all search paths
 ===============
 */
-char **FS_ListFilteredFiles( const char *path, const char *extension, char *filter, int *numfiles, qboolean allowNonPureFilesOnDisk ) {
+char **FS_ListFilteredFiles( const char *path, const char *extension, char *filter, int *numfiles, qboolean searchUnpureDirs, qboolean searchUnpurePaks ) {
 	int				nfiles;
 	char			**listCopy;
 	char			*list[MAX_FOUND_FILES];
@@ -2328,7 +2328,7 @@ char **FS_ListFilteredFiles( const char *path, const char *extension, char *filt
 
 			//ZOID:  If we are pure, don't search for files on paks that
 			// aren't on the pure list
-			if ( !FS_PakIsPure(search->pack) ) {
+			if ( !searchUnpurePaks && !FS_PakIsPure(search->pack) ) {
 				continue;
 			}
 
@@ -2382,7 +2382,7 @@ char **FS_ListFilteredFiles( const char *path, const char *extension, char *filt
 			char	*name;
 
 			// don't scan directories for files if we are pure or restricted
-			if ( fs_numServerPaks && !allowNonPureFilesOnDisk ) {
+			if ( fs_numServerPaks && !searchUnpureDirs ) {
 				continue;
 			} else {
 				netpath = FS_BuildOSPath( search->dir->path, search->dir->gamedir, path );
@@ -2419,7 +2419,7 @@ FS_ListFiles
 =================
 */
 char **FS_ListFiles( const char *path, const char *extension, int *numfiles ) {
-	return FS_ListFilteredFiles( path, extension, NULL, numfiles, qfalse );
+	return FS_ListFilteredFiles( path, extension, NULL, numfiles, qfalse, qfalse );
 }
 
 /*
@@ -2823,7 +2823,7 @@ void FS_NewDir_f( void ) {
 
 	Com_Printf( "---------------\n" );
 
-	dirnames = FS_ListFilteredFiles( "", "", filter, &ndirs, qfalse );
+	dirnames = FS_ListFilteredFiles( "", "", filter, &ndirs, qfalse, qfalse );
 
 	FS_SortFileList(dirnames, ndirs);
 
@@ -4250,13 +4250,13 @@ void	FS_Flush( fileHandle_t f ) {
 }
 
 void	FS_FilenameCompletion( const char *dir, const char *ext,
-		qboolean stripExt, void(*callback)(const char *s), qboolean allowNonPureFilesOnDisk ) {
+		qboolean stripExt, void(*callback)(const char *s), qboolean searchUnpureDirs, qboolean searchUnpurePaks ) {
 	char	**filenames;
 	int		nfiles;
 	int		i;
 	char	filename[ MAX_STRING_CHARS ];
 
-	filenames = FS_ListFilteredFiles( dir, ext, NULL, &nfiles, allowNonPureFilesOnDisk );
+	filenames = FS_ListFilteredFiles( dir, ext, NULL, &nfiles, searchUnpureDirs, searchUnpurePaks );
 
 	FS_SortFileList( filenames, nfiles );
 

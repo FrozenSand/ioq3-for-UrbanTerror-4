@@ -412,6 +412,12 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 	Com_Printf ("------ Server Initialization ------\n");
 	Com_Printf ("Server: %s\n",server);
 
+#ifndef DEDICATED
+	// clear pure status when loading the server since the map we're loading might not be on the
+	// pure list and would fail to load
+	FS_PureServerSetLoadedPaks("", "");
+#endif
+
 	// if not running a dedicated server CL_MapLoading will connect the client to the server
 	// also print some status stuff
 	CL_MapLoading();
