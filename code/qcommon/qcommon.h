@@ -718,6 +718,7 @@ const char *FS_LoadedPakPureChecksums( void );
 // Returns a space separated string containing the checksums of all loaded pk3 files.
 // Servers with sv_pure set will get this string and pass it to clients.
 
+void FS_SetMapName( const char *mapname );
 void FS_SetExtraPure( const char *mapname, const char *extrapaks );
 
 const char *FS_ReferencedPakNames( void );

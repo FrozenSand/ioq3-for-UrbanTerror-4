@@ -259,6 +259,7 @@ static	cvar_t		*fs_basegame;
 static	cvar_t		*fs_gamedirvar;
 static	searchpath_t	*fs_searchpaths;
 static	cvar_t		*fs_lowPriorityDownloads;
+static	cvar_t		*fs_reorderPaks;
 static	int			fs_readCount;			// total bytes read
 static	int			fs_loadCount;			// total files read
 static	int			fs_loadStack;			// total files in memory
@@ -292,6 +293,8 @@ static fileHandleData_t	fsh[MAX_FILE_HANDLES];
 // TTimo - https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=540
 // wether we did a reorder on the current search path when joining the server
 static qboolean fs_reordered;
+static qboolean fs_mapNameChanged = qfalse;
+static char fs_mapName[MAX_QPATH] = {0};
 
 // never load anything from pk3 files that are not present at the server when pure
 static int		fs_numServerPaks = 0;
@@ -3340,6 +3343,103 @@ static void FS_ReorderPurePaks( void )
 
 /*
 ================
+FS_SetMapName
+
+Set the current map name for FS_ReorderPaks
+================
+*/
+void FS_SetMapName( const char *mapname )
+{
+	if (mapname == NULL)
+		mapname = "";
+
+	if (Q_stricmp(mapname, fs_mapName)) {
+		Q_strncpyz(fs_mapName, mapname, sizeof(fs_mapName));
+		fs_mapNameChanged = qtrue;
+	}
+}
+
+/*
+================
+FS_ReorderPaks
+
+Optionally reorder the paks in the searchpath to avoid conflicts.
+This can be used by both client and server.
+
+The order is:
+ - Pak containing the map being loaded (mapname)
+ - Core game paks (zUrT...)
+ - Everything else (dirs and other paks)
+================
+*/
+void FS_ReorderPaks( void )
+{
+	char bsp[MAX_QPATH];
+	searchpath_t *s;
+	searchpath_t *head = NULL, *tail = NULL;
+	int step;
+
+	if (!fs_reorderPaks->integer || !*fs_mapName) {
+		return;
+	}
+
+	Com_sprintf(bsp, sizeof(bsp), "maps/%s.bsp", fs_mapName);
+
+	for (step = 1; step <= 2; step++) {
+		// Step 1: move map pak
+		// Step 2: move game paks
+		searchpath_t **p_prev = &fs_searchpaths; // pointer to "next" pointer of previous item
+		searchpath_t **p_next;
+
+		for (s = fs_searchpaths; s; p_prev = p_next, s = *p_next)
+		{
+			qboolean isGamePak;
+			p_next = &s->next;
+
+			if (!s->pack) {
+				continue;
+			}
+
+			isGamePak = FS_GamePak(va("%s/%s", s->pack->pakGamename, s->pack->pakBasename));
+
+			if (step == 1 && (isGamePak || !FS_FOpenFileReadDir(bsp, s, NULL, qfalse, qtrue))) {
+				continue;
+			} else if (step == 2 && !isGamePak) {
+				continue;
+			}
+
+			// Now we select this item and remove it from its old list
+			*p_prev = s->next;
+			s->next = NULL;
+
+			if (head == NULL) {
+				head = tail = s;
+			} else {
+				tail->next = s;
+				tail = s;
+			}
+
+			if (step == 1) {
+				// There can be only one pak for the map, no need
+				// to continue looking
+				break;
+			}
+
+			s = *p_prev;
+			p_next = p_prev;
+		}
+	}
+	// Reconnect the two lists
+	if (tail != NULL) {
+		tail->next = fs_searchpaths;
+		fs_searchpaths = head;
+	}
+
+	fs_mapNameChanged = qfalse;
+}
+
+/*
+================
 FS_Startup
 ================
 */
@@ -3356,6 +3456,7 @@ static void FS_Startup( const char *gameName )
 	fs_basepath = Cvar_Get ("fs_basepath", Sys_DefaultInstallPath(), CVAR_INIT|CVAR_PROTECTED );
 	fs_basegame = Cvar_Get ("fs_basegame", "", CVAR_INIT );
 	fs_lowPriorityDownloads = Cvar_Get ("fs_lowPriorityDownloads", "1", CVAR_ARCHIVE|CVAR_LATCH);
+	fs_reorderPaks = Cvar_Get ("fs_reorderPaks", "1", CVAR_ARCHIVE|CVAR_LATCH);
 
 	homePath = Sys_DefaultHomePath();
 	if (!homePath || !homePath[0]) {
@@ -3446,6 +3547,8 @@ static void FS_Startup( const char *gameName )
 	// https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=506
 	// reorder the pure pk3 files according to server order
 	FS_ReorderPurePaks();
+
+	FS_ReorderPaks();
 
 	// print the current search paths
 	FS_Path_f();
@@ -4171,7 +4274,7 @@ qboolean FS_ConditionalRestart(int checksumFeed, qboolean disconnect)
 			fs_gamedirvar->modified = qfalse;
 	}
 
-	if(checksumFeed != fs_checksumFeed)
+	if(checksumFeed != fs_checksumFeed || fs_mapNameChanged)
 		FS_Restart(checksumFeed);
 	else if(fs_numServerPaks && !fs_reordered)
 		FS_ReorderPurePaks();

@@ -442,20 +442,25 @@ CL_ParseServerInfo
 */
 static void CL_ParseServerInfo(void)
 {
-#ifdef USE_CURL
 	const char *serverInfo;
+	const char *mapname;
 
 	serverInfo = cl.gameState.stringData
 		+ cl.gameState.stringOffsets[ CS_SERVERINFO ];
 
+	mapname = Info_ValueForKey(serverInfo, "mapname");
+
+#ifdef USE_CURL
 	Q_strncpyz(clc.sv_dlURL,
 		Info_ValueForKey(serverInfo, "sv_dlURL"),
 		sizeof(clc.sv_dlURL));
 
 	Q_strncpyz(clc.mapname,
-		Info_ValueForKey(serverInfo, "mapname"),
+		mapname,
 		sizeof(clc.mapname));
 #endif
+
+	FS_SetMapName(mapname);
 }
 
 /*
