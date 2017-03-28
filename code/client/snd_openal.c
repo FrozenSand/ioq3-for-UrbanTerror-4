@@ -1878,6 +1878,13 @@ qboolean S_AL_Init( soundInterface_t *si )
 
 	s_alDriver = Cvar_Get( "s_alDriver", ALDRIVER_DEFAULT, CVAR_ARCHIVE );
 
+
+	if ( COM_CompareExtension( s_alDriver->string, ".pk3" ) )
+	{
+		Com_Printf( S_COLOR_RED "Rejecting s_alDriver named \"%s\"\n", s_alDriver->string );
+		return qfalse;
+	}
+
 	// Load QAL
 	if( !QAL_Init( s_alDriver->string ) )
 	{

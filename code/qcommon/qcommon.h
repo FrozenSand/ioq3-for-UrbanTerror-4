@@ -542,8 +542,8 @@ issues.
 #define	MAX_SEARCH_PATHS	4096
 #define MAX_FILEHASH_SIZE	1024
 
-extern int foreignQVMsFound;
-extern char foreignQVMNames[MAX_ZPATH][MAX_SEARCH_PATHS];
+extern int dangerousPaksFound;
+extern char dangerousPakNames[MAX_ZPATH][MAX_SEARCH_PATHS];
 
 // referenced flags
 // these are in loop specific order so don't change the order
@@ -587,7 +587,7 @@ fileHandle_t	FS_FOpenFileWrite( const char *qpath );
 int		FS_filelength( fileHandle_t f );
 fileHandle_t FS_SV_FOpenFileWrite( const char *filename );
 int		FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp );
-void	FS_SV_Rename( const char *from, const char *to );
+void	FS_SV_Rename( const char *from, const char *to, qboolean safe );
 int		FS_FOpenFileRead( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
 // if uniqueFILE is true, then a new FILE will be fopened even if the file
 // is found in an already open pak file.  If uniqueFILE is false, you must call
