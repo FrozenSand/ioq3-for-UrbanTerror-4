@@ -568,6 +568,20 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 	svs.time += 100;
 
 	if ( sv_pure->integer ) {
+		// if a dedicated pure server we need to touch the cgame because it could be in a
+		// seperate pk3 file and the client will need to load the latest cgame.qvm
+		if ( com_dedicated->integer ) {
+			SV_TouchCGame();
+		}
+
+		// Update latched value
+		Cvar_Get ("sv_extraPaks", "", CVAR_ARCHIVE | CVAR_LATCH);
+		Cvar_Get ("sv_extraPure", "0", CVAR_ARCHIVE | CVAR_LATCH);
+
+		if ( sv_extraPure->integer ) {
+			FS_SetExtraPure(server, sv_extraPaks->string);
+		}
+
 		// the server sends these to the clients so they will only
 		// load pk3s also loaded at the server
 		p = FS_LoadedPakChecksums();
@@ -578,11 +592,7 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 		p = FS_LoadedPakNames();
 		Cvar_Set( "sv_pakNames", p );
 
-		// if a dedicated pure server we need to touch the cgame because it could be in a
-		// seperate pk3 file and the client will need to load the latest cgame.qvm
-		if ( com_dedicated->integer ) {
-			SV_TouchCGame();
-		}
+
 	}
 	else {
 		Cvar_Set( "sv_paks", "" );
@@ -700,6 +710,8 @@ void SV_Init (void)
 	sv_demofolder = Cvar_Get ("sv_demofolder", "serverdemos", CVAR_ARCHIVE );
 	sv_sayprefix = Cvar_Get ("sv_sayprefix", "console: ", CVAR_ARCHIVE );
 	sv_tellprefix = Cvar_Get ("sv_tellprefix", "console_tell: ", CVAR_ARCHIVE );
+	sv_extraPaks = Cvar_Get ("sv_extraPaks", "", CVAR_ARCHIVE | CVAR_LATCH);
+	sv_extraPure = Cvar_Get ("sv_extraPure", "0", CVAR_ARCHIVE | CVAR_LATCH);
 	
 	// initialize bot cvars so they are listed and can be set before loading the botlib
 	SV_BotInitCvars();

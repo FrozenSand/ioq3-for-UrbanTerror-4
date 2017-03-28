@@ -226,6 +226,7 @@ typedef struct {
 	int				referenced;					// referenced file flags
 	int				hashSize;					// hash table size (power of 2)
 	qboolean		downloaded;					// pak comes from a download directory and can't be trusted
+	qboolean		extrapure;					// if false, the pak will be excluded from the loaded paks
 	fileInPack_t*	*hashTable;					// hash table
 	fileInPack_t*	buildBuffer;				// buffer with the filenames etc.
 } pack_t;
@@ -2170,6 +2171,7 @@ static pack_t *FS_LoadZipFile(const char *zipfile, const char *basename, const c
 	pack->pure_checksum = Com_BlockChecksum( fs_headerLongs, sizeof(*fs_headerLongs) * fs_numHeaderLongs );
 	pack->checksum = LittleLong( pack->checksum );
 	pack->pure_checksum = LittleLong( pack->pure_checksum );
+	pack->extrapure = qtrue;
 
 	Z_Free(fs_headerLongs);
 
@@ -3675,7 +3677,7 @@ const char *FS_LoadedPakChecksums( void ) {
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file? 
-		if ( !search->pack ) {
+		if ( !search->pack || !search->pack->extrapure ) {
 			continue;
 		}
 
@@ -3701,7 +3703,7 @@ const char *FS_LoadedPakNames( void ) {
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file?
-		if ( !search->pack ) {
+		if ( !search->pack || !search->pack->extrapure ) {
 			continue;
 		}
 
@@ -3731,7 +3733,7 @@ const char *FS_LoadedPakPureChecksums( void ) {
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file? 
-		if ( !search->pack ) {
+		if ( !search->pack || !search->pack->extrapure ) {
 			continue;
 		}
 
@@ -3978,6 +3980,65 @@ void FS_PureServerSetReferencedPaks( const char *pakSums, const char *pakNames )
 		c = d;
 
 	fs_numServerReferencedPaks = c;	
+}
+
+void FS_SetExtraPure( const char *mapname, const char *extrapaks )
+{
+	searchpath_t *search;
+
+	for (search = fs_searchpaths; search; search = search->next)
+	{
+		const char *pak;
+		char *basename;
+		pack_t *pack;
+
+		if (!(pack = search->pack))
+			continue;
+
+		basename = pack->pakBasename;
+		pack->extrapure = qtrue;
+
+		if (!mapname || !*mapname || pack->referenced) {
+			continue;
+		}
+
+		if (FS_GamePak(va("%s/%s", FS_GetCurrentGameDir(), basename))) {
+			continue;
+		}
+
+		if (FS_FOpenFileReadDir(va("maps/%s.bsp", mapname), search, NULL, qfalse, qfalse)) {
+			continue;
+		}
+
+		// Pak is excluded from the pure paks list, unless we find a match in the extrapaks
+		pack->extrapure = qfalse;
+
+		pak = extrapaks;
+		while (*pak) {
+			char *next;
+			int len;
+
+			if (*pak == ' ') {
+				pak++;
+				continue;
+			}
+
+			next = strchr(pak, ' ');
+			if (next) {
+				len = next - pak;
+			} else {
+				len = strlen(pak);
+			}
+
+			if (len == strlen(basename) && !Q_stricmpn(pak, basename, len))
+			{
+				pack->extrapure = qtrue;
+				break;
+			}
+
+			pak += len + 1;
+		}
+	}
 }
 
 /*
