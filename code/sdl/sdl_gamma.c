@@ -31,6 +31,38 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 extern SDL_Window *SDL_window;
 
+#ifdef USE_ALTGAMMA
+#include <X11/Xlib.h>
+#include <X11/extensions/xf86vmode.h>
+
+static XF86VidModeGamma origGamma;
+static Display *disp;
+static int scrNum;
+static qboolean gammaChanged = qfalse;
+
+static cvar_t *r_altgamma;
+static cvar_t *r_gamma;
+
+void GLimp_InitGamma( void )
+{
+	r_altgamma = ri.Cvar_Get("r_altgamma", "0", CVAR_ARCHIVE | CVAR_LATCH);
+	r_gamma = ri.Cvar_Get("r_gamma", "1", CVAR_ARCHIVE);
+
+	disp = XOpenDisplay(NULL);
+	scrNum = DefaultScreen(disp);
+
+	XF86VidModeGetGamma(disp, scrNum, &origGamma);
+}
+
+void GLimp_ShutdownGamma( void )
+{
+	if (gammaChanged)
+		XF86VidModeSetGamma(disp, scrNum, &origGamma);
+
+	XCloseDisplay(disp);
+}
+#endif
+
 /*
 =================
 GLimp_SetGamma
@@ -38,6 +70,25 @@ GLimp_SetGamma
 */
 void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] )
 {
+#ifdef USE_ALTGAMMA
+	if (r_altgamma->integer) {
+		float g = r_gamma->value;
+
+		XF86VidModeGamma gamma;
+
+		gamma.red = g;
+		gamma.green = g;
+		gamma.blue = g;
+
+		XF86VidModeSetGamma(disp, scrNum, &gamma);
+		XF86VidModeGetGamma(disp, scrNum, &gamma);
+
+		Com_Printf("XF86VidModeSetGamma: %.3f, %.3f, %.3f.\n", gamma.red, gamma.green, gamma.blue);
+		gammaChanged = qtrue;
+		return;
+	}
+#endif
+
 	Uint16 table[3][256];
 	int i, j;
 

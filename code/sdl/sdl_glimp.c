@@ -60,6 +60,11 @@ void (APIENTRYP qglMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat t);
 void (APIENTRYP qglLockArraysEXT) (GLint first, GLsizei count);
 void (APIENTRYP qglUnlockArraysEXT) (void);
 
+#ifdef USE_ALTGAMMA
+void GLimp_InitGamma(void);
+void GLimp_ShutdownGamma(void);
+#endif
+
 /*
 ===============
 GLimp_Shutdown
@@ -70,6 +75,10 @@ void GLimp_Shutdown( void )
 	ri.IN_Shutdown();
 
 	SDL_QuitSubSystem( SDL_INIT_VIDEO );
+
+#ifdef USE_ALTGAMMA
+	GLimp_ShutdownGamma();
+#endif
 }
 
 /*
@@ -760,6 +769,10 @@ void GLimp_Init( void )
 		ri.Cvar_Set( "r_centerWindow", "0" );
 		ri.Cvar_Set( "com_abnormalExit", "0" );
 	}
+
+#ifdef USE_ALTGAMMA
+	GLimp_InitGamma();
+#endif
 
 	ri.Sys_GLimpInit( );
 

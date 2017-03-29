@@ -23,9 +23,6 @@ endif
 ifndef BUILD_RENDERER_OPENGL2
   BUILD_RENDERER_OPENGL2=
 endif
-ifndef USE_DEMO_FORMAT_42
-  USE_DEMO_FORMAT_42=1
-endif
 
 #############################################################################
 #
@@ -211,6 +208,15 @@ ifndef DEBUG_CFLAGS
 DEBUG_CFLAGS=-ggdb -O0
 endif
 
+ifndef USE_DEMO_FORMAT_42
+  USE_DEMO_FORMAT_42=1
+endif
+
+ifndef USE_ALTGAMMA
+  # Clearskies - X11-based gamma for Linux
+  USE_ALTGAMMA=1
+endif
+
 #############################################################################
 
 BD=$(BUILD_DIR)/debug-$(PLATFORM)-$(ARCH)
@@ -350,6 +356,11 @@ ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu" "gnu")
 
   ifeq ($(USE_MUMBLE),1)
     CLIENT_LIBS += -lrt
+  endif
+
+  ifeq ($(USE_ALTGAMMA), 1)
+    BASE_CFLAGS += -DUSE_ALTGAMMA=1
+    CLIENT_LIBS += -lX11 -lXxf86vm
   endif
 
   ifeq ($(ARCH),x86)
