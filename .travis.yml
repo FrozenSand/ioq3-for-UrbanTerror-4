@@ -1,0 +1,70 @@
+language: c
+dist: trusty
+sudo: true
+
+before_install:
+  - |
+    set -e
+    if [[ $TRAVIS_OS_NAME == linux ]]; then
+      if [[ $PLATFORM == mingw32 ]]; then
+        sudo apt-get remove -qq mingw32
+        sudo apt-get install -qq mingw-w64
+      elif [[ $ARCH == x86 ]]; then
+        sudo dpkg --add-architecture i386
+        sudo apt-get update -qq
+        sudo apt-get install -qq gcc-multilib libgl1-mesa-dev:i386 libsdl2-dev:i386 libxxf86vm-dev:i386
+      else
+        sudo apt-get install -qq libgl1-mesa-dev libsdl2-dev libxxf86vm-dev
+      fi
+    fi
+    set +e
+
+env:
+  global:
+    - USE_CODEC_VORBIS=1
+    - MAKEFLAGS=-j4
+
+matrix:
+  include:
+    - os: linux
+
+    - os: linux
+      env: ARCH=x86 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig/
+
+    - os: linux
+      env: CC= PLATFORM="mingw32" ARCH="x86_64"
+
+    - os: linux
+      env: CC= PLATFORM="mingw32" ARCH="x86"
+
+    - os: osx
+
+script:
+  - |
+    set -e
+    make all
+    if [[ $TRAVIS_OS_NAME == osx ]]; then
+      make all ARCH=x86
+    fi
+    make all ARCHIVE=1 -j1
+    set +e
+
+notifications:
+  email: false
+
+before_deploy:
+  - ls -al build
+  - rm -rf build/*/
+
+deploy:
+  provider: gcs
+  access_key_id: GOOGCLGNLWAEBU5YLYK5
+  secret_access_key:
+    secure: "OmuACtWXvmKR4hIlNDwfOh+ZuoMUuivuskyV2n9zD01hpfwfXNQhQrNyLjOMaw2sGHQk2ZKRpmWoMjenfsjDf875Vj1SbytQgBQiLjw77KGHC+cJV9I0uL/BcS8YS+PeZOFmVbUeL7cSfbkBO/z/nJpvnJGPYX1Xj31skCemvzS9QAo3B6RgNGHqI7N4BvBzhcpsyOPzsi9HyOkXo1L6IkpBu+uU8qsfQhA0KexKnIYvM2q1llcU/Ux8hYTpRWJ3TVQb/uNnpijG4E2rKBEZs1bCj2U5Pb5zMsNG8zo6lwbB+tIq3quhXyob9oCn2Sqvj4seDTJzcQZ51Sfa2SsKNsMC7rPlkIKXtpo63U5eijms+F3vU9Y7msJmWc2vVYM5TI0oF18oNJ6oaAyhNsKerSBW3rUHkPE3p9GCn/db3nyVbc3wnm+GY5m2v3QQXtnMXubPLK85gFPRWQoupugdPttqL0DeOlHma+Kepr08Cz9HpFTvIepa9LcotvH9LxnvoYDBVVAb2qQMETemlPFOoAg7ZnMj1SERXst1lYT0LpxbhQ208wikJcJmtQaUfDZWPFOlnm395i3fwfXH73K1pHdeIb9Z3m55qFftALg9boNqTagHzxlfptvePzJVuj3vQIlvnHR3rrp+ozdACQMNR7z5pQ+FNgb7dsmxvjecau4="
+  bucket: ioq3urt.mickael9.tk
+  skip-cleanup: true
+  local-dir: build
+  upload-dir: ${TRAVIS_BRANCH}/build-${TRAVIS_BUILD_NUMBER}
+  on:
+    repo: mickael9/ioq3
+    all_branches: true
