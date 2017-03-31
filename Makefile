@@ -360,7 +360,7 @@ ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu" "gnu")
 
   ifeq ($(USE_ALTGAMMA), 1)
     BASE_CFLAGS += -DUSE_ALTGAMMA=1
-    CLIENT_LIBS += -lX11 -lXxf86vm
+    RENDERER_LIBS += -lX11 -lXxf86vm
   endif
 
   ifeq ($(ARCH),x86)
