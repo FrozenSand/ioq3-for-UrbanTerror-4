@@ -1353,7 +1353,7 @@ static void SV_ConSayto_f(void) {
 		return;
 	}
 
-	strcpy (text, "console_sayto: ");
+	strcpy (text, sv_tellprefix->string);
 	p = Cmd_ArgsFrom(2);
 
 	if ( *p == '"' ) {
