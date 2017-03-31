@@ -295,6 +295,49 @@ void Cmd_Exec_f( void ) {
 	FS_FreeFile (f.v);
 }
 
+/*
+===============
+Cmd_PVstr_f
+
+Execute a variable command on key press and release
+===============
+*/
+void Cmd_PVstr_f( void ) {
+	char *v = NULL;
+	static qboolean pushed[512] = {0};
+	int key;
+
+	// 5 args: +vstr <v1> <v2> <keycode> <timestamp> (CL_ParseBinding())
+	if (Cmd_Argc () != 5) {
+		Com_Printf ("+vstr <variablename1> <variablename2>: execute a variable command on key press and release\n");
+		return;
+	}
+
+	key = atoi(Cmd_Argv(3));
+	if (key >= ARRAY_LEN(pushed))
+		key = 0;
+
+	switch( Cmd_Argv( 0 )[0] ) {
+		case '+':
+			v = Cvar_VariableString( Cmd_Argv( 1 ) );
+			pushed[key] = qtrue;
+			break;
+		case '-':
+			// we check this because otherwise key release would fire even in the console...
+			if (pushed[key]) {
+				v = Cvar_VariableString( Cmd_Argv( 2 ) );
+				pushed[key] = qfalse;
+			}
+			break;
+		default:
+			Com_Printf("Cmd_PVstr_f: unexpected leading character '%c'\n", Cmd_Argv( 0 )[0]);
+			break;
+	}
+
+	if (v) {
+		Cbuf_InsertText( va("%s\n", v ) );
+	}
+}
 
 /*
 ===============
@@ -866,6 +909,8 @@ void Cmd_Init (void) {
 	Cmd_SetCommandCompletionFunc( "exec", Cmd_CompleteCfgName );
 	Cmd_SetCommandCompletionFunc( "execq", Cmd_CompleteCfgName );
 	Cmd_AddCommand ("vstr",Cmd_Vstr_f);
+	Cmd_AddCommand ("+vstr",Cmd_PVstr_f);
+	Cmd_AddCommand ("-vstr",Cmd_PVstr_f);
 	Cmd_SetCommandCompletionFunc( "vstr", Cvar_CompleteCvarName );
 	Cmd_AddCommand ("echo",Cmd_Echo_f);
 	Cmd_AddCommand ("wait", Cmd_Wait_f);
