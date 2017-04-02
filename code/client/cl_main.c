@@ -2388,6 +2388,36 @@ static void CL_PromptDownload(void)
 
 /*
 =================
+CL_FirstDownload
+
+First Download
+=================
+*/
+void CL_FirstDownload(void) {
+	char mapname[MAX_QPATH];
+	char *pair, *end;
+
+	Com_sprintf(mapname, sizeof(mapname), "@%s/%s.pk3@", FS_GetCurrentGameDir(), clc.mapname);
+
+	pair = strstr(clc.downloadList, mapname);
+	if (pair) {
+		// remove stuff after map pair
+		end = strchr(pair + strlen(mapname), '@');
+		if (end) {
+			*end = 0;
+		}
+
+		// remove stuff before map pair
+		memmove(clc.downloadList, pair, strlen(pair) + 1);
+		Com_DPrintf("Rewritten download list: %s\n", clc.downloadList);
+		CL_PromptDownload();
+	} else {
+		CL_DownloadsComplete();
+	}
+}
+
+/*
+=================
 CL_DownloadMenu
 
 The user replied to the download prompt
@@ -2419,7 +2449,6 @@ void CL_DownloadMenu(int key)
 	VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_NONE);
 	clc.dlquerying = qfalse;
 }
-
 
 /*
 =================
@@ -2469,16 +2498,6 @@ void CL_NextDownload(void)
 			*s++ = 0;
 		else
 			s = localName + strlen(localName); // point at the nul byte
-
-		if (strstr(remoteName, va("%s/", FS_GetCurrentGameDir())) != remoteName) {
-			Com_Error(ERR_DROP, "Refusing to download pak for another game: %s.\n", remoteName);
-			return;
-		}
-
-		if (FS_GamePak(remoteName) || FS_GamePak(localName)) {
-			Com_Error(ERR_DROP, "Refusing to download a core game pak (%s - %s). Check your installation.\n", remoteName, localName);
-			return;
-		}
 
 		localName = (char*)COM_SkipPath(localName);
 		Com_sprintf(localPath, sizeof(localPath), "%s/download/%s",
@@ -2537,7 +2556,7 @@ void CL_InitDownloads(void) {
 
 		clc.state = CA_CONNECTED;
 
-		CL_PromptDownload();
+		CL_FirstDownload();
 		return;
 	}
 #endif

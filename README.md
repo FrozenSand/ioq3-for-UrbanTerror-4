@@ -77,6 +77,8 @@ lower priority than anything else.
 
 ## Other changes
  - Download UI is improved a bit
+ - Downloading can still be attempted if the server has no download URL set.
+   In this case we use the default one (urbanterror.info).
  - Number keys in the first row are always mapped to number keys, on AZERTY
    layouts for instance. This matches with the behavior of ioUrbanTerror on
    Windows and brings it to other platforms as well.
