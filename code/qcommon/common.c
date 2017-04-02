@@ -119,6 +119,8 @@ qboolean	com_gameClientRestarting = qfalse;
 
 char	com_errorMessage[MAXPRINTMSG];
 
+static	qboolean isDevPrint = qfalse;
+
 void Com_WriteConfig_f( void );
 void CIN_CloseAllVideos( void );
 
@@ -183,7 +185,10 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 	}
 
 #ifndef DEDICATED
-	CL_ConsolePrint( msg );
+	if (isDevPrint)
+		CL_DevConsolePrint( msg );
+	else
+		CL_ConsolePrint( msg );
 #endif
 
 	// echo to dedicated console and early console
@@ -249,7 +254,9 @@ void QDECL Com_DPrintf( const char *fmt, ...) {
 	Q_vsnprintf (msg, sizeof(msg), fmt, argptr);
 	va_end (argptr);
 	
+	isDevPrint = qtrue;
 	Com_Printf ("%s", msg);
+	isDevPrint = qfalse;
 }
 
 /*
