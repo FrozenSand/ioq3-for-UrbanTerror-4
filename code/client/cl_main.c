@@ -108,7 +108,7 @@ cvar_t	*cl_activeAction;
 
 cvar_t	*cl_motdString;
 
-cvar_t	*cl_allowDownload;
+cvar_t	*cl_autodownload;
 cvar_t	*cl_conXOffset;
 cvar_t	*cl_inGameVideo;
 
@@ -2535,7 +2535,7 @@ void CL_InitDownloads(void) {
 	*clc.downloadTempName = *clc.downloadName = 0;
 	Cvar_Set( "cl_downloadName", "" );
 
-	if ( !(cl_allowDownload->integer & DLF_ENABLE) )
+	if ( !(cl_autodownload->integer & DLF_ENABLE) )
 #endif
 	{
 		// autodownload is disabled on the client
@@ -3798,7 +3798,7 @@ void CL_Init( void ) {
 
 	cl_showMouseRate = Cvar_Get ("cl_showmouserate", "0", 0);
 
-	cl_allowDownload = Cvar_Get ("cl_allowDownload", "0", CVAR_ARCHIVE);
+	cl_autodownload = Cvar_Get ("cl_autodownload", "1", CVAR_ARCHIVE);
 #ifdef USE_CURL_DLOPEN
 	cl_cURLLib = Cvar_Get("cl_cURLLib", DEFAULT_CURL_LIB, CVAR_ARCHIVE | CVAR_PROTECTED);
 #endif

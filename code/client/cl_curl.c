@@ -320,7 +320,7 @@ void CL_cURL_BeginDownload( const char *localName, const char *remoteURL )
 		return;
 	}
 
-	if(!(cl_allowDownload->integer & DLF_NO_DISCONNECT) &&
+	if(!(cl_autodownload->integer & DLF_NO_DISCONNECT) &&
 		!clc.cURLDisconnected) {
 
 		CL_AddReliableCommand("disconnect", qtrue);

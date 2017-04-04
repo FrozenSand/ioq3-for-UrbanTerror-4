@@ -1224,7 +1224,7 @@ extern huffman_t clientHuffTables;
 #define	CL_ENCODE_START		12
 #define CL_DECODE_START		4
 
-// flags for sv_allowDownload and cl_allowDownload
+// flags for sv_allowDownload and cl_autodownload
 #define DLF_ENABLE 1
 #define DLF_NO_REDIRECT 2
 #define DLF_NO_UDP 4
