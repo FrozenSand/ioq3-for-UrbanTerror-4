@@ -93,15 +93,15 @@ VERSION=ioq3urt-mickael9
 endif
 
 ifndef CLIENTBIN
-CLIENTBIN=ioquake3
+CLIENTBIN=urbanterror-m9
 endif
 
 ifndef SERVERBIN
-SERVERBIN=ioq3ded
+SERVERBIN=urbanterror-server-m9
 endif
 
 ifndef COPYDIR
-COPYDIR="/usr/local/games/quake3"
+COPYDIR="/opt/urbanterror"
 endif
 
 ifndef COPYBINDIR

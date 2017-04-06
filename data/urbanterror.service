@@ -3,7 +3,7 @@ Description=UrbanTerror server
 
 [Service]
 User=urbanterror
-ExecStart=/opt/urbanterror/ioq3ded +set dedicated 2
+ExecStart=/opt/urbanterror/urbanterror-server-m9
 Restart=on-abort
 
 [Install]

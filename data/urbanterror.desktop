@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=UrbanTerror
-Exec=urbanterror
+Name=UrbanTerror (mickael9 build)
+Exec=urbanterror-m9
 Icon=urbanterror
 Type=Application
 Terminal=false
