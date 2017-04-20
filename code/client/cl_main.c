@@ -2398,22 +2398,48 @@ First Download
 =================
 */
 void CL_FirstDownload(void) {
-	char mapname[MAX_QPATH];
-	char *pair, *end;
+	char *s, *name;
 
-	Com_sprintf(mapname, sizeof(mapname), "@%s/%s.pk3@", FS_GetCurrentGameDir(), clc.mapname);
+	// Remove everything that isn't the current map in the download list
+	while (*clc.downloadList) {
+		qboolean keep = qfalse;
 
-	pair = strstr(clc.downloadList, mapname);
-	if (pair) {
-		// remove stuff after map pair
-		end = strchr(pair + strlen(mapname), '@');
-		if (end) {
-			*end = 0;
+		s = clc.downloadList;
+		if (*s == '@')
+			s++;
+
+		name = s;
+
+		if ((s = strchr(s, '@')) == NULL) {
+			*clc.downloadList = 0;
+			break;
 		}
 
-		// remove stuff before map pair
-		memmove(clc.downloadList, pair, strlen(pair) + 1);
-		Com_DPrintf("Rewritten download list: %s\n", clc.downloadList);
+		*s = 0;
+
+		if (!Q_stricmp(COM_SkipPath(name), va("%s.pk3", clc.mapname))) {
+			keep = qtrue;
+		}
+
+		*s++ = '@';
+
+		name = s;
+
+		if ((s = strchr(s, '@')) == NULL) {
+			s = name + strlen(name);
+		}
+
+		if (keep) {
+			*s = 0;
+			break;
+		} else {
+			memmove(clc.downloadList, s, strlen(s) + 1);
+		}
+	}
+
+	Com_DPrintf("Rewritten download list: %s\n", clc.downloadList);
+
+	if (*clc.downloadList) {
 		CL_PromptDownload();
 	} else {
 		CL_DownloadsComplete();
