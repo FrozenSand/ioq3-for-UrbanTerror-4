@@ -38,60 +38,99 @@ SV_GetPlayerByHandle
 Returns the player with player id or name from Cmd_Argv(1)
 ==================
 */
-static client_t *SV_GetPlayerByHandle( void ) {
-	client_t	*cl;
-	int			i;
-	char		*s;
-	char		cleanName[64];
+static client_t *SV_GetPlayerByHandle(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
+	char        *s;
+	char        name[MAX_NAME_LENGTH];
+	int         count = 0;
+	int         i, idnum;
+	client_t    *cl;
+	client_t    *matches[MAX_CLIENTS];
+
+	// Make sure server is running.
+	if (!com_sv_running->integer) {
 		return NULL;
 	}
 
-	if ( Cmd_Argc() < 2 ) {
-		Com_Printf( "No player specified.\n" );
+	if (Cmd_Argc() < 2) {
+		Com_Printf("No player specified.\n");
 		return NULL;
 	}
 
 	s = Cmd_Argv(1);
 
-	// Check whether this is a numeric player handle
-	for(i = 0; s[i] >= '0' && s[i] <= '9'; i++);
-	
-	if(!s[i])
-	{
-		int plid = atoi(s);
+	// Check whether this is a numeric player handle.
+	for (i = 0; s[i] >= '0' && s[i] <= '9'; i++);
 
-		// Check for numeric playerid match
-		if(plid >= 0 && plid < sv_maxclients->integer)
-		{
-			cl = &svs.clients[plid];
-			
-			if(cl->state)
-				return cl;
+	if (!s[i]) {
+
+		idnum = atoi(s);
+		if ((idnum < 0) || (idnum >= sv_maxclients->integer)) {
+			Com_Printf("Bad player slot: %i\n", idnum);
+			return NULL;
 		}
+
+		cl = &svs.clients[idnum];
+
+		if (!cl->state) {
+			Com_Printf("Player %i is not active.\n", idnum);
+			return NULL;
+		}
+
+		return cl;
+
+	} else {
+
+		for (i = 0; i < sv_maxclients->integer ; i++) {
+
+			cl = &svs.clients[i];
+
+			if (!cl->state) {
+				continue;
+			}
+
+			Q_strncpyz(name, cl->name, sizeof(name));
+			Q_CleanStr(name);
+
+			// Check for exact match
+			if (!Q_stricmp(name, s)) {
+				matches[0] = &svs.clients[i];
+				count = 1;
+				break;
+			}
+
+			// check for substring match
+			if (Q_strisub(name, s)) {
+				matches[count] = &svs.clients[i];
+				count++;
+			}
+
+		}
+
+		if (count == 0) {
+
+			// no match found for the given input string
+			Com_Printf("No player found matching %s\n", s);
+			return NULL;
+
+		} else if (count > 1) {
+
+			// multiple matches found for the given string
+			Com_Printf("Players found matching %s:\n", s);
+
+			for (i = 0; i < count; i++) {
+				cl = matches[i];
+				strcpy(name, cl->name);
+				Com_Printf(" %2d: [%s]\n", (int)(cl - svs.clients), name);
+			}
+
+			return NULL;
+		}
+
+		return matches[0];
+
 	}
 
-	// check for a name match
-	for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
-		if ( !cl->state ) {
-			continue;
-		}
-		if ( !Q_stricmp( cl->name, s ) ) {
-			return cl;
-		}
-
-		Q_strncpyz( cleanName, cl->name, sizeof(cleanName) );
-		Q_CleanStr( cleanName );
-		if ( !Q_stricmp( cleanName, s ) ) {
-			return cl;
-		}
-	}
-
-	Com_Printf( "Player %s is not on the server\n", s );
-
-	return NULL;
 }
 
 /*
@@ -102,6 +141,7 @@ Returns the player with idnum from Cmd_Argv(1)
 ==================
 */
 static client_t *SV_GetPlayerByNum( void ) {
+
 	client_t	*cl;
 	int			i;
 	int			idnum;
@@ -121,19 +161,19 @@ static client_t *SV_GetPlayerByNum( void ) {
 
 	for (i = 0; s[i]; i++) {
 		if (s[i] < '0' || s[i] > '9') {
-			Com_Printf( "Bad slot number: %s\n", s);
+			Com_Printf( "Bad slot number: %s.\n", s);
 			return NULL;
 		}
 	}
 	idnum = atoi( s );
 	if ( idnum < 0 || idnum >= sv_maxclients->integer ) {
-		Com_Printf( "Bad client slot: %i\n", idnum );
+		Com_Printf( "Bad player slot: %i.\n", idnum );
 		return NULL;
 	}
 
 	cl = &svs.clients[idnum];
 	if ( !cl->state ) {
-		Com_Printf( "Client %i is not active\n", idnum );
+		Com_Printf( "Player %i is not active.\n", idnum );
 		return NULL;
 	}
 	return cl;
