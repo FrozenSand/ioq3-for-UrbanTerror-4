@@ -212,6 +212,10 @@ ifndef USE_DEMO_FORMAT_42
   USE_DEMO_FORMAT_42=1
 endif
 
+ifndef USE_AUTH
+  USE_AUTH=1
+endif
+
 ifndef USE_ALTGAMMA
   # Clearskies - X11-based gamma for Linux
   USE_ALTGAMMA=1
@@ -1012,6 +1016,11 @@ endif
 
 ifeq ("$(CC)", $(findstring "$(CC)", "clang" "clang++"))
   BASE_CFLAGS += -Qunused-arguments
+endif
+
+#Barbatos
+ifeq ($(USE_AUTH),1)
+  BASE_CFLAGS += -DUSE_AUTH=1
 endif
 
 #Barbatos

@@ -720,7 +720,89 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	if ( i == sv_maxclients->integer ) {
 		SV_Heartbeat_f();
 	}
+
 }
+
+#ifdef USE_AUTH
+/*
+=====================
+SV_Auth_DropClient
+
+Called when the player is totally leaving the server, either willingly
+or unwillingly.  This is NOT called if the entire server is quiting
+or crashing -- SV_FinalMessage() will handle that
+=====================
+*/
+void SV_Auth_DropClient(client_t *drop, const char *reason, const char *message) {
+
+	int		i;
+	challenge_t	*challenge;
+	const qboolean isBot = drop->netchan.remoteAddress.type == NA_BOT;
+
+	if (drop->state == CS_ZOMBIE) {
+		return;		// already dropped
+	}
+
+	if (!isBot) {
+		// see if we already have a challenge for this ip
+		challenge = &svs.challenges[0];
+		for (i = 0 ; i < MAX_CHALLENGES ; i++, challenge++) {
+			if (NET_CompareAdr(drop->netchan.remoteAddress, challenge->adr)) {
+				Com_Memset(challenge, 0, sizeof(*challenge));
+				break;
+			}
+		}
+	}
+
+	// Free all allocated data on the client structure
+	SV_FreeClient(drop);
+
+	// tell everyone why they got dropped (if we must)
+	if (reason != NULL && strlen(reason) > 0)
+		SV_SendServerCommand( NULL, "print \"%s" S_COLOR_WHITE " %s\n\"", drop->name, reason );
+
+	if (com_dedicated->integer && drop->demo_recording) {
+		// Stop the server demo iff we are dedicated & we were recording this client
+		Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(drop - svs.clients)));
+	}
+
+	// call the prog function for removing a client
+	// this will remove the body, among other things
+	VM_Call( gvm, GAME_CLIENT_DISCONNECT, drop - svs.clients );
+
+	// add the disconnect command
+	SV_SendServerCommand(drop, "disconnect \"%s\"", message);
+
+	if (isBot) {
+		SV_BotFreeClient((int) (drop - svs.clients));
+	}
+
+	// nuke user info
+	SV_SetUserinfo((int) (drop - svs.clients), "" );
+
+	if (isBot) {
+		// bots shouldn't go zombie, as there's no real net connection.
+		drop->state = CS_FREE;
+	} else {
+		Com_DPrintf( "Going to CS_ZOMBIE for %s\n", drop->name );
+		drop->state = CS_ZOMBIE;		// become free in a few seconds
+	}
+
+	// if this was the last client on the server, send a heartbeat
+	// to the master so it is known the server is empty
+	// send a heartbeat now so the master will get up to date info
+	// if there is already a slot for this ip, reuse it
+	for (i = 0; i < sv_maxclients->integer; i++) {
+		if (svs.clients[i].state >= CS_CONNECTED) {
+			break;
+		}
+	}
+	if (i == sv_maxclients->integer) {
+		SV_Heartbeat_f();
+	}
+
+}
+#endif
 
 /*
 ================

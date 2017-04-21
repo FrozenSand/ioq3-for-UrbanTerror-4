@@ -3435,7 +3435,12 @@ static void FS_Startup( const char *gameName )
 		homePath = fs_basepath->string;
 	}
 	fs_homepath = Cvar_Get ("fs_homepath", homePath, CVAR_INIT|CVAR_PROTECTED );
+#ifdef USE_AUTH
+	fs_gamedirvar = Cvar_Get ("fs_game", BASEGAME, CVAR_INIT|CVAR_SYSTEMINFO );
+	// mickael9: AUTH system requires fs_game to be set
+#else
 	fs_gamedirvar = Cvar_Get ("fs_game", "", CVAR_INIT|CVAR_SYSTEMINFO );
+#endif
 
 	// add search path elements in reverse priority order
 
@@ -4133,8 +4138,11 @@ void FS_InitFilesystem( void ) {
 	Com_StartupVariable("fs_homepath");
 	Com_StartupVariable("fs_game");
 
+#ifndef USE_AUTH
+	// mickael9: AUTH system requires fs_game to be set
 	if(!FS_FilenameCompare(Cvar_VariableString("fs_game"), com_basegame->string))
 		Cvar_Set("fs_game", "");
+#endif
 
 	// try to start up normally
 	FS_Startup(com_basegame->string);

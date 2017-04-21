@@ -93,7 +93,7 @@ lower priority than anything else.
 
 ## Common
 - [x] UrbanTerror 4.2+ demo format (.urtdemo)
-- [ ] Auth system
+- [x] Auth system
 - [x] `+vstr` command
 
 ## Client
@@ -112,6 +112,7 @@ lower priority than anything else.
 - [x] Server demos
 - [x] `sv_clientsPerIP` cvar
 - [x] `sv_sayprefix` / `sv_tellprefix` cvars
+- [x] Send UrT specific server infostring
 - [ ] Server commands changes/additions
    - [ ] Partial matching of map and players
 
