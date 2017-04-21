@@ -364,8 +364,10 @@ Kick a user off of the server
 ==================
 */
 static void SV_Kick_f( void ) {
-	client_t	*cl;
+
 	int			i;
+	client_t	*cl;
+	char        *reason = "was kicked";
 
 	// make sure server is running
 	if ( !com_sv_running->integer ) {
@@ -373,9 +375,15 @@ static void SV_Kick_f( void ) {
 		return;
 	}
 
-	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: kick <player name>\nkick all = kick everyone\nkick allbots = kick all bots\n");
-		return;
+    if ((Cmd_Argc() < 2) || (Cmd_Argc() > 3)) {
+        Com_Printf("Usage: kick <player> [<reason>]\n"
+                   "       kick all [<reason>] = kick everyone\n"
+                   "       kick allbots = kick all bots\n");
+        return;
+    }
+
+	if (Cmd_Argc() == 3) {
+		reason = va("was kicked: %s", Cmd_Argv(2));
 	}
 
 	cl = SV_GetPlayerByHandle();
@@ -388,7 +396,7 @@ static void SV_Kick_f( void ) {
 				if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
 					continue;
 				}
-				SV_DropClient( cl, "was kicked" );
+				SV_DropClient( cl, reason );
 				cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 			}
 		}
@@ -400,7 +408,7 @@ static void SV_Kick_f( void ) {
 				if( cl->netchan.remoteAddress.type != NA_BOT ) {
 					continue;
 				}
-				SV_DropClient( cl, "was kicked" );
+				SV_DropClient( cl, reason );
 				cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 			}
 		}
@@ -411,7 +419,7 @@ static void SV_Kick_f( void ) {
 		return;
 	}
 
-	SV_DropClient( cl, "was kicked" );
+	SV_DropClient( cl, reason );
 	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 }
 
@@ -423,8 +431,10 @@ Kick all bots off of the server
 ==================
 */
 static void SV_KickBots_f( void ) {
-	client_t	*cl;
+
 	int			i;
+	client_t	*cl;
+	char        *reason = "was kicked";
 
 	// make sure server is running
 	if( !com_sv_running->integer ) {
@@ -432,16 +442,18 @@ static void SV_KickBots_f( void ) {
 		return;
 	}
 
+	if (Cmd_Argc() == 2) {
+		reason = va("was kicked: %s", Cmd_Argv(1));
+	}
+
 	for( i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++ ) {
 		if( !cl->state ) {
 			continue;
 		}
-
 		if( cl->netchan.remoteAddress.type != NA_BOT ) {
 			continue;
 		}
-
-		SV_DropClient( cl, "was kicked" );
+		SV_DropClient( cl, reason );
 		cl->lastPacketTime = svs.time; // in case there is a funny zombie
 	}
 }
@@ -453,25 +465,29 @@ Kick all users off of the server
 ==================
 */
 static void SV_KickAll_f( void ) {
-	client_t *cl;
-	int i;
+
+	int			i;
+	client_t	*cl;
+	char        *reason = "was kicked";
 
 	// make sure server is running
 	if( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
+		Com_Printf("Server is not running.\n");
 		return;
+	}
+
+	if (Cmd_Argc() == 2) {
+		reason = va("was kicked: %s", Cmd_Argv(1));
 	}
 
 	for( i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++ ) {
 		if( !cl->state ) {
 			continue;
 		}
-
 		if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
 			continue;
 		}
-
-		SV_DropClient( cl, "was kicked" );
+		SV_DropClient( cl, reason );
 		cl->lastPacketTime = svs.time; // in case there is a funny zombie
 	}
 }
@@ -484,7 +500,9 @@ Kick a user off of the server
 ==================
 */
 static void SV_KickNum_f( void ) {
+
 	client_t	*cl;
+	char        *reason = "was kicked";
 
 	// make sure server is running
 	if ( !com_sv_running->integer ) {
@@ -492,21 +510,26 @@ static void SV_KickNum_f( void ) {
 		return;
 	}
 
-	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: %s <client number>\n", Cmd_Argv(0));
+	if ((Cmd_Argc() < 2) || (Cmd_Argc() > 3)) {
+		Com_Printf ("Usage: %s <client number> [<reason>]\n", Cmd_Argv(0));
 		return;
+	}
+
+	if (Cmd_Argc() == 3) {
+		reason = va("was kicked: %s", Cmd_Argv(2));
 	}
 
 	cl = SV_GetPlayerByNum();
 	if ( !cl ) {
 		return;
 	}
+
 	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
 		Com_Printf("Cannot kick host player\n");
 		return;
 	}
 
-	SV_DropClient( cl, "was kicked" );
+	SV_DropClient( cl, reason );
 	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 }
 
