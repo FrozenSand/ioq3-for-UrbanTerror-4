@@ -114,6 +114,6 @@ lower priority than anything else.
 - [x] `sv_sayprefix` / `sv_tellprefix` cvars
 - [x] Send UrT specific server infostring
 - [ ] Server commands changes/additions
-   - [ ] Partial matching of map and players
+   - [x] Partial matching of map and players
 
 Please let me know if I forgot anything from the list!
