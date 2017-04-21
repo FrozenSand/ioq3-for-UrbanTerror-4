@@ -658,6 +658,7 @@ or crashing -- SV_FinalMessage() will handle that
 =====================
 */
 void SV_DropClient( client_t *drop, const char *reason ) {
+
 	int		i;
 	challenge_t	*challenge;
 	const qboolean isBot = drop->netchan.remoteAddress.type == NA_BOT;
@@ -686,6 +687,11 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	// tell everyone why they got dropped
 	SV_SendServerCommand( NULL, "print \"%s" S_COLOR_WHITE " %s\n\"", drop->name, reason );
 
+    if (com_dedicated->integer && drop->demo_recording) {
+        // Stop the server demo iff we are dedicated & we were recording this client
+        Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(drop - svs.clients)));
+    }
+
 	// call the prog function for removing a client
 	// this will remove the body, among other things
 	VM_Call( gvm, GAME_CLIENT_DISCONNECT, drop - svs.clients );
@@ -694,11 +700,11 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	SV_SendServerCommand( drop, "disconnect \"%s\"", reason);
 
 	if ( isBot ) {
-		SV_BotFreeClient( drop - svs.clients );
+		SV_BotFreeClient((int) (drop - svs.clients));
 	}
 
 	// nuke user info
-	SV_SetUserinfo( drop - svs.clients, "" );
+	SV_SetUserinfo((int) (drop - svs.clients), "" );
 	
 	if ( isBot ) {
 		// bots shouldn't go zombie, as there's no real net connection.
@@ -980,10 +986,6 @@ The client is going to disconnect, so remove the connection immediately  FIXME: 
 =================
 */
 static void SV_Disconnect_f( client_t *cl ) {
-	// stop server-side demo (if any)
-	if (cl->demo_recording) {
-		Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(cl-svs.clients)));
-	}
 	SV_DropClient( cl, "disconnected" );
 }
 
