@@ -116,7 +116,7 @@ static client_t *SV_GetPlayerByHandle(void) {
 		} else if (count > 1) {
 
 			// multiple matches found for the given string
-			Com_Printf("Players found matching %s:\n", s);
+			Com_Printf("Too many players found matching %s:\n", s);
 
 			for (i = 0; i < count; i++) {
 				cl = matches[i];
@@ -179,6 +179,84 @@ static client_t *SV_GetPlayerByNum( void ) {
 	return cl;
 }
 
+
+/**
+ * Array sorting comparison function (alphabetical sort).
+ *
+ * @author Daniele Pantaleone
+ */
+static int QDECL SV_AlphaSort(const void *a, const void *b) {
+    return strcmp(*(const char **) a, *(const char **) b);
+}
+
+
+/**
+ * Retrieve a full map name given a substring of it.
+ *
+ * @author Daniele Pantaleone
+ */
+static void SV_GetMapSoundingLike(char *dest, const char *src, int destsize) {
+
+    int  i;
+    int  len = 0;
+    int  num = 0;
+    int  mapNum;
+    char *ptr;
+    char *matches[MAX_MAPLIST_SIZE];
+    char expanded[MAX_QPATH];
+    static char mapList[MAX_MAPLIST_STRING];
+
+    Com_sprintf(expanded, sizeof(expanded), "maps/%s.bsp", src);
+    if (FS_FOpenFileRead(expanded, NULL, qfalse) > 0) {
+        Q_strncpyz(dest, src, destsize);
+        return;
+    }
+
+    if (!(mapNum = FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList)))) {
+        Com_Printf("Failed to retrieve available maps!\n");
+        *dest = 0;
+        return;
+    }
+
+    ptr = mapList;
+    for (i = 0; i < mapNum && num < MAX_MAPLIST_SIZE; i++, ptr += len + 1) {
+        len = (int) strlen(ptr);
+        COM_StripExtension(ptr, ptr, MAX_QPATH);
+        if (Q_strisub(ptr, src)) {
+            matches[num] = ptr;
+            num++;
+        }
+    }
+
+    if (!num) {
+        Com_Printf("No map found matching %s.\n", src);
+        *dest = 0;
+        return;
+    }
+
+    if (num > 1) {
+
+        qsort(matches, (size_t) num, sizeof(char *), SV_AlphaSort);
+
+        Com_Printf("Too many maps found matching %s:\n", src);
+        for (i = 0; i < num; i++) {
+            Com_Printf(" %2d: [%s]\n", i + 1, matches[i]);
+        }
+
+        if (num > MAX_MAPLIST_SIZE) {
+            Com_Printf("...and more.\n");
+        }
+
+        *dest = 0;
+        return;
+
+    }
+
+    Q_strncpyz(dest, matches[0], destsize);
+
+}
+
+
 //=========================================================
 
 
@@ -190,24 +268,19 @@ Restart the server on a different map
 ==================
 */
 static void SV_Map_f( void ) {
+
 	char		*cmd;
-	char		*map;
 	qboolean	killBots, cheat;
-	char		expanded[MAX_QPATH];
 	char		mapname[MAX_QPATH];
 
-	map = Cmd_Argv(1);
-	if ( !map ) {
-		return;
-	}
+    if (Cmd_Argc() < 2) {
+        return;
+    }
 
-	// make sure the level exists before trying to change, so that
-	// a typo at the server console won't end the game
-	Com_sprintf (expanded, sizeof(expanded), "maps/%s.bsp", map);
-	if ( !FS_FOpenFileRead (expanded, NULL, qfalse) ) {
-		Com_Printf ("Can't find map %s\n", expanded);
-		return;
-	}
+    SV_GetMapSoundingLike(mapname, Cmd_Argv(1), sizeof(mapname));
+    if (!mapname[0]) {
+        return;
+    }
 
 	// force latched values to get set
 	Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
@@ -239,10 +312,6 @@ static void SV_Map_f( void ) {
 		}
 	}
 
-	// save the map name here cause on a map restart we reload the q3config.cfg
-	// and thus nuke the arguments of the map command
-	Q_strncpyz(mapname, map, sizeof(mapname));
-
 	// start up the map
 	SV_SpawnServer( mapname, killBots );
 
@@ -255,6 +324,7 @@ static void SV_Map_f( void ) {
 	} else {
 		Cvar_Set( "sv_cheats", "0" );
 	}
+
 }
 
 /*
