@@ -44,3 +44,8 @@ profile
 *.sdf
 *.opensdf
 *.suo
+
+# CMake
+####################
+CMakeLists.txt
+cmake-build-debug/
