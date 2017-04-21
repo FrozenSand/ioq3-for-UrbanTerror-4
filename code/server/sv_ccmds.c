@@ -42,7 +42,7 @@ static client_t *SV_GetPlayerByHandle(void) {
 
 	char        *s;
 	char        name[MAX_NAME_LENGTH];
-	int         count = 0;
+	int         num = 0;
 	int         i, idnum;
 	client_t    *cl;
 	client_t    *matches[MAX_CLIENTS];
@@ -95,35 +95,31 @@ static client_t *SV_GetPlayerByHandle(void) {
 			// Check for exact match
 			if (!Q_stricmp(name, s)) {
 				matches[0] = &svs.clients[i];
-				count = 1;
+				num = 1;
 				break;
 			}
 
 			// check for substring match
 			if (Q_strisub(name, s)) {
-				matches[count] = &svs.clients[i];
-				count++;
+				matches[num] = &svs.clients[i];
+				num++;
 			}
 
 		}
 
-		if (count == 0) {
-
-			// no match found for the given input string
-			Com_Printf("No player found matching %s\n", s);
+		if (!num) {
+			Com_Printf("No player found matching %s.\n", s);
 			return NULL;
+		}
 
-		} else if (count > 1) {
-
-			// multiple matches found for the given string
-			Com_Printf("Too many players found matching %s:\n", s);
-
-			for (i = 0; i < count; i++) {
+        if (num > 1) {
+			Com_Printf("Found %d players matching %s:\n", num, s);
+			for (i = 0; i < num; i++) {
 				cl = matches[i];
-				strcpy(name, cl->name);
+                Q_strncpyz(name, cl->name, sizeof(name));
+                Q_CleanStr(name);
 				Com_Printf(" %2d: [%s]\n", (int)(cl - svs.clients), name);
 			}
-
 			return NULL;
 		}
 
@@ -179,22 +175,24 @@ static client_t *SV_GetPlayerByNum( void ) {
 	return cl;
 }
 
+/*
+==================
+SV_AlphaSort
 
-/**
- * Array sorting comparison function (alphabetical sort).
- *
- * @author Daniele Pantaleone
- */
+Array sorting comparison function (alphabetical sort).
+==================
+*/
 static int QDECL SV_AlphaSort(const void *a, const void *b) {
     return strcmp(*(const char **) a, *(const char **) b);
 }
 
+/*
+==================
+SV_GetMapSoundingLike
 
-/**
- * Retrieve a full map name given a substring of it.
- *
- * @author Daniele Pantaleone
- */
+Retrieve a full map name given a substring of it.
+==================
+*/
 static void SV_GetMapSoundingLike(char *dest, const char *src, int destsize) {
 
     int  i;
@@ -238,9 +236,9 @@ static void SV_GetMapSoundingLike(char *dest, const char *src, int destsize) {
 
         qsort(matches, (size_t) num, sizeof(char *), SV_AlphaSort);
 
-        Com_Printf("Too many maps found matching %s:\n", src);
+        Com_Printf("Found %d maps matching %s:\n", num, src);
         for (i = 0; i < num; i++) {
-            Com_Printf(" %2d: [%s]\n", i + 1, matches[i]);
+            Com_Printf(" - [%s]\n", matches[i]);
         }
 
         if (num > MAX_MAPLIST_SIZE) {
