@@ -271,15 +271,21 @@ extern int demo_protocols[];
 #endif
 // override on command line, config files etc.
 #ifndef MASTER_SERVER_NAME
-#define MASTER_SERVER_NAME	"master.quake3arena.com"
+#define MASTER_SERVER_NAME	"master.urbanterror.info"
+#endif
+#ifndef MASTER2_SERVER_NAME
+#define MASTER2_SERVER_NAME	"master2.urbanterror.info"
+#endif
+#ifndef MASTER3_SERVER_NAME
+#define MASTER3_SERVER_NAME	"master3.urbanterror.info"
 #endif
 
 #ifndef STANDALONE
   #ifndef AUTHORIZE_SERVER_NAME
-    #define	AUTHORIZE_SERVER_NAME	"authorize.quake3arena.com"
+  #define AUTHORIZE_SERVER_NAME "authorize.urbanterror.info"
   #endif
   #ifndef PORT_AUTHORIZE
-  #define	PORT_AUTHORIZE		27952
+  #define PORT_AUTHORIZE    27952
   #endif
 #endif
 
