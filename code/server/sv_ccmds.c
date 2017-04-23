@@ -100,7 +100,7 @@ static client_t *SV_GetPlayerByHandle(void) {
 			}
 
 			// check for substring match
-			if (Q_strisub(name, s)) {
+			if (Q_stristr(name, s)) {
 				matches[num] = &svs.clients[i];
 				num++;
 			}
@@ -220,7 +220,7 @@ static void SV_GetMapSoundingLike(char *dest, const char *src, int destsize) {
     for (i = 0; i < mapNum && num < MAX_MAPLIST_SIZE; i++, ptr += len + 1) {
         len = (int) strlen(ptr);
         COM_StripExtension(ptr, ptr, MAX_QPATH);
-        if (Q_strisub(ptr, src)) {
+		if (Q_stristr(ptr, src)) {
             matches[num] = ptr;
             num++;
         }

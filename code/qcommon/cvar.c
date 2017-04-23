@@ -1391,12 +1391,12 @@ Search for a Cvar given it's partial name
 */
 void Cvar_Search_f(void)  {
 
-	int    num = 0;
-	int    len = 0;
-	int    maxlen = 0;
-	char   *src;
-	cvar_t *var;
-	cvar_t *matches[MAX_CVARS];
+	int          num = 0;
+	int          len = 0;
+	int          maxlen = 0;
+	char         *src;
+	cvar_t 		 *var;
+	cvar_t 	 	 *matches[MAX_CVARS];
 
 	if (Cmd_Argc() != 2) {
 		Com_Printf("Usage: cvarsearch <variable>\n");
@@ -1405,7 +1405,7 @@ void Cvar_Search_f(void)  {
 
 	src = Cmd_Argv(1);
 	for (var = cvar_vars; var && num < MAX_CVARS; var = var->next) {
-		if (Q_strisub(var->name, src)) {
+		if (Q_stristr(var->name, src)) {
 			len = (int) strlen(var->name);
 			maxlen = len > maxlen ? maxlen : len;
 			matches[num] = var;
