@@ -259,6 +259,9 @@ typedef int		clipHandle_t;
 
 #define	MAX_NAME_LENGTH		32		// max length of a client name
 
+#define MAX_MAPLIST_SIZE    8       // Maximum number of maps to display upon partial name multiple match
+#define MAX_MAPLIST_STRING  8192    // Length of the string retrieved using FS_GetFileList
+
 #define	MAX_SAY_TEXT	150
 
 // paramters for command buffer stuffing

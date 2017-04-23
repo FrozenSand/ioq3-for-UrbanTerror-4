@@ -131,6 +131,8 @@ cvar_t  *authc;
 cvar_t  *authl;
 #endif
 
+cvar_t	*cl_masterServers[MAX_MASTER_SERVERS];
+
 clientActive_t		cl;
 clientConnection_t	clc;
 clientStatic_t		cls;
@@ -3947,6 +3949,13 @@ void CL_Init( void ) {
 
 	cl_reconnectArgs = Cvar_Get ("cl_reconnectArgs", "", CVAR_ARCHIVE);
 
+	// Master servers
+	cl_masterServers[0] = Cvar_Get ("cl_master", MASTER_SERVER_NAME, CVAR_ARCHIVE );
+	cl_masterServers[1] = Cvar_Get ("cl_master1", MASTER_SERVER_NAME, CVAR_ARCHIVE );
+	cl_masterServers[2] = Cvar_Get ("cl_master2", MASTER2_SERVER_NAME, CVAR_ARCHIVE );
+	cl_masterServers[3] = Cvar_Get ("cl_master3", MASTER3_SERVER_NAME, CVAR_ARCHIVE );
+	cl_masterServers[4] = Cvar_Get ("cl_master4", "", CVAR_ARCHIVE );
+
 	//
 	// register our commands
 	//
@@ -4458,47 +4467,56 @@ void CL_LocalServers_f( void ) {
 CL_GlobalServers_f
 ==================
 */
-void CL_GlobalServers_f( void ) {
-	netadr_t	to;
-	int			count, i, masterNum;
-	char		command[1024], *masteraddress;
+void CL_GlobalServers_f(void) {
+
+	int			count, i, adrNum, masterNum;
+	char		command[1024];
+	static      netadr_t adr[MAX_MASTER_SERVERS];
 	
-	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > MAX_MASTER_SERVERS - 1)
-	{
-		Com_Printf("usage: globalservers <master# 0-%d> <protocol> [keywords]\n", MAX_MASTER_SERVERS - 1);
+	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > MAX_MASTER_SERVERS - 1) {
+		Com_Printf("Usage: globalservers <master# 0-%d> <protocol> [keywords]\n", MAX_MASTER_SERVERS - 1);
 		return;	
 	}
 
-	sprintf(command, "sv_master%d", masterNum + 1);
-	masteraddress = Cvar_VariableString(command);
-	
-	if(!*masteraddress)
-	{
-		Com_Printf( "CL_GlobalServers_f: Error: No master server address given.\n");
-		return;	
+	Com_Printf("Requesting servers from the master...\n");
+
+	for (adrNum = 0 ; adrNum < MAX_MASTER_SERVERS ; adrNum++) {
+
+		if (!cl_masterServers[adrNum]->string[0] ) {
+			continue;
+		}
+
+		if (cl_masterServers[adrNum]->modified) {
+			cl_masterServers[adrNum]->modified = qfalse;
+			Com_Printf("Resolving %s\n", cl_masterServers[adrNum]->string );
+			if (!NET_StringToAdr(cl_masterServers[adrNum]->string, &adr[adrNum], NA_IP)) {
+				Com_Printf("Couldn't resolve address: %s\n", cl_masterServers[adrNum]->string );
+				Cvar_Set(cl_masterServers[adrNum]->name, "");
+				continue;
+			}
+		}
+		adr[adrNum].type = NA_IP;
+		if (!strchr( cl_masterServers[adrNum]->string, ':')) {
+			adr[adrNum].port = (unsigned short) BigShort(PORT_MASTER);
+		}
+		Com_Printf("%s resolved to %i.%i.%i.%i:%i\n", cl_masterServers[adrNum]->string,
+					adr[adrNum].ip[0], adr[adrNum].ip[1], adr[adrNum].ip[2], adr[adrNum].ip[3],
+					BigShort(adr[adrNum].port));
+		break;
 	}
 
-	// reset the list, waiting for response
-	// -1 is used to distinguish a "no response"
-
-	i = NET_StringToAdr(masteraddress, &to, NA_UNSPEC);
-	
-	if(!i)
-	{
-		Com_Printf( "CL_GlobalServers_f: Error: could not resolve address of master %s\n", masteraddress);
-		return;	
+	if (adrNum >= MAX_MASTER_SERVERS) {
+		Com_Printf("No master server address could be resolved!\n");
+		return;
 	}
-	else if(i == 2)
-		to.port = BigShort(PORT_MASTER);
 
-	Com_Printf("Requesting servers from master %s...\n", masteraddress);
+	Com_Printf("Requesting servers from master %s...\n", cl_masterServers[adrNum]->string);
 
 	cls.numglobalservers = -1;
 	cls.pingUpdateSource = AS_GLOBAL;
 
 	// Use the extended query for IPv6 masters
-	if (to.type == NA_IP6 || to.type == NA_MULTICAST6)
-	{
+	if (adr[adrNum].type == NA_IP6 || adr[adrNum].type == NA_MULTICAST6) {
 		int v4enabled = Cvar_VariableIntegerValue("net_enabled") & NET_ENABLEV4;
 		
 		if(v4enabled)
@@ -4525,7 +4543,7 @@ void CL_GlobalServers_f( void ) {
 		Q_strcat(command, sizeof(command), Cmd_Argv(i));
 	}
 
-	NET_OutOfBandPrint( NS_SERVER, to, "%s", command );
+	NET_OutOfBandPrint(NS_SERVER, adr[adrNum], "%s", command);
 }
 
 

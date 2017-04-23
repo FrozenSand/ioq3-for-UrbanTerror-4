@@ -38,60 +38,95 @@ SV_GetPlayerByHandle
 Returns the player with player id or name from Cmd_Argv(1)
 ==================
 */
-static client_t *SV_GetPlayerByHandle( void ) {
-	client_t	*cl;
-	int			i;
-	char		*s;
-	char		cleanName[64];
+static client_t *SV_GetPlayerByHandle(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
+	char      *s;
+	char      name[MAX_NAME_LENGTH];
+	int       num = 0;
+	int       i, idnum;
+	client_t  *cl;
+	client_t  *matches[MAX_CLIENTS];
+
+	// Make sure server is running.
+	if (!com_sv_running->integer) {
 		return NULL;
 	}
 
-	if ( Cmd_Argc() < 2 ) {
-		Com_Printf( "No player specified.\n" );
+	if (Cmd_Argc() < 2) {
+		Com_Printf("No player specified.\n");
 		return NULL;
 	}
 
 	s = Cmd_Argv(1);
 
-	// Check whether this is a numeric player handle
-	for(i = 0; s[i] >= '0' && s[i] <= '9'; i++);
-	
-	if(!s[i])
-	{
-		int plid = atoi(s);
+	// Check whether this is a numeric player handle.
+	for (i = 0; s[i] >= '0' && s[i] <= '9'; i++);
 
-		// Check for numeric playerid match
-		if(plid >= 0 && plid < sv_maxclients->integer)
-		{
-			cl = &svs.clients[plid];
-			
-			if(cl->state)
-				return cl;
+	if (!s[i]) {
+
+		idnum = atoi(s);
+		if ((idnum < 0) || (idnum >= sv_maxclients->integer)) {
+			Com_Printf("Bad player slot: %i\n", idnum);
+			return NULL;
 		}
+
+		cl = &svs.clients[idnum];
+
+		if (!cl->state) {
+			Com_Printf("Player %i is not active.\n", idnum);
+			return NULL;
+		}
+
+		return cl;
+
+	} else {
+
+		for (i = 0; i < sv_maxclients->integer ; i++) {
+
+			cl = &svs.clients[i];
+
+			if (!cl->state) {
+				continue;
+			}
+
+			Q_strncpyz(name, cl->name, sizeof(name));
+			Q_CleanStr(name);
+
+			// Check for exact match
+			if (!Q_stricmp(name, s)) {
+				matches[0] = &svs.clients[i];
+				num = 1;
+				break;
+			}
+
+			// check for substring match
+			if (Q_stristr(name, s)) {
+				matches[num] = &svs.clients[i];
+				num++;
+			}
+
+		}
+
+		if (!num) {
+			Com_Printf("No player found matching %s.\n", s);
+			return NULL;
+		}
+
+		if (num > 1) {
+			Com_Printf("Found %d players matching %s:\n", num, s);
+			for (i = 0; i < num; i++) {
+				cl = matches[i];
+				Q_strncpyz(name, cl->name, sizeof(name));
+				Q_CleanStr(name);
+				Com_Printf(" %2d: [%s]\n", (int)(cl - svs.clients), name);
+			}
+			return NULL;
+		}
+
+		return matches[0];
+
 	}
 
-	// check for a name match
-	for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
-		if ( !cl->state ) {
-			continue;
-		}
-		if ( !Q_stricmp( cl->name, s ) ) {
-			return cl;
-		}
-
-		Q_strncpyz( cleanName, cl->name, sizeof(cleanName) );
-		Q_CleanStr( cleanName );
-		if ( !Q_stricmp( cleanName, s ) ) {
-			return cl;
-		}
-	}
-
-	Com_Printf( "Player %s is not on the server\n", s );
-
-	return NULL;
 }
 
 /*
@@ -102,6 +137,7 @@ Returns the player with idnum from Cmd_Argv(1)
 ==================
 */
 static client_t *SV_GetPlayerByNum( void ) {
+
 	client_t	*cl;
 	int			i;
 	int			idnum;
@@ -121,23 +157,103 @@ static client_t *SV_GetPlayerByNum( void ) {
 
 	for (i = 0; s[i]; i++) {
 		if (s[i] < '0' || s[i] > '9') {
-			Com_Printf( "Bad slot number: %s\n", s);
+			Com_Printf( "Bad slot number: %s.\n", s);
 			return NULL;
 		}
 	}
 	idnum = atoi( s );
 	if ( idnum < 0 || idnum >= sv_maxclients->integer ) {
-		Com_Printf( "Bad client slot: %i\n", idnum );
+		Com_Printf( "Bad player slot: %i.\n", idnum );
 		return NULL;
 	}
 
 	cl = &svs.clients[idnum];
 	if ( !cl->state ) {
-		Com_Printf( "Client %i is not active\n", idnum );
+		Com_Printf( "Player %i is not active.\n", idnum );
 		return NULL;
 	}
 	return cl;
 }
+
+/*
+==================
+SV_AlphaSort
+
+Array sorting comparison function (alphabetical sort).
+==================
+*/
+static int QDECL SV_AlphaSort(const void *a, const void *b) {
+    return strcmp(*(const char **) a, *(const char **) b);
+}
+
+/*
+==================
+SV_GetMapSoundingLike
+
+Retrieve a full map name given a substring of it.
+==================
+*/
+static void SV_GetMapSoundingLike(char *dest, const char *src, int destsize) {
+
+	int  i;
+	int  len = 0;
+	int  num = 0;
+	int  mapNum;
+	char *ptr;
+	char *matches[MAX_MAPLIST_SIZE];
+	char expanded[MAX_QPATH];
+	static char mapList[MAX_MAPLIST_STRING];
+
+	Com_sprintf(expanded, sizeof(expanded), "maps/%s.bsp", src);
+	if (FS_FOpenFileRead(expanded, NULL, qfalse) > 0) {
+		Q_strncpyz(dest, src, destsize);
+		return;
+	}
+
+	if (!(mapNum = FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList)))) {
+		Com_Printf("Failed to retrieve available maps!\n");
+		*dest = 0;
+		return;
+	}
+
+	ptr = mapList;
+	for (i = 0; i < mapNum && num < MAX_MAPLIST_SIZE; i++, ptr += len + 1) {
+		len = (int) strlen(ptr);
+		COM_StripExtension(ptr, ptr, MAX_QPATH);
+		if (Q_stristr(ptr, src)) {
+			matches[num] = ptr;
+			num++;
+		}
+	}
+
+	if (!num) {
+		Com_Printf("No map found matching %s.\n", src);
+		*dest = 0;
+		return;
+	}
+
+	if (num > 1) {
+
+	qsort(matches, (size_t) num, sizeof(char *), SV_AlphaSort);
+
+		Com_Printf("Found %d maps matching %s:\n", num, src);
+		for (i = 0; i < num; i++) {
+			Com_Printf(" - [%s]\n", matches[i]);
+		}
+
+		if (num > MAX_MAPLIST_SIZE) {
+			Com_Printf("...and more.\n");
+		}
+
+		*dest = 0;
+		return;
+
+	}
+
+	Q_strncpyz(dest, matches[0], destsize);
+
+}
+
 
 //=========================================================
 
@@ -150,22 +266,17 @@ Restart the server on a different map
 ==================
 */
 static void SV_Map_f( void ) {
+
 	char		*cmd;
-	char		*map;
 	qboolean	killBots, cheat;
-	char		expanded[MAX_QPATH];
 	char		mapname[MAX_QPATH];
 
-	map = Cmd_Argv(1);
-	if ( !map ) {
+	if (Cmd_Argc() < 2) {
 		return;
 	}
 
-	// make sure the level exists before trying to change, so that
-	// a typo at the server console won't end the game
-	Com_sprintf (expanded, sizeof(expanded), "maps/%s.bsp", map);
-	if ( !FS_FOpenFileRead (expanded, NULL, qfalse) ) {
-		Com_Printf ("Can't find map %s\n", expanded);
+	SV_GetMapSoundingLike(mapname, Cmd_Argv(1), sizeof(mapname));
+	if (!mapname[0]) {
 		return;
 	}
 
@@ -199,10 +310,6 @@ static void SV_Map_f( void ) {
 		}
 	}
 
-	// save the map name here cause on a map restart we reload the q3config.cfg
-	// and thus nuke the arguments of the map command
-	Q_strncpyz(mapname, map, sizeof(mapname));
-
 	// start up the map
 	SV_SpawnServer( mapname, killBots );
 
@@ -215,6 +322,7 @@ static void SV_Map_f( void ) {
 	} else {
 		Cvar_Set( "sv_cheats", "0" );
 	}
+
 }
 
 /*
@@ -364,8 +472,10 @@ Kick a user off of the server
 ==================
 */
 static void SV_Kick_f( void ) {
-	client_t	*cl;
+
 	int			i;
+	client_t	*cl;
+	char        *reason = "was kicked";
 
 	// make sure server is running
 	if ( !com_sv_running->integer ) {
@@ -373,9 +483,15 @@ static void SV_Kick_f( void ) {
 		return;
 	}
 
-	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: kick <player name>\nkick all = kick everyone\nkick allbots = kick all bots\n");
+	if ((Cmd_Argc() < 2) || (Cmd_Argc() > 3)) {
+		Com_Printf("Usage: kick <player> [<reason>]\n"
+				   "	   kick all [<reason>] = kick everyone\n"
+				   "	   kick allbots = kick all bots\n");
 		return;
+	}
+
+	if (Cmd_Argc() == 3) {
+		reason = va("was kicked: %s", Cmd_Argv(2));
 	}
 
 	cl = SV_GetPlayerByHandle();
@@ -388,7 +504,7 @@ static void SV_Kick_f( void ) {
 				if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
 					continue;
 				}
-				SV_DropClient( cl, "was kicked" );
+				SV_DropClient( cl, reason );
 				cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 			}
 		}
@@ -400,7 +516,7 @@ static void SV_Kick_f( void ) {
 				if( cl->netchan.remoteAddress.type != NA_BOT ) {
 					continue;
 				}
-				SV_DropClient( cl, "was kicked" );
+				SV_DropClient( cl, reason );
 				cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 			}
 		}
@@ -411,7 +527,7 @@ static void SV_Kick_f( void ) {
 		return;
 	}
 
-	SV_DropClient( cl, "was kicked" );
+	SV_DropClient( cl, reason );
 	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 }
 
@@ -423,8 +539,10 @@ Kick all bots off of the server
 ==================
 */
 static void SV_KickBots_f( void ) {
-	client_t	*cl;
+
 	int			i;
+	client_t	*cl;
+	char        *reason = "was kicked";
 
 	// make sure server is running
 	if( !com_sv_running->integer ) {
@@ -432,16 +550,18 @@ static void SV_KickBots_f( void ) {
 		return;
 	}
 
+	if (Cmd_Argc() == 2) {
+		reason = va("was kicked: %s", Cmd_Argv(1));
+	}
+
 	for( i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++ ) {
 		if( !cl->state ) {
 			continue;
 		}
-
 		if( cl->netchan.remoteAddress.type != NA_BOT ) {
 			continue;
 		}
-
-		SV_DropClient( cl, "was kicked" );
+		SV_DropClient( cl, reason );
 		cl->lastPacketTime = svs.time; // in case there is a funny zombie
 	}
 }
@@ -453,25 +573,29 @@ Kick all users off of the server
 ==================
 */
 static void SV_KickAll_f( void ) {
-	client_t *cl;
-	int i;
+
+	int			i;
+	client_t	*cl;
+	char        *reason = "was kicked";
 
 	// make sure server is running
 	if( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
+		Com_Printf("Server is not running.\n");
 		return;
+	}
+
+	if (Cmd_Argc() == 2) {
+		reason = va("was kicked: %s", Cmd_Argv(1));
 	}
 
 	for( i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++ ) {
 		if( !cl->state ) {
 			continue;
 		}
-
 		if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
 			continue;
 		}
-
-		SV_DropClient( cl, "was kicked" );
+		SV_DropClient( cl, reason );
 		cl->lastPacketTime = svs.time; // in case there is a funny zombie
 	}
 }
@@ -484,7 +608,9 @@ Kick a user off of the server
 ==================
 */
 static void SV_KickNum_f( void ) {
+
 	client_t	*cl;
+	char        *reason = "was kicked";
 
 	// make sure server is running
 	if ( !com_sv_running->integer ) {
@@ -492,21 +618,26 @@ static void SV_KickNum_f( void ) {
 		return;
 	}
 
-	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: %s <client number>\n", Cmd_Argv(0));
+	if ((Cmd_Argc() < 2) || (Cmd_Argc() > 3)) {
+		Com_Printf ("Usage: %s <client number> [<reason>]\n", Cmd_Argv(0));
 		return;
+	}
+
+	if (Cmd_Argc() == 3) {
+		reason = va("was kicked: %s", Cmd_Argv(2));
 	}
 
 	cl = SV_GetPlayerByNum();
 	if ( !cl ) {
 		return;
 	}
+
 	if( cl->netchan.remoteAddress.type == NA_LOOPBACK ) {
 		Com_Printf("Cannot kick host player\n");
 		return;
 	}
 
-	SV_DropClient( cl, "was kicked" );
+	SV_DropClient( cl, reason );
 	cl->lastPacketTime = svs.time;	// in case there is a funny zombie
 }
 

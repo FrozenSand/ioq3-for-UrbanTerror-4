@@ -104,7 +104,8 @@ lower priority than anything else.
 - [x] dmaHD
 - [x] Prompt before auto download
 - [ ] Alt-tab and `r_minimize` cvar
-- [ ] New mouse acceleration style (`cl_mouseAccel 2`)
+- [x] New mouse acceleration style (`cl_mouseAccel 2`)
+- [x] Make the client query other master servers if main one does not respond
 - [ ] Client commands changes/additions
    - [x] Escape `%` in client to server commands (allows usage of '%' in chat)
 
@@ -114,6 +115,6 @@ lower priority than anything else.
 - [x] `sv_sayprefix` / `sv_tellprefix` cvars
 - [x] Send UrT specific server infostring
 - [ ] Server commands changes/additions
-   - [ ] Partial matching of map and players
+   - [x] Partial matching of map and players
 
 Please let me know if I forgot anything from the list!

@@ -961,6 +961,7 @@ Called on a normal map change, not on a map_restart
 ===============
 */
 void SV_InitGameProgs( void ) {
+	int     i;
 	cvar_t	*var;
 	//FIXME these are temp while I make bots run in vm
 	extern int	bot_enable;
@@ -971,6 +972,16 @@ void SV_InitGameProgs( void ) {
 	}
 	else {
 		bot_enable = 0;
+	}
+
+	// Barbatos - force a DNS lookup for the master servers
+	// This way server admins don't have to restart their
+	// servers when a master server IP changes.
+	for (i = 0 ; i < MAX_MASTER_SERVERS ; i++) {
+		if (!sv_master[i]->string[0]) {
+			continue;
+		}
+		sv_master[i]->modified = qtrue;
 	}
 
 	// load the dll or bytecode

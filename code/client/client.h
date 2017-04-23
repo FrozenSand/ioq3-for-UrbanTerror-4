@@ -437,6 +437,8 @@ extern	cvar_t	*cl_autoRecordDemo;
 extern	cvar_t	*cl_consoleKeys;
 extern	cvar_t	*cl_consoleUseScanCode;
 
+extern	cvar_t	*cl_masterServers[MAX_MASTER_SERVERS];
+
 #ifdef USE_AUTH
 extern  cvar_t	*cl_auth_engine;
 extern  cvar_t  *cl_auth;
