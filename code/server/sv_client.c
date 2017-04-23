@@ -687,10 +687,10 @@ void SV_DropClient( client_t *drop, const char *reason ) {
 	// tell everyone why they got dropped
 	SV_SendServerCommand( NULL, "print \"%s" S_COLOR_WHITE " %s\n\"", drop->name, reason );
 
-    if (com_dedicated->integer && drop->demo_recording) {
-        // Stop the server demo iff we are dedicated & we were recording this client
-        Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(drop - svs.clients)));
-    }
+	if (com_dedicated->integer && drop->demo_recording) {
+		// Stop the server demo iff we are dedicated & we were recording this client
+		Cbuf_ExecuteText(EXEC_NOW, va("stopserverdemo %d", (int)(drop - svs.clients)));
+	}
 
 	// call the prog function for removing a client
 	// this will remove the body, among other things

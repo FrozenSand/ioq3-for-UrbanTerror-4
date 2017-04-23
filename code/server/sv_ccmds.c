@@ -40,12 +40,12 @@ Returns the player with player id or name from Cmd_Argv(1)
 */
 static client_t *SV_GetPlayerByHandle(void) {
 
-	char        *s;
-	char        name[MAX_NAME_LENGTH];
-	int         num = 0;
-	int         i, idnum;
-	client_t    *cl;
-	client_t    *matches[MAX_CLIENTS];
+	char      *s;
+	char      name[MAX_NAME_LENGTH];
+	int       num = 0;
+	int       i, idnum;
+	client_t  *cl;
+	client_t  *matches[MAX_CLIENTS];
 
 	// Make sure server is running.
 	if (!com_sv_running->integer) {
@@ -112,12 +112,12 @@ static client_t *SV_GetPlayerByHandle(void) {
 			return NULL;
 		}
 
-        if (num > 1) {
+		if (num > 1) {
 			Com_Printf("Found %d players matching %s:\n", num, s);
 			for (i = 0; i < num; i++) {
 				cl = matches[i];
-                Q_strncpyz(name, cl->name, sizeof(name));
-                Q_CleanStr(name);
+				Q_strncpyz(name, cl->name, sizeof(name));
+				Q_CleanStr(name);
 				Com_Printf(" %2d: [%s]\n", (int)(cl - svs.clients), name);
 			}
 			return NULL;
@@ -195,62 +195,62 @@ Retrieve a full map name given a substring of it.
 */
 static void SV_GetMapSoundingLike(char *dest, const char *src, int destsize) {
 
-    int  i;
-    int  len = 0;
-    int  num = 0;
-    int  mapNum;
-    char *ptr;
-    char *matches[MAX_MAPLIST_SIZE];
-    char expanded[MAX_QPATH];
-    static char mapList[MAX_MAPLIST_STRING];
+	int  i;
+	int  len = 0;
+	int  num = 0;
+	int  mapNum;
+	char *ptr;
+	char *matches[MAX_MAPLIST_SIZE];
+	char expanded[MAX_QPATH];
+	static char mapList[MAX_MAPLIST_STRING];
 
-    Com_sprintf(expanded, sizeof(expanded), "maps/%s.bsp", src);
-    if (FS_FOpenFileRead(expanded, NULL, qfalse) > 0) {
-        Q_strncpyz(dest, src, destsize);
-        return;
-    }
+	Com_sprintf(expanded, sizeof(expanded), "maps/%s.bsp", src);
+	if (FS_FOpenFileRead(expanded, NULL, qfalse) > 0) {
+		Q_strncpyz(dest, src, destsize);
+		return;
+	}
 
-    if (!(mapNum = FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList)))) {
-        Com_Printf("Failed to retrieve available maps!\n");
-        *dest = 0;
-        return;
-    }
+	if (!(mapNum = FS_GetFileList("maps", ".bsp", mapList, sizeof(mapList)))) {
+		Com_Printf("Failed to retrieve available maps!\n");
+		*dest = 0;
+		return;
+	}
 
-    ptr = mapList;
-    for (i = 0; i < mapNum && num < MAX_MAPLIST_SIZE; i++, ptr += len + 1) {
-        len = (int) strlen(ptr);
-        COM_StripExtension(ptr, ptr, MAX_QPATH);
+	ptr = mapList;
+	for (i = 0; i < mapNum && num < MAX_MAPLIST_SIZE; i++, ptr += len + 1) {
+		len = (int) strlen(ptr);
+		COM_StripExtension(ptr, ptr, MAX_QPATH);
 		if (Q_stristr(ptr, src)) {
-            matches[num] = ptr;
-            num++;
-        }
-    }
+			matches[num] = ptr;
+			num++;
+		}
+	}
 
-    if (!num) {
-        Com_Printf("No map found matching %s.\n", src);
-        *dest = 0;
-        return;
-    }
+	if (!num) {
+		Com_Printf("No map found matching %s.\n", src);
+		*dest = 0;
+		return;
+	}
 
-    if (num > 1) {
+	if (num > 1) {
 
-        qsort(matches, (size_t) num, sizeof(char *), SV_AlphaSort);
+	qsort(matches, (size_t) num, sizeof(char *), SV_AlphaSort);
 
-        Com_Printf("Found %d maps matching %s:\n", num, src);
-        for (i = 0; i < num; i++) {
-            Com_Printf(" - [%s]\n", matches[i]);
-        }
+		Com_Printf("Found %d maps matching %s:\n", num, src);
+		for (i = 0; i < num; i++) {
+			Com_Printf(" - [%s]\n", matches[i]);
+		}
 
-        if (num > MAX_MAPLIST_SIZE) {
-            Com_Printf("...and more.\n");
-        }
+		if (num > MAX_MAPLIST_SIZE) {
+			Com_Printf("...and more.\n");
+		}
 
-        *dest = 0;
-        return;
+		*dest = 0;
+		return;
 
-    }
+	}
 
-    Q_strncpyz(dest, matches[0], destsize);
+	Q_strncpyz(dest, matches[0], destsize);
 
 }
 
@@ -271,14 +271,14 @@ static void SV_Map_f( void ) {
 	qboolean	killBots, cheat;
 	char		mapname[MAX_QPATH];
 
-    if (Cmd_Argc() < 2) {
-        return;
-    }
+	if (Cmd_Argc() < 2) {
+		return;
+	}
 
-    SV_GetMapSoundingLike(mapname, Cmd_Argv(1), sizeof(mapname));
-    if (!mapname[0]) {
-        return;
-    }
+	SV_GetMapSoundingLike(mapname, Cmd_Argv(1), sizeof(mapname));
+	if (!mapname[0]) {
+		return;
+	}
 
 	// force latched values to get set
 	Cvar_Get ("g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH );
@@ -483,12 +483,12 @@ static void SV_Kick_f( void ) {
 		return;
 	}
 
-    if ((Cmd_Argc() < 2) || (Cmd_Argc() > 3)) {
-        Com_Printf("Usage: kick <player> [<reason>]\n"
-                   "       kick all [<reason>] = kick everyone\n"
-                   "       kick allbots = kick all bots\n");
-        return;
-    }
+	if ((Cmd_Argc() < 2) || (Cmd_Argc() > 3)) {
+		Com_Printf("Usage: kick <player> [<reason>]\n"
+				   "	   kick all [<reason>] = kick everyone\n"
+				   "	   kick allbots = kick all bots\n");
+		return;
+	}
 
 	if (Cmd_Argc() == 3) {
 		reason = va("was kicked: %s", Cmd_Argv(2));
