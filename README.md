@@ -105,6 +105,7 @@ lower priority than anything else.
 - [x] Prompt before auto download
 - [ ] Alt-tab and `r_minimize` cvar
 - [x] New mouse acceleration style (`cl_mouseAccel 2`)
+- [x] Make the client query other master servers if main one does not respond
 - [ ] Client commands changes/additions
    - [x] Escape `%` in client to server commands (allows usage of '%' in chat)
 
