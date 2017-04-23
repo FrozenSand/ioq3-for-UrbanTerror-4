@@ -104,7 +104,7 @@ lower priority than anything else.
 - [x] dmaHD
 - [x] Prompt before auto download
 - [ ] Alt-tab and `r_minimize` cvar
-- [ ] New mouse acceleration style (`cl_mouseAccel 2`)
+- [x] New mouse acceleration style (`cl_mouseAccel 2`)
 - [ ] Client commands changes/additions
    - [x] Escape `%` in client to server commands (allows usage of '%' in chat)
 

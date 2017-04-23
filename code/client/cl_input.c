@@ -484,11 +484,29 @@ void CL_MouseMove(usercmd_t *cmd)
 
 			rate[0] = fabs(mx) / (float) frame_msec;
 			rate[1] = fabs(my) / (float) frame_msec;
-			power[0] = powf(rate[0] / cl_mouseAccelOffset->value, cl_mouseAccel->value);
-			power[1] = powf(rate[1] / cl_mouseAccelOffset->value, cl_mouseAccel->value);
 
-			mx = cl_sensitivity->value * (mx + ((mx < 0) ? -power[0] : power[0]) * cl_mouseAccelOffset->value);
-			my = cl_sensitivity->value * (my + ((my < 0) ? -power[1] : power[1]) * cl_mouseAccelOffset->value);
+			if(cl_mouseAccelStyle->integer == 1)
+			{
+				// cl_mouseAccel is a power value to how the acceleration is shaped
+				// cl_mouseAccelOffset is the rate for which the acceleration will have doubled the non accelerated amplification
+
+				power[0] = powf(rate[0] / cl_mouseAccelOffset->value, cl_mouseAccel->value);
+				power[1] = powf(rate[1] / cl_mouseAccelOffset->value, cl_mouseAccel->value);
+
+				mx = cl_sensitivity->value * (mx + ((mx < 0) ? -power[0] : power[0]) * cl_mouseAccelOffset->value);
+				my = cl_sensitivity->value * (my + ((my < 0) ? -power[1] : power[1]) * cl_mouseAccelOffset->value);
+			}
+			else    // Newest style 2 with limited acceleration and smooth transition
+			{
+				// cl_mouseAccel is the maximum factor to add to base sensitivity
+				// cl_mouseOffset is the rate for which acceleration is half the max.
+
+				power[0] = 1.f / ( 1.f+expf(8.f*(1.f-rate[0]/cl_mouseAccelOffset->value)) );
+				power[1] = 1.f / ( 1.f+expf(8.f*(1.f-rate[1]/cl_mouseAccelOffset->value)) );
+
+				mx *= cl_sensitivity->value * (1.f + cl_mouseAccel->value * power[0]);
+				my *= cl_sensitivity->value * (1.f + cl_mouseAccel->value * power[1]);
+			}
 
 			if(cl_showMouseRate->integer)
 				Com_Printf("ratex: %f, ratey: %f, powx: %f, powy: %f\n", rate[0], rate[1], power[0], power[1]);
