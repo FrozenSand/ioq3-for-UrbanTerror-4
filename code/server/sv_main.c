@@ -58,9 +58,6 @@ cvar_t	*sv_extraPure;
 cvar_t	*sv_extraPaks;
 cvar_t	*sv_floodProtect;
 cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
-#ifndef STANDALONE
-cvar_t	*sv_strictAuth;
-#endif
 cvar_t	*sv_banFile;
 cvar_t	*sv_clientsPerIp;
 
@@ -838,10 +835,6 @@ static void SV_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		SV_GetChallenge(from);
 	} else if (!Q_stricmp(c, "connect")) {
 		SV_DirectConnect( from );
-#ifndef STANDALONE
-	} else if (!Q_stricmp(c, "ipAuthorize")) {
-		SV_AuthorizeIpPacket(from);
-#endif
 #ifdef USE_AUTH
 	} else if ((!Q_stricmp(c, "AUTH:SV"))) {
 		NET_StringToAdr(sv_authServerIP->string, &authServerIP, NA_IP);

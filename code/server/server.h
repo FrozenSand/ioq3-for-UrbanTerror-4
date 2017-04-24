@@ -206,15 +206,12 @@ typedef struct client_s {
 // while not allowing a single ip to grab all challenge resources
 #define MAX_CHALLENGES_MULTI (MAX_CHALLENGES / 2)
 
-#define	AUTHORIZE_TIMEOUT	5000
-
 typedef struct {
 	netadr_t	adr;
 	int			challenge;
 	int			clientChallenge;		// challenge number coming from the client
 	int			time;				// time the last packet was sent to the autherize server
 	int			pingTime;			// time the challenge response was sent to client
-	int			firstTime;			// time the adr was first used, for authorize timeout checks
 	qboolean	wasrefused;
 	qboolean	connected;
 } challenge_t;
@@ -234,8 +231,6 @@ typedef struct {
 	int			nextHeartbeatTime;
 	challenge_t	challenges[MAX_CHALLENGES];	// to prevent invalid IPs from connecting
 	netadr_t	redirectAddress;			// for rcon return messages
-
-	netadr_t	authorizeAddress;			// for rcon return messages
 } serverStatic_t;
 
 
@@ -309,9 +304,6 @@ extern	cvar_t	*sv_extraPure;
 extern	cvar_t	*sv_extraPaks;
 extern	cvar_t	*sv_floodProtect;
 extern	cvar_t	*sv_lanForceRate;
-#ifndef STANDALONE
-extern	cvar_t	*sv_strictAuth;
-#endif
 extern	cvar_t	*sv_clientsPerIp;
 extern	cvar_t	*sv_banFile;
 
@@ -394,10 +386,6 @@ void SV_SpawnServer( char *server, qboolean killBots );
 void SV_GetChallenge(netadr_t from);
 
 void SV_DirectConnect( netadr_t from );
-
-#ifndef STANDALONE
-void SV_AuthorizeIpPacket( netadr_t from );
-#endif
 
 void SV_ExecuteClientMessage( client_t *cl, msg_t *msg );
 void SV_UserinfoChanged( client_t *cl );
