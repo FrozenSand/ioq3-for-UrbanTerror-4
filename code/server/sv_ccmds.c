@@ -1286,6 +1286,7 @@ SV_ConTell_f
 ==================
 */
 static void SV_ConTell_f(void) {
+
 	char	*p;
 	char	text[1024];
 	client_t	*cl;
@@ -1297,11 +1298,11 @@ static void SV_ConTell_f(void) {
 	}
 
 	if ( Cmd_Argc() < 3 ) {
-		Com_Printf ("Usage: tell <client number> <text>\n");
+		Com_Printf ("Usage: tell <player> <text>\n");
 		return;
 	}
 
-	cl = SV_GetPlayerByNum();
+	cl = SV_GetPlayerByHandle();
 	if ( !cl ) {
 		return;
 	}
@@ -1452,7 +1453,7 @@ static void SV_DumpUser_f( void ) {
 	}
 
 	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: dumpuser <userid>\n");
+		Com_Printf ("Usage: dumpuser <player>\n");
 		return;
 	}
 
