@@ -1181,70 +1181,71 @@ static int SV_Strlen( const char *str ) {
 SV_Status_f
 ================
 */
-static void SV_Status_f( void ) {
-	int			i, j, l;
-	client_t	*cl;
-	playerState_t	*ps;
-	const char		*s;
-	int			ping;
+static void SV_Status_f(void) {
 
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
+	int           i, j, l;
+	client_t      *cl;
+	playerState_t *ps;
+	const char    *s;
+	int           ping;
+	char          name[MAX_NAME_LENGTH];
+
+	if (!com_sv_running->integer) {
+		Com_Printf("Server is not running.\n");
 		return;
 	}
 
-	Com_Printf ("map: %s\n", sv_mapname->string );
+	Com_Printf("map: %s\n", sv_mapname->string);
+	Com_Printf("num score ping name            lastmsg address               qport rate \n");
+	Com_Printf("--- ----- ---- --------------- ------- --------------------- ----- -----\n");
 
-	Com_Printf ("cl score ping name            address                                 rate \n");
-	Com_Printf ("-- ----- ---- --------------- --------------------------------------- -----\n");
-	for (i=0,cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++)
-	{
-		if (!cl->state)
+	for (i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++) {
+
+		if (!cl->state) {
 			continue;
-		Com_Printf ("%2i ", i);
-		ps = SV_GameClientNum( i );
-		Com_Printf ("%5i ", ps->persistant[PERS_SCORE]);
-
-		if (cl->state == CS_CONNECTED)
-			Com_Printf ("CON ");
-		else if (cl->state == CS_ZOMBIE)
-			Com_Printf ("ZMB ");
-		else
-		{
-			ping = cl->ping < 9999 ? cl->ping : 9999;
-			Com_Printf ("%4i ", ping);
 		}
 
-		Com_Printf ("%s", cl->name);
-		
-		l = 16 - SV_Strlen(cl->name);
-		j = 0;
-		
-		do
-		{
-			Com_Printf (" ");
-			j++;
-		} while(j < l);
+		Com_Printf("%3i ", i);
+		ps = SV_GameClientNum(i);
+		Com_Printf("%5i ", ps->persistant[PERS_SCORE]);
 
+		if (cl->state == CS_CONNECTED) {
+			Com_Printf("CNCT ");
+		} else if (cl->state == CS_ZOMBIE) {
+			Com_Printf("ZMBI ");
+		} else {
+			ping = cl->ping < 9999 ? cl->ping : 9999;
+			Com_Printf("%4i ", ping);
+		}
+
+		// Remove color codes not to break the padding.
+		Q_strncpyz(name, cl->name, sizeof(name));
+		Q_CleanStr(name);
+
+		Com_Printf("%s", name);
 
 		// TTimo adding a ^7 to reset the color
-		s = NET_AdrToString( cl->netchan.remoteAddress );
-		Com_Printf ("^7%s", s);
-		l = 39 - strlen(s);
-		j = 0;
-		
-		do
-		{
+		Com_Printf("^7");
+		l = (int) (16 - strlen(name));
+		for (j = 0; j < l; j++) {
 			Com_Printf(" ");
-			j++;
-		} while(j < l);
-		
-		Com_Printf (" %5i", cl->rate);
+		}
 
-		Com_Printf ("\n");
+		Com_Printf("%7i ", svs.time - cl->lastPacketTime);
+		s = NET_AdrToString(cl->netchan.remoteAddress);
+		Com_Printf("%s", s);
+		l = (int) (22 - strlen(s));
+		for (j = 0; j < l; j++) {
+			Com_Printf(" ");
+		}
+
+		Com_Printf("%5i", cl->netchan.qport);
+		Com_Printf(" %5i", cl->rate);
+		Com_Printf("\n");
 	}
-	Com_Printf ("\n");
+
+	Com_Printf("\n");
+
 }
 
 /*
@@ -1285,6 +1286,7 @@ SV_ConTell_f
 ==================
 */
 static void SV_ConTell_f(void) {
+
 	char	*p;
 	char	text[1024];
 	client_t	*cl;
@@ -1296,11 +1298,11 @@ static void SV_ConTell_f(void) {
 	}
 
 	if ( Cmd_Argc() < 3 ) {
-		Com_Printf ("Usage: tell <client number> <text>\n");
+		Com_Printf ("Usage: tell <player> <text>\n");
 		return;
 	}
 
-	cl = SV_GetPlayerByNum();
+	cl = SV_GetPlayerByHandle();
 	if ( !cl ) {
 		return;
 	}
@@ -1316,71 +1318,6 @@ static void SV_ConTell_f(void) {
 	strcat(text, p);
 
 	SV_SendServerCommand(cl, "chat \"%s\"", text);
-}
-
-
-/*
-==================
-SV_ConSayto_f
-==================
-*/
-static void SV_ConSayto_f(void) {
-	char		*p;
-	char		text[1024];
-	client_t	*cl;
-	char		*rawname;
-	char		name[MAX_NAME_LENGTH];
-	char		cleanName[MAX_NAME_LENGTH];
-	client_t	*saytocl;
-	int			i;
-
-	// make sure server is running
-	if ( !com_sv_running->integer ) {
-		Com_Printf( "Server is not running.\n" );
-		return;
-	}
-
-	if ( Cmd_Argc() < 3 ) {
-		Com_Printf ("Usage: sayto <player name> <text>\n");
-		return;
-	}
-
-	rawname = Cmd_Argv(1);
-	
-	//allowing special characters in the console 
-	//with hex strings for player names
-	Com_FieldStringToPlayerName( name, MAX_NAME_LENGTH, rawname );
-
-	saytocl = NULL;
-	for ( i=0, cl=svs.clients ; i < sv_maxclients->integer ; i++,cl++ ) {
-		if ( !cl->state ) {
-			continue;
-		}
-		Q_strncpyz( cleanName, cl->name, sizeof(cleanName) );
-		Q_CleanStr( cleanName );
-
-		if ( !Q_stricmp( cleanName, name ) ) {
-			saytocl = cl;
-			break;
-		}
-	}
-	if( !saytocl )
-	{
-		Com_Printf ("No such player name: %s.\n", name);
-		return;
-	}
-
-	strcpy (text, sv_tellprefix->string);
-	p = Cmd_ArgsFrom(2);
-
-	if ( *p == '"' ) {
-		p++;
-		p[strlen(p)-1] = 0;
-	}
-
-	strcat(text, p);
-
-	SV_SendServerCommand(saytocl, "chat \"%s\"", text);
 }
 
 
@@ -1451,7 +1388,7 @@ static void SV_DumpUser_f( void ) {
 	}
 
 	if ( Cmd_Argc() != 2 ) {
-		Com_Printf ("Usage: dumpuser <userid>\n");
+		Com_Printf ("Usage: dumpuser <player>\n");
 		return;
 	}
 
@@ -2007,7 +1944,8 @@ void SV_AddOperatorCommands( void ) {
 	if( com_dedicated->integer ) {
 		Cmd_AddCommand ("say", SV_ConSay_f);
 		Cmd_AddCommand ("tell", SV_ConTell_f);
-		Cmd_AddCommand ("sayto", SV_ConSayto_f);
+		Cmd_SetCommandCompletionFunc( "tell", SV_CompletePlayerName );
+		Cmd_AddCommand ("sayto", SV_ConTell_f);
 		Cmd_SetCommandCompletionFunc( "sayto", SV_CompletePlayerName );
 		Cmd_AddCommand("startserverdemo", SV_StartServerDemo_f);
 		Cmd_AddCommand("stopserverdemo", SV_StopServerDemo_f);

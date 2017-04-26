@@ -953,21 +953,24 @@ int Q_PrintStrlen( const char *string ) {
 }
 
 
-char *Q_CleanStr( char *string ) {
-	char*	d;
-	char*	s;
-	int		c;
+char *Q_CleanStr(char *string) {
+
+	char  *d;
+	char  *s;
+	int   c;
 
 	s = string;
 	d = string;
-	while ((c = *s) != 0 ) {
-		if ( Q_IsColorString( s ) ) {
-			s++;
-		}		
-		else if ( c >= 0x20 && c <= 0x7E ) {
+
+	while ((c = *s) != 0) {
+		if (Q_IsColorString(s)) {
+			s += 2;
+		} else if (c >= 0x20 && c <= 0x7E && c != Q_COLOR_ESCAPE) {
 			*d++ = c;
+			s++;
+		} else {
+			s++;
 		}
-		s++;
 	}
 	*d = '\0';
 
