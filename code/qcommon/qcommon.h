@@ -885,6 +885,9 @@ extern	cvar_t	*com_protocol;
 #ifdef LEGACY_PROTOCOL
 extern	cvar_t	*com_legacyprotocol;
 #endif
+#ifndef DEDICATED
+extern  cvar_t  *con_autochat;
+#endif
 
 // com_speeds times
 extern	int		time_game;
@@ -1075,6 +1078,8 @@ void	Sys_Init (void);
 void	* QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(int, ...),
 				  intptr_t (QDECL *systemcalls)(intptr_t, ...) );
 void	Sys_UnloadDll( void *dllHandle );
+
+qboolean Sys_DllExtension( const char *name );
 
 char	*Sys_GetCurrentUser( void );
 

@@ -1179,7 +1179,8 @@ demo <demoname>
 */
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH];
-	char		*arg, *ext_test;
+	char		arg[MAX_OSPATH];
+	char		*ext_test;
 #ifdef USE_DEMO_FORMAT_42
 	int			r, len, v1, v2;
 	char		*s2;
@@ -1199,7 +1200,7 @@ void CL_PlayDemo_f( void ) {
 
 
 	// open the demo file
-	arg = Cmd_Argv(1);
+	Q_strncpyz( arg, Cmd_Argv(1), sizeof( arg ) );
 	
 	CL_Disconnect( qtrue );
 
@@ -1759,7 +1760,7 @@ CL_Connect_f
 ================
 */
 void CL_Connect_f( void ) {
-	char	*server;
+	char	server[MAX_OSPATH];
 	const char	*serverString;
 	int argc = Cmd_Argc();
 	netadrtype_t family = NA_UNSPEC;
@@ -1770,7 +1771,7 @@ void CL_Connect_f( void ) {
 	}
 	
 	if(argc == 2)
-		server = Cmd_Argv(1);
+		Q_strncpyz( server, Cmd_Argv(1), sizeof( server ) );
 	else
 	{
 		if(!strcmp(Cmd_Argv(1), "-4"))
@@ -1780,10 +1781,8 @@ void CL_Connect_f( void ) {
 		else
 			Com_Printf( "warning: only -4 or -6 as address type understood.\n");
 		
-		server = Cmd_Argv(2);
+		Q_strncpyz( server, Cmd_Argv(2), sizeof( server ) );
 	}
-
-	server = CopyString(server);
 
 	// save arguments for reconnect
 	Cvar_Set("cl_reconnectArgs", Cmd_Args());
@@ -1844,7 +1843,6 @@ void CL_Connect_f( void ) {
 
 	// server connection string
 	Cvar_Set( "cl_currentServerAddress", server );
-	Z_Free(server);
 }
 
 #define MAX_RCON_MESSAGE 1024
@@ -1959,6 +1957,7 @@ void CL_Rcon_f( void ) {
 	}
 	
 	NET_SendPacket (NS_CLIENT, strlen(message)+1, message, to);
+	cls.rconAddress = to;
 }
 
 /*
@@ -2866,7 +2865,10 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 
 	// echo request from server
 	if ( !Q_stricmp(c, "echo") ) {
-		NET_OutOfBandPrint( NS_CLIENT, from, "%s", Cmd_Argv(1) );
+		// NOTE: we may have to add exceptions for auth and update servers
+		if ( NET_CompareAdr( from, clc.serverAddress ) || NET_CompareAdr( from, cls.rconAddress ) ) {
+			NET_OutOfBandPrint( NS_CLIENT, from, "%s", Cmd_Argv(1) );
+		}
 		return;
 	}
 
@@ -2882,12 +2884,14 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 	}
 
 	// echo request from server
-	if(!Q_stricmp(c, "print")){
-		s = MSG_ReadString( msg );
-		
-		Q_strncpyz( clc.serverMessage, s, sizeof( clc.serverMessage ) );
-		Com_Printf( "%s", s );
+	if ( !Q_stricmp(c, "print") ) {
+		// NOTE: we may have to add exceptions for auth and update servers
+		if ( NET_CompareAdr( from, clc.serverAddress ) || NET_CompareAdr( from, cls.rconAddress ) ) {
+			s = MSG_ReadString( msg );
 
+			Q_strncpyz( clc.serverMessage, s, sizeof( clc.serverMessage ) );
+			Com_Printf( "%s", s );
+		}
 		return;
 	}
 
