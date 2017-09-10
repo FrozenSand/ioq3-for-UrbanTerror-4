@@ -2,22 +2,14 @@ language: c
 dist: trusty
 sudo: true
 
-before_install:
-  - |
-    set -e
-    if [[ $TRAVIS_OS_NAME == linux ]]; then
-      if [[ $PLATFORM == mingw32 ]]; then
-        sudo apt-get remove -qq mingw32
-        sudo apt-get install -qq mingw-w64
-      elif [[ $ARCH == x86 ]]; then
-        sudo dpkg --add-architecture i386
-        sudo apt-get update -qq
-        sudo apt-get install -qq gcc-multilib libgl1-mesa-dev:i386 libsdl2-dev:i386 libxxf86vm-dev:i386
-      else
-        sudo apt-get install -qq libgl1-mesa-dev libsdl2-dev libxxf86vm-dev
-      fi
-    fi
-    set +e
+addons:
+  apt:
+    packages:
+      - mingw-w64
+      - libgl1-mesa-dev
+      - libsdl2-dev
+      - libfreetype6-dev
+      - libxxf86vm-dev
 
 env:
   global:
@@ -27,9 +19,6 @@ env:
 matrix:
   include:
     - os: linux
-
-    - os: linux
-      env: ARCH=x86 PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig/
 
     - os: linux
       env: CC= PLATFORM="mingw32" ARCH="x86_64"
