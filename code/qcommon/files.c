@@ -3519,6 +3519,34 @@ static void FS_Startup( const char *gameName )
 
 /*
 =====================
+FS_LoadedPakChecksumsBlob
+
+Return pak checksums as a binary blob with length at start
+=====================
+*/
+int FS_LoadedPakChecksumsBlob( unsigned char *dst, int dstlen ) {
+	searchpath_t    *search;
+	int num = 0;
+	int dp = 0;
+
+	for ( search = fs_searchpaths ; search ; search = search->next ) {
+		// is the element a pak file?
+		if ( !search->pack ) {
+			continue;
+		}
+		if (dp+4>=dstlen) return 0;
+		dst[dp+0] = search->pack->checksum&0xFF;
+		dst[dp+1] = (search->pack->checksum>>8)&0xFF;
+		dst[dp+2] = (search->pack->checksum>>16)&0xFF;
+		dst[dp+3] = (search->pack->checksum>>24)&0xFF;
+		dp+=4;
+		num++;
+	}
+	return dp;
+}
+
+/*
+=====================
 FS_LoadedPakChecksums
 
 Returns a space separated string containing the checksums of all loaded pk3 files.
@@ -3552,7 +3580,7 @@ Servers with sv_pure set will get this string and pass it to clients.
 =====================
 */
 const char *FS_LoadedPakNames( void ) {
-	static char	info[BIG_INFO_STRING];
+	static char	info[BIG_INFO_STRING*4];
 	searchpath_t	*search;
 
 	info[0] = 0;

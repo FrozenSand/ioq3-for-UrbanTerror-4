@@ -710,6 +710,7 @@ const char *FS_LoadedPakChecksums( void );
 const char *FS_LoadedPakPureChecksums( void );
 // Returns a space separated string containing the checksums of all loaded pk3 files.
 // Servers with sv_pure set will get this string and pass it to clients.
+int FS_LoadedPakChecksumsBlob( unsigned char *dst, int dstlen );
 
 void FS_SetMapName( const char *mapname );
 void FS_SetExtraPure( const char *mapname, const char *extrapaks );
@@ -1223,5 +1224,11 @@ extern huffman_t clientHuffTables;
 #define DLF_NO_REDIRECT 2
 #define DLF_NO_UDP 4
 #define DLF_NO_DISCONNECT 8
+
+// compressed pure list buffer
+#define PURE_COMPRESS_BUFFER 16384
+
+// last N CS will be used:
+#define PURE_COMPRESS_NUMCS 8
 
 #endif // _QCOMMON_H_
