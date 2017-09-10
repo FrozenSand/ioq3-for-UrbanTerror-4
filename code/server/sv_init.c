@@ -459,7 +459,7 @@ SV_MakeCompressedPureList
 Fills the last N configstrings with compressed pure list
 ================
 */
-void SV_MakeCompressedPureList() {
+void SV_MakeCompressedPureList(void) {
 
 	unsigned char buf[PURE_COMPRESS_BUFFER];
 	char tmp[1025];

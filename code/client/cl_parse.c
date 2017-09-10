@@ -422,7 +422,7 @@ CL_ParseCompressedPureList
 Decode, decompress and set pure file list from compressed data
 ================
 */
-void CL_ParseCompressedPureList() {
+void CL_ParseCompressedPureList(void) {
 
 	int i, esc, sh, shc, bl, l;
 	static unsigned char buf[PURE_COMPRESS_BUFFER];

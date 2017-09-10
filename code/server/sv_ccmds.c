@@ -1158,25 +1158,6 @@ static void SV_ExceptDel_f(void)
 }
 
 /*
-** SV_Strlen -- skips color escape codes
-*/
-static int SV_Strlen( const char *str ) {
-	const char *s = str;
-	int count = 0;
-
-	while ( *s ) {
-		if ( Q_IsColorString( s ) ) {
-			s += 2;
-		} else {
-			count++;
-			s++;
-		}
-	}
-
-	return count;
-}
-
-/*
 ================
 SV_Status_f
 ================
