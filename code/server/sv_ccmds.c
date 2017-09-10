@@ -1258,6 +1258,7 @@ static void SV_ConSay_f(void) {
 
 	strcat(text, p);
 
+	Com_Printf("%s\n", text);
 	SV_SendServerCommand(NULL, "chat \"%s\"", text);
 }
 
@@ -1298,12 +1299,14 @@ static void SV_ConTell_f(void) {
 
 	strcat(text, p);
 
+	Com_Printf("%s\n", text);
 	SV_SendServerCommand(cl, "chat \"%s\"", text);
 }
 
 
 /*
 ==================
+	Com_Printf("%s\n", text);
 SV_Heartbeat_f
 
 Also called by SV_DropClient, SV_DirectConnect, and SV_SpawnServer

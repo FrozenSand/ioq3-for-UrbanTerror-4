@@ -193,28 +193,26 @@ IN_TranslateSDLToQ3Key
 static keyNum_t IN_TranslateSDLToQ3Key( SDL_Keysym *keysym, qboolean down )
 {
 	keyNum_t key = 0;
-	SDL_Keycode keycode = keysym->sym;
 
-	// On Windows, SDL always maps the number keys as such even if they
-	// actually map to other characters (eg, "1" is "&" on an AZERTY keyboard).
-	// This enforces the same behavior on all platforms.
-	if( keysym->scancode == SDL_SCANCODE_0 )
-		keycode = SDLK_0;
-	else if( keysym->scancode >= SDL_SCANCODE_1 && keysym->scancode <= SDL_SCANCODE_9 )
-		keycode = SDLK_1 + (keysym->scancode - SDL_SCANCODE_1);
-
-	if( keycode >= SDLK_SPACE && keycode < SDLK_DELETE )
+	if( keysym->scancode >= SDL_SCANCODE_1 && keysym->scancode <= SDL_SCANCODE_0 )
+	{
+		// Always map the number keys as such even if they actually map
+		// to other characters (eg, "1" is "&" on an AZERTY keyboard).
+		// This is required for SDL before 2.0.6, except on Windows
+		// which already had this behavior.
+		if( keysym->scancode == SDL_SCANCODE_0 )
+			key = '0';
+		else
+			key = '1' + keysym->scancode - SDL_SCANCODE_1;
+	}
+	else if( keysym->sym >= SDLK_SPACE && keysym->sym < SDLK_DELETE )
 	{
 		// These happen to match the ASCII chars
-		key = (int)keycode;
-	}
-	else if (keysym->sym >= 0xA0 && keysym->sym <= 0xFF) {
-		// These are extended ASCII chars, map them to K_WORLD_0..95
-		key = K_WORLD_0 + (keysym->sym - 0xA0);
+		key = (int)keysym->sym;
 	}
 	else
 	{
-		switch( keycode )
+		switch( keysym->sym )
 		{
 			case SDLK_PAGEUP:       key = K_PGUP;          break;
 			case SDLK_KP_9:         key = K_KP_PGUP;       break;
@@ -295,6 +293,15 @@ static keyNum_t IN_TranslateSDLToQ3Key( SDL_Keysym *keysym, qboolean down )
 			case SDLK_CAPSLOCK:     key = K_CAPSLOCK;      break;
 
 			default:
+				if( !( keysym->sym & SDLK_SCANCODE_MASK ) && keysym->scancode <= 95 )
+				{
+					// Map Unicode characters to 95 world keys using the key's scan code.
+					// FIXME: There aren't enough world keys to cover all the scancodes.
+					// Maybe create a map of scancode to quake key at start up and on
+					// key map change; allocate world key numbers as needed similar
+					// to SDL 1.2.
+					key = K_WORLD_0 + (int)keysym->scancode;
+				}
 				break;
 		}
 	}
@@ -1139,6 +1146,12 @@ static void IN_ProcessEvents( void )
 
 							width = e.window.data1;
 							height = e.window.data2;
+
+							// ignore this event on fullscreen
+							if( cls.glconfig.isFullscreen )
+							{
+								break;
+							}
 
 							// check if size actually changed
 							if( cls.glconfig.vidWidth == width && cls.glconfig.vidHeight == height )
