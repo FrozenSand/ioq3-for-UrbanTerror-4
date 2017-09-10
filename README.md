@@ -106,8 +106,8 @@ lower priority than anything else.
 - [ ] Alt-tab and `r_minimize` cvar
 - [x] New mouse acceleration style (`cl_mouseAccel 2`)
 - [x] Make the client query other master servers if main one does not respond
-- [ ] Parse compressed pak list
-- [ ] Client commands changes/additions
+- [x] Parse compressed pak list
+- [x] Client commands changes/additions
    - [x] Escape `%` in client to server commands (allows usage of '%' in chat)
 
 ## Server
@@ -115,7 +115,7 @@ lower priority than anything else.
 - [x] `sv_clientsPerIP` cvar
 - [x] `sv_sayprefix` / `sv_tellprefix` cvars
 - [x] Send UrT specific server infostring
-- [ ] Server commands changes/additions
+- [x] Server commands changes/additions
    - [x] Partial matching of map and players
 
 Please let me know if I forgot anything from the list!

@@ -710,6 +710,7 @@ const char *FS_LoadedPakChecksums( void );
 const char *FS_LoadedPakPureChecksums( void );
 // Returns a space separated string containing the checksums of all loaded pk3 files.
 // Servers with sv_pure set will get this string and pass it to clients.
+int FS_LoadedPakChecksumsBlob( unsigned char *dst, int dstlen );
 
 void FS_SetMapName( const char *mapname );
 void FS_SetExtraPure( const char *mapname, const char *extrapaks );
@@ -1062,6 +1063,14 @@ int SV_SendQueuedPackets(void);
 //
 qboolean UI_GameCommand( void );
 
+//
+// input interface
+//
+void IN_Init( void *windowData );
+void IN_Frame( void );
+void IN_Shutdown( void );
+void IN_Restart( void );
+
 /*
 ==============================================================
 
@@ -1200,9 +1209,9 @@ void	Huff_Decompress(msg_t *buf, int offset);
 void	Huff_Init(huffman_t *huff);
 void	Huff_addRef(huff_t* huff, byte ch);
 int		Huff_Receive (node_t *node, int *ch, byte *fin);
-void	Huff_transmit (huff_t *huff, int ch, byte *fout);
-void	Huff_offsetReceive (node_t *node, int *ch, byte *fin, int *offset);
-void	Huff_offsetTransmit (huff_t *huff, int ch, byte *fout, int *offset);
+void	Huff_transmit (huff_t *huff, int ch, byte *fout, int maxoffset);
+void	Huff_offsetReceive (node_t *node, int *ch, byte *fin, int *offset, int maxoffset);
+void	Huff_offsetTransmit (huff_t *huff, int ch, byte *fout, int *offset, int maxoffset);
 void	Huff_putBit( int bit, byte *fout, int *offset);
 int		Huff_getBit( byte *fout, int *offset);
 
@@ -1223,5 +1232,11 @@ extern huffman_t clientHuffTables;
 #define DLF_NO_REDIRECT 2
 #define DLF_NO_UDP 4
 #define DLF_NO_DISCONNECT 8
+
+// compressed pure list buffer
+#define PURE_COMPRESS_BUFFER 16384
+
+// last N CS will be used:
+#define PURE_COMPRESS_NUMCS 8
 
 #endif // _QCOMMON_H_

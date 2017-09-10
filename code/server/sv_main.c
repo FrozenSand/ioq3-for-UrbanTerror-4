@@ -57,6 +57,7 @@ cvar_t	*sv_pure;
 cvar_t	*sv_extraPure;
 cvar_t	*sv_extraPaks;
 cvar_t	*sv_floodProtect;
+cvar_t	*sv_newpurelist;
 cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates to 99999 (bug #491)
 cvar_t	*sv_banFile;
 cvar_t	*sv_clientsPerIp;
