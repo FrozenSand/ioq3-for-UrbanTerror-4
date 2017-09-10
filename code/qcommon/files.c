@@ -3591,10 +3591,7 @@ const char *FS_LoadedPakNames( void ) {
 			continue;
 		}
 
-		if (*info) {
-			Q_strcat(info, sizeof( info ), " " );
-		}
-		Q_strcat( info, sizeof( info ), search->pack->pakBasename );
+		Q_strcat( info, sizeof( info ), va("%s ", search->pack->pakBasename) );
 	}
 
 	return info;
@@ -3721,12 +3718,7 @@ const char *FS_ReferencedPakNames( void ) {
 		// is the element a pak file?
 		if ( search->pack ) {
 			if (search->pack->referenced || Q_stricmpn(search->pack->pakGamename, com_basegame->string, strlen(com_basegame->string))) {
-				if (*info) {
-					Q_strcat(info, sizeof( info ), " " );
-				}
-				Q_strcat( info, sizeof( info ), search->pack->pakGamename );
-				Q_strcat( info, sizeof( info ), "/" );
-				Q_strcat( info, sizeof( info ), search->pack->pakBasename );
+				Q_strcat( info, sizeof( info ), va( "%s/%s ", search->pack->pakGamename, search->pack->pakBasename ) );
 			}
 		}
 	}
