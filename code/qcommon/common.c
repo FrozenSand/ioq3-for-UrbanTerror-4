@@ -37,8 +37,8 @@ int demo_protocols[] =
 #define MAX_NUM_ARGVS	50
 
 #define MIN_DEDICATED_COMHUNKMEGS 96
-#define MIN_COMHUNKMEGS		512
-#define DEF_COMHUNKMEGS 	512
+#define MIN_COMHUNKMEGS		768
+#define DEF_COMHUNKMEGS		1024
 #define DEF_COMZONEMEGS		32
 #define DEF_COMHUNKMEGS_S	XSTRING(DEF_COMHUNKMEGS)
 #define DEF_COMZONEMEGS_S	XSTRING(DEF_COMZONEMEGS)
@@ -1749,7 +1749,7 @@ void *Hunk_Alloc( int size, ha_pref preference ) {
 
 		Com_Error(ERR_DROP, "Hunk_Alloc failed on %i: %s, line: %d (%s)", size, file, line, label);
 #else
-		Com_Error(ERR_DROP, "Hunk_Alloc failed on %i", size);
+		Com_Error(ERR_DROP, "Hunk_Alloc failed on %i - try raising the value of the com_hunkMegs cvar and restart your game.", size);
 #endif
 	}
 
