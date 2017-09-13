@@ -762,6 +762,20 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 	if ( sv_pure->integer ) {
 		// if a dedicated pure server we need to touch the cgame because it could be in a
 		// separate pk3 file and the client will need to load the latest cgame.qvm
+		if ( com_dedicated->integer ) {
+			SV_TouchCGame();
+		}
+
+		// Update latched value
+		Cvar_Get ("sv_extraPaks", "", CVAR_ARCHIVE | CVAR_LATCH);
+		Cvar_Get ("sv_extraPure", "0", CVAR_ARCHIVE | CVAR_LATCH);
+
+		if ( sv_extraPure->integer ) {
+			FS_SetExtraPure(server, sv_extraPaks->string);
+		}
+
+		// the server sends these to the clients so they will only
+		// load pk3s also loaded at the server
 		if (sv_newpurelist->integer) {
 			Cvar_Set( "sv_paks", "*" );
 			Cvar_Set( "sv_pakNames", "*" );
@@ -775,19 +789,6 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 			p = FS_LoadedPakNames();
 			Cvar_Set( "sv_pakNames", p );
 		}
-
-		if ( com_dedicated->integer ) {
-			SV_TouchCGame();
-		}
-
-		// Update latched value
-		Cvar_Get ("sv_extraPaks", "", CVAR_ARCHIVE | CVAR_LATCH);
-		Cvar_Get ("sv_extraPure", "0", CVAR_ARCHIVE | CVAR_LATCH);
-
-		if ( sv_extraPure->integer ) {
-			FS_SetExtraPure(server, sv_extraPaks->string);
-		}
-
 	}
 	else {
 		Cvar_Set( "sv_paks", "" );
