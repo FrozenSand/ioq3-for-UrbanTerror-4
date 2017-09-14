@@ -1,10 +1,10 @@
-# ioQuake 3 for UrbanTerror
+# ioquake 3 for UrbanTerror
 
 [![Build Status](https://travis-ci.org/mickael9/ioq3.svg?branch=urt)](https://travis-ci.org/mickael9/ioq3)
 [Download prebuilt binaries for Linux/macOS/Windows](http://ioq3urt.mickael9.tk/urt/)
 
 This project is an initiative to backport the relevant ioUrbanTerror-specific
-features to an up-to-date ioQuake3.
+features to an up-to-date ioquake3.
 
 This brings all of the ioquake3 features to UrbanTerror:
  - [VOIP support](voip-readme.txt) from ioquake3
@@ -29,8 +29,8 @@ This is caused by the way quake3 search path works: when a file is requested,
 it goes through the quake3 search path until the file is found, so a file that
 exists higher in the search path will always "shadow" lower priority files.
 Since there is no concept of "map file", you can have situations where a
-ressource exists in the map pk3 but gets picked from another pk3. Some maps
-also like to override default ressources (like weapon models, flags, sounds,
+resource exists in the map pk3 but gets picked from another pk3. Some maps
+also like to override default resources (like weapon models, flags, sounds,
 etc.)
 
 ### `fs_reorderPaks` cvar
@@ -44,9 +44,9 @@ This way:
  - The map always has priority over everything else, respecting the mapper's
    intention.
 
- - Other maps can't override core ressources from the game paks
+ - Other maps can't override core resources from the game paks
 
- - Additional ressources (like funstuff) can still be loaded from the other
+ - Additional resources (like funstuff) can still be loaded from the other
    pk3s
 
 This cvar works on clients and servers :
@@ -55,7 +55,7 @@ This cvar works on clients and servers :
    search path order from the server.  This is not the case on unpure servers
    so this option will have no practical effect on unpure servers.
 
- - Clients with this cvar on will always benefit, wether they connect to pure
+ - Clients with this cvar on will always benefit, whether they connect to pure
    or unpure servers.  When connecting to pure servers, the reordering is done
    after the server search order is copied
 
