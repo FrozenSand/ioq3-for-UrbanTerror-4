@@ -3531,7 +3531,7 @@ int FS_LoadedPakChecksumsBlob( unsigned char *dst, int dstlen ) {
 
 	for ( search = fs_searchpaths ; search ; search = search->next ) {
 		// is the element a pak file?
-		if ( !search->pack ) {
+		if ( !search->pack || !search->pack->extrapure ) {
 			continue;
 		}
 		if (dp+4>=dstlen) return 0;
