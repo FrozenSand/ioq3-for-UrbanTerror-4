@@ -429,8 +429,13 @@ Break it up into multiple console lines
 */
 void Com_ParseCommandLine( char *commandLine ) {
     int inq = 0;
-    com_consoleLines[0] = commandLine;
-    com_numConsoleLines = 1;
+
+    if ( !*commandLine ) {
+        return;
+    }
+
+    com_consoleLines[com_numConsoleLines] = commandLine;
+    com_numConsoleLines++;
 
     while ( *commandLine ) {
         if (*commandLine == '"') {
@@ -448,6 +453,23 @@ void Com_ParseCommandLine( char *commandLine ) {
         }
         commandLine++;
     }
+}
+
+void Com_ParseCommandFile( char *path )
+{
+    char commandLine[MAX_STRING_CHARS] = {0};
+    com_numConsoleLines = 0;
+
+    FILE *fp = Sys_FOpen(path, "rb");
+
+    if (!fp) {
+        return;
+    }
+
+    fread(commandLine, 1, sizeof(commandLine) - 1, fp);
+    fclose(fp);
+
+    Com_ParseCommandLine(commandLine);
 }
 
 
@@ -2544,7 +2566,7 @@ static void Com_InitRand(void)
 Com_Init
 =================
 */
-void Com_Init( char *commandLine ) {
+void Com_Init( char *commandLine, char *commandFile ) {
 	char	*s;
 	int	qport;
 
@@ -2568,6 +2590,7 @@ void Com_Init( char *commandLine ) {
 
 	// prepare enough of the subsystems to handle
 	// cvar and command buffer management
+	Com_ParseCommandFile( commandFile );
 	Com_ParseCommandLine( commandLine );
 
 //	Swap_Init ();

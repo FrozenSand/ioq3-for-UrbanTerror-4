@@ -608,6 +608,10 @@ issues.
 #	define Q3CONFIG_CFG "q3config.cfg"
 #endif
 
+#ifndef COMMAND_FILE_NAME
+#define COMMAND_FILE_NAME "cmdline.txt"
+#endif
+
 qboolean FS_Initialized( void );
 
 void	FS_InitFilesystem ( void );
@@ -965,7 +969,7 @@ void Hunk_Log( void);
 void Com_TouchMemory( void );
 
 // commandLine should not include the executable name (argv[0])
-void Com_Init( char *commandLine );
+void Com_Init( char *commandLine, char *commandFile );
 void Com_Frame( void );
 void Com_Shutdown( void );
 
