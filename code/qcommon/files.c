@@ -3394,7 +3394,8 @@ FS_Startup
 */
 static void FS_Startup( const char *gameName )
 {
-	const char *homePath;
+	const char *homePath = NULL;
+	cvar_t *fs_defaultHomePath;
 
 	Com_Printf( "----- FS_Startup -----\n" );
 
@@ -3406,8 +3407,13 @@ static void FS_Startup( const char *gameName )
 	fs_basegame = Cvar_Get ("fs_basegame", "", CVAR_INIT );
 	fs_lowPriorityDownloads = Cvar_Get ("fs_lowPriorityDownloads", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	fs_reorderPaks = Cvar_Get ("fs_reorderPaks", "1", CVAR_ARCHIVE|CVAR_LATCH);
+	fs_defaultHomePath = Cvar_Get ("fs_defaultHomePath", "1", CVAR_INIT|CVAR_PROTECTED );
+	if (fs_defaultHomePath->integer == 1) {
+		homePath = Sys_DefaultHomePath();
+	} else if (fs_defaultHomePath->integer == 2) {
+		homePath = Sys_BinaryPath();
+	}
 
-	homePath = Sys_DefaultHomePath();
 	if (!homePath || !homePath[0]) {
 		homePath = fs_basepath->string;
 	}
