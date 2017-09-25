@@ -21,10 +21,10 @@ matrix:
     - os: linux
 
     - os: linux
-      env: CC= PLATFORM="mingw32" ARCH="x86_64"
+      env: CC= PLATFORM="mingw32" ARCH="x86_64" DEFAULT_HOMEDIR=.
 
     - os: linux
-      env: CC= PLATFORM="mingw32" ARCH="x86"
+      env: CC= PLATFORM="mingw32" ARCH="x86" DEFAULT_HOMEDIR=.
 
     - os: osx
 
