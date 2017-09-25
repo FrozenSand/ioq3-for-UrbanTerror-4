@@ -3407,16 +3407,26 @@ static void FS_Startup( const char *gameName )
 	fs_basegame = Cvar_Get ("fs_basegame", "", CVAR_INIT );
 	fs_lowPriorityDownloads = Cvar_Get ("fs_lowPriorityDownloads", "1", CVAR_ARCHIVE|CVAR_LATCH);
 	fs_reorderPaks = Cvar_Get ("fs_reorderPaks", "1", CVAR_ARCHIVE|CVAR_LATCH);
-	fs_defaultHomePath = Cvar_Get ("fs_defaultHomePath", "1", CVAR_INIT|CVAR_PROTECTED );
+	fs_defaultHomePath = Cvar_Get ("fs_defaultHomePath", "0", CVAR_INIT|CVAR_PROTECTED );
+
 	if (fs_defaultHomePath->integer == 1) {
 		homePath = Sys_DefaultHomePath();
 	} else if (fs_defaultHomePath->integer == 2) {
 		homePath = Sys_BinaryPath();
+	} else if (fs_defaultHomePath->integer == 3) {
+		homePath = Sys_DefaultInstallPath();
+	} else {
+#ifdef DEFAULT_HOMEDIR
+		homePath = DEFAULT_HOMEDIR;
+#else
+		homePath = Sys_DefaultHomePath();
+#endif
 	}
 
 	if (!homePath || !homePath[0]) {
 		homePath = fs_basepath->string;
 	}
+
 	fs_homepath = Cvar_Get ("fs_homepath", homePath, CVAR_INIT|CVAR_PROTECTED );
 #ifdef USE_AUTH
 	fs_gamedirvar = Cvar_Get ("fs_game", BASEGAME, CVAR_INIT|CVAR_SYSTEMINFO );
