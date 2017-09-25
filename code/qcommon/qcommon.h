@@ -969,7 +969,7 @@ void Hunk_Log( void);
 void Com_TouchMemory( void );
 
 // commandLine should not include the executable name (argv[0])
-void Com_Init( char *commandLine, char *commandFile );
+void Com_Init( char *commandLine );
 void Com_Frame( void );
 void Com_Shutdown( void );
 

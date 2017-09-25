@@ -682,7 +682,6 @@ int main( int argc, char **argv )
 {
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
-	char  commandFile[ MAX_STRING_CHARS ] = { 0 };
 
 	extern void Sys_LaunchAutoupdater(int argc, char **argv);
 	Sys_LaunchAutoupdater(argc, argv);
@@ -745,10 +744,8 @@ int main( int argc, char **argv )
 		Q_strcat( commandLine, sizeof( commandLine ), " " );
 	}
 
-	Com_sprintf( commandFile, sizeof( commandFile ), "%s%c%s", binaryPath, PATH_SEP, COMMAND_FILE_NAME);
-
 	CON_Init( );
-	Com_Init( commandLine, commandFile );
+	Com_Init( commandLine );
 	NET_Init( );
 
 	signal( SIGILL, Sys_SigHandler );

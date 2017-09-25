@@ -455,12 +455,11 @@ void Com_ParseCommandLine( char *commandLine ) {
     }
 }
 
-void Com_ParseCommandFile( char *path )
+void Com_ParseCommandFile( char *dir )
 {
     char commandLine[MAX_STRING_CHARS] = {0};
-    com_numConsoleLines = 0;
 
-    FILE *fp = Sys_FOpen(path, "rb");
+    FILE *fp = Sys_FOpen(va("%s%c%s", dir, PATH_SEP, COMMAND_FILE_NAME), "rb");
 
     if (!fp) {
         return;
@@ -2566,7 +2565,7 @@ static void Com_InitRand(void)
 Com_Init
 =================
 */
-void Com_Init( char *commandLine, char *commandFile ) {
+void Com_Init( char *commandLine ) {
 	char	*s;
 	int	qport;
 
@@ -2590,7 +2589,14 @@ void Com_Init( char *commandLine, char *commandFile ) {
 
 	// prepare enough of the subsystems to handle
 	// cvar and command buffer management
-	Com_ParseCommandFile( commandFile );
+	com_numConsoleLines = 0;
+
+	Com_ParseCommandFile( Sys_BinaryPath() );
+#ifdef DEFAULT_BASEDIR
+	Com_ParseCommandFile( Sys_DefaultInstallPath() );
+#endif
+	Com_ParseCommandFile( Sys_Cwd() );
+
 	Com_ParseCommandLine( commandLine );
 
 //	Swap_Init ();
