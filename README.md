@@ -75,19 +75,88 @@ to exclude from the search path
 When set to 1 (the default), this puts the maps in the `download` folder at a
 lower priority than anything else.
 
+## `fs_defaultHomePath` cvar
+
+This new cvar is similar to the ioUrbanTerror `use_defaultHomePath` cvar and
+controls the default value for the `fs_homepath` cvar (which specifies where
+the writable data such as map downloads and configs will be written).
+
+Possible values are:
+- 0 (default): use the value of `DEFAULT_HOMEDIR` specified at compile-time if
+  defined, else use the system home path.
+
+- 1: use the system home path (`AppData`, `~/.q3a`, `~/Library`)
+
+- 2: use the executable directory
+
+- 3: use the installation path, that is the value of `DEFAULT_BASEDIR`
+  specified at compile-time if defined, else use current working directory.
+
+## cmdline.txt
+
+Some cvars can exclusively be set from the command line arguments which makes
+customization harder because it requires creating wrapper scripts.
+
+To make things easier, command line arguments will also be loaded from the
+`cmdline.txt` file from the following locations (in that order):
+ - the same directory as the executable
+ - the installation path (if set at compile time)
+ - the current working directory
+
+This can be used, to, for instance, create a portable version that stores
+all of its data in the same directory as the executable:
+
+```
+set fs_defaultHomePath 2 // Use the executable directory as the home path
+```
+
+Another use for this is to set whether your server will be visible to the
+internet or only to your LAN using the `dedicated` cvar and to execute the
+`server.cfg` file:
+
+```
+set dedicated 2 // Make the server visible to the internet
+exec server.cfg // Start server with the specified config file
+```
+
+
+## Impoved keyboard handling
+
+- Number keys in the first row are always mapped to number keys, on AZERTY
+  layouts for instance. This matches with the behavior of ioUrbanTerror on
+  Windows and brings it to other platforms as well.
+
+- Numpad `2` and `8` keys aren't interpreted as up/down in console anymore.
+
+- The leftmost key in the upper row (left of the `1` key) is now bound the
+  console regardless of the current user layout.
+  This can be disabled by setting `cl_consoleUseScanCode` to `0`.
+
+- Non-ascii keys can now be mapped on all platforms
+  (using the `WORLD_n` key names)
+
 ## Other changes
- - Download UI is improved a bit
- - Downloading can still be attempted if the server has no download URL set.
-   In this case we use the default one (urbanterror.info).
- - Number keys in the first row are always mapped to number keys, on AZERTY
-   layouts for instance. This matches with the behavior of ioUrbanTerror on
-   Windows and brings it to other platforms as well.
- - Numpad `2` and `8` keys aren't interpreted as up/down in console anymore.
- - `+vstr` supports nested key presses
+
+- Download UI is improved a bit
+
+- Downloading can still be attempted if the server has no download URL set.
+  In this case we use the default one (urbanterror.info).
+
+- `+vstr` supports nested key presses.
+
+- `/map` will now accept to load maps that are not in a pure pak
+  (when connected to a pure server)
 
 ## Security fixes
- - QVMs, `q3config.cfg` and `autoexec.cfg` can't be loaded from downloaded pk3s
-   anymore.
+
+- QVMs, `q3config.cfg` and `autoexec.cfg` can't be loaded from downloaded pk3s
+  anymore.
+
+- Only `.dll` / `.so` / `.dynlib` exensions are accepted for dynamic libraries.
+
+- `/condump` and `/writeconfig` can only write to .txt files.
+
+- CURL protocols (for map downloads) are limited to HTTP(S) and FTP(S).
 
 # Feature parity status with original ioUrbanTerror
 
@@ -95,6 +164,7 @@ lower priority than anything else.
 - [x] UrbanTerror 4.2+ demo format (.urtdemo)
 - [x] Auth system
 - [x] `+vstr` command
+- [x] Compressed pak list
 
 ## Client
 - [x] Make `/reconnect` work across restarts
@@ -103,19 +173,17 @@ lower priority than anything else.
 - [x] Fancy tabbed console
 - [x] dmaHD
 - [x] Prompt before auto download
-- [ ] Alt-tab and `r_minimize` cvar
 - [x] New mouse acceleration style (`cl_mouseAccel 2`)
 - [x] Make the client query other master servers if main one does not respond
-- [x] Parse compressed pak list
-- [x] Client commands changes/additions
-   - [x] Escape `%` in client to server commands (allows usage of '%' in chat)
+- [x] `r_altgamma` cvar for Linux users having problems with gamma settings
+- [x] Escape `%` in client to server commands (allows usage of '%' in chat)
+- [ ] ~~Alt-tab and `r_minimize` cvars~~ (not needed with SDL2)
 
 ## Server
 - [x] Server demos
 - [x] `sv_clientsPerIP` cvar
 - [x] `sv_sayprefix` / `sv_tellprefix` cvars
 - [x] Send UrT specific server infostring
-- [x] Server commands changes/additions
-   - [x] Partial matching of map and players
+- [x] Partial matching of map and players
 
-Please let me know if I forgot anything from the list!
+This list is likely incomplete. Please let me know if I forgot anything!
