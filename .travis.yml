@@ -13,7 +13,6 @@ addons:
 
 env:
   global:
-    - USE_CODEC_VORBIS=1
     - MAKEFLAGS=-j4
 
 matrix:
