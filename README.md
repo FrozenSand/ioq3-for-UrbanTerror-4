@@ -92,6 +92,27 @@ Possible values are:
 - 3: use the installation path, that is the value of `DEFAULT_BASEDIR`
   specified at compile-time if defined, else use current working directory.
 
+## Improved `sv_cheats`
+
+The `sv_cheatMode` server cvar was added to allow enabling cheats without
+having to use the `devmap` command.
+
+When set to `1`, cheats will be enabled only for the next map (can be set in `mapcycle.txt`).
+
+When set to `2`, cheats will be enabled for every map.
+
+Example `mapcycle.txt`:
+```
+ut4_abbey
+{
+    sv_cheatMode 1 // cheats for abbey only (automatically resets to 0)
+}
+ut4_turnpike
+{
+    // no cheats
+}
+```
+
 ## cmdline.txt
 
 Some cvars can exclusively be set from the command line arguments which makes

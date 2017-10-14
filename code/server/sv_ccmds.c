@@ -270,6 +270,7 @@ static void SV_Map_f( void ) {
 	char		*cmd;
 	qboolean	killBots, cheat;
 	char		mapname[MAX_QPATH];
+	int			sv_cheatMode;
 
 	if (Cmd_Argc() < 2) {
 		return;
@@ -314,15 +315,22 @@ static void SV_Map_f( void ) {
 	SV_SpawnServer( mapname, killBots );
 
 	// set the cheat value
-	// if the level was started with "map <levelname>", then
-	// cheats will not be allowed.  If started with "devmap <levelname>"
-	// then cheats will be allowed
-	if ( cheat ) {
+	// If the level was started with "devmap <levelname>"
+	// or if sv_cheatMode was set to 1 or 2 then cheats will be allowed.
+	// if not, the cheats will not be allowed.
+
+	sv_cheatMode = Cvar_VariableIntegerValue("sv_cheatMode");
+
+	if ( cheat || sv_cheatMode ) {
 		Cvar_Set( "sv_cheats", "1" );
+
+		if ( sv_cheatMode != 2 ) {
+			Cvar_Set( "sv_cheatMode", "0");
+		}
 	} else {
 		Cvar_Set( "sv_cheats", "0" );
+		Cvar_Set( "sv_cheatMode", "0");
 	}
-
 }
 
 /*

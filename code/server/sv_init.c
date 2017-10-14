@@ -886,7 +886,6 @@ void SV_Init (void)
 	sv_newpurelist = Cvar_Get ("sv_newpurelist", "0", CVAR_ARCHIVE );
 
 	// systeminfo
-	Cvar_Get ("sv_cheats", "1", CVAR_SYSTEMINFO | CVAR_ROM );
 	sv_serverid = Cvar_Get ("sv_serverid", "0", CVAR_SYSTEMINFO | CVAR_ROM );
 	sv_pure = Cvar_Get ("sv_pure", "1", CVAR_SYSTEMINFO );
 #ifdef USE_VOIP
@@ -906,6 +905,7 @@ void SV_Init (void)
 	sv_timeout = Cvar_Get ("sv_timeout", "200", CVAR_TEMP );
 	sv_zombietime = Cvar_Get ("sv_zombietime", "2", CVAR_TEMP );
 	Cvar_Get ("nextmap", "", CVAR_TEMP );
+	Cvar_Get ("sv_cheatMode", "0", CVAR_TEMP );
 
 	Cvar_Get ("sv_dlURL", "", CVAR_SERVERINFO | CVAR_ARCHIVE);
 	
