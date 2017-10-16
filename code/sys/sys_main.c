@@ -347,7 +347,7 @@ void Sys_AnsiColorPrint( const char *msg )
 {
 	static char buffer[ MAXPRINTMSG ];
 	int         length = 0;
-	static int  q3ToAnsi[ 8 ] =
+	static int  q3ToAnsi[ 10 ] =
 	{
 		30, // COLOR_BLACK
 		31, // COLOR_RED
@@ -356,7 +356,9 @@ void Sys_AnsiColorPrint( const char *msg )
 		34, // COLOR_BLUE
 		36, // COLOR_CYAN
 		35, // COLOR_MAGENTA
-		0   // COLOR_WHITE
+		 0, // COLOR_WHITE
+		33, // COLOR_ORANGE (display as yellow)
+		32, // COLOR_OLIVE  (display as green)
 	};
 
 	while( *msg )
