@@ -465,10 +465,12 @@ void Com_ParseCommandFile( char *dir )
         return;
     }
 
-    fread(commandLine, 1, sizeof(commandLine) - 1, fp);
+    if (fread(commandLine, 1, sizeof(commandLine) - 1, fp) > 0) {
+        Com_ParseCommandLine(commandLine);
+    }
+
     fclose(fp);
 
-    Com_ParseCommandLine(commandLine);
 }
 
 

@@ -2561,6 +2561,7 @@ int	FS_GetModList( char *listbuf, int bufsize ) {
 
 	*listbuf = 0;
 	nMods = nTotal = 0;
+	nPaks = nDirs = nPakDirs = 0;
 
 	// iterate through paths and get list of potential mods
 	for (i = 0; i < ARRAY_LEN(paths); i++) {
