@@ -76,6 +76,16 @@ cvar_t	*sv_authServerIP;
 cvar_t	*sv_auth_engine;
 #endif
 
+#ifdef USE_SKEETMOD
+cvar_t  *sv_skeetshoot;
+cvar_t  *sv_skeethitreport;
+cvar_t  *sv_skeethitsound;
+cvar_t  *sv_skeetpoints;
+cvar_t  *sv_skeetpointsnotify;
+cvar_t  *sv_skeetprotect;
+cvar_t  *sv_skeetspeed;
+#endif
+
 /*
 =============================================================================
 
@@ -786,7 +796,11 @@ static void SVC_RemoteCommand( netadr_t from, msg_t *msg ) {
 			cmd_aux++;
 		
 		Q_strcat( remaining, sizeof(remaining), cmd_aux);
-		
+
+#ifdef USE_SKEETMOD
+		SV_SkeetParseGameRconCommand(remaining);
+#endif
+
 		Cmd_ExecuteString (remaining);
 
 	}
@@ -1191,6 +1205,12 @@ void SV_Frame( int msec ) {
 
 	// send a heartbeat to the master if needed
 	SV_MasterHeartbeat(HEARTBEAT_FOR_MASTER);
+
+#ifdef USE_SKEETMOD
+	// advance skeets
+	SV_SkeetThink();
+#endif
+
 }
 
 /*

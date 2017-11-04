@@ -1349,7 +1349,6 @@ static qboolean SV_ClientCommand( client_t *cl, msg_t *msg ) {
 
 //==================================================================================
 
-
 /*
 ==================
 SV_ClientThink
@@ -1364,7 +1363,16 @@ void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
 		return;		// may have been kicked during the last usercmd
 	}
 
+#ifdef USE_SKEETMOD
+	SV_SkeetBackupPowerups(cl);
+#endif
+
 	VM_Call( gvm, GAME_CLIENT_THINK, cl - svs.clients );
+
+#ifdef USE_SKEETMOD
+	SV_SkeetClientEvents(cl);
+#endif
+
 }
 
 /*

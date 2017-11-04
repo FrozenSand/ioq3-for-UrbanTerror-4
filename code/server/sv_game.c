@@ -81,6 +81,9 @@ void SV_GameSendServerCommand( int clientNum, const char *text ) {
 		if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
 			return;
 		}
+#ifdef USE_SKEETMOD
+		SV_SkeetParseGameServerCommand(clientNum, text);
+#endif
 		SV_SendServerCommand( svs.clients + clientNum, "%s", text );	
 	}
 }

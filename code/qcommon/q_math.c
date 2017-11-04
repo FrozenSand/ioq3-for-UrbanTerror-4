@@ -867,6 +867,11 @@ void Vector4Scale( const vec4_t in, vec_t scale, vec4_t out ) {
 	out[3] = in[3]*scale;
 }
 
+void VectorMultiply(vec3_t v, const float val) {
+	v[0] *= val;
+	v[1] *= val;
+	v[2] *= val;
+}
 
 int Q_log2( int val ) {
 	int answer;
