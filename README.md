@@ -36,8 +36,8 @@ etc.)
 ### `fs_reorderPaks` cvar
 
 When set to 1 (the default), this will reorder the pk3s in the search path so
-that the pk3 containing the loaded map comes first, then the core game paks and
-finally everything else.
+that the pk3 containing the loaded map comes first, then the high priority paks
+(starting with z) and finally everything else.
 
 This way:
 

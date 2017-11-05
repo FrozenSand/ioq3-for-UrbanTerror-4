@@ -3065,7 +3065,7 @@ FS_GamePak
 */
 qboolean FS_GamePak(char *pak)
 {
-	return Q_stristr(pak, "q3ut4/zUrT") == pak
+	return Q_stristr(pak, "q3ut4/z") == pak
 		|| Q_stristr(pak, "baseq3/pak") == pak
 		|| Q_stristr(pak, BASETA "/pak") == pak;
 }
@@ -3318,7 +3318,7 @@ This can be used by both client and server.
 
 The order is:
  - Pak containing the map being loaded (mapname)
- - Core game paks (zUrT...)
+ - High-priority paks (game paks and other paks starting with 'z')
  - Everything else (dirs and other paks)
 ================
 */
