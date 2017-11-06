@@ -195,7 +195,7 @@ void SV_SkeetInit(void) {
 
 	base = sizeof(entityState_t) + sizeof(entityShared_t);
 	offset = base + SV_SkeetHashOffsetFinder(base);
-	if (offset <= 0) {
+	if (offset <= base) {
 		return;
 	}
 
