@@ -27,11 +27,11 @@
 #define EVT_GENERAL_SOUND        59
 
 
-static void  QDECL SV_LogPrintf(const char *fmt, ...);
+static void  QDECL SV_LogPrintf(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 static void  SV_SendSoundToClient(playerState_t *ps, const char *name);
 static int   SV_SkeetHashOffsetFinder(unsigned int base);
-static int   SV_SkeetLaunchTime();
-static int   SV_SkeetRand();
+static int   SV_SkeetLaunchTime(void);
+static int   SV_SkeetRand(void);
 static void  SV_SkeetRandSeed(unsigned int seed);
 static int   SV_UnitsToMeters(float distance);
 
@@ -425,7 +425,7 @@ void SV_SkeetClientEvents(client_t *cl) {
 		if (event == EVT_FIRE_WEAPON) {
 			if (!SV_SkeetShoot(cl, ps)) {
 				if (Cvar_VariableIntegerValue("g_loghits")) {
-					SV_LogPrintf("SkeetMiss: %i\n", cl - svs.clients);
+					SV_LogPrintf("SkeetMiss: %i\n", (int)(cl - svs.clients));
 				}
 			}
 			SV_SkeetRestorePowerups(cl);
@@ -489,7 +489,6 @@ qboolean SV_SkeetShoot(client_t *cl, playerState_t *ps) {
 
 
 // ====================================================================================
-
 
 static void QDECL SV_LogPrintf(const char *fmt, ...) {
 
@@ -610,7 +609,7 @@ static int SV_SkeetHashOffsetFinder(unsigned int base) {
 
 }
 
-static int SV_SkeetLaunchTime() {
+static int SV_SkeetLaunchTime(void) {
 	return (SV_SkeetRand() % (SKEET_MAX_SPAWN_TIME - SKEET_MIN_SPAWN_TIME) + SKEET_MIN_SPAWN_TIME);
 }
 
