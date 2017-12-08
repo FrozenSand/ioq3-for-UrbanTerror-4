@@ -533,6 +533,9 @@ void ByteToDir( int b, vec3_t dir );
 #define VectorCopy(a,b)			((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2])
 #define	VectorScale(v, s, o)	((o)[0]=(v)[0]*(s),(o)[1]=(v)[1]*(s),(o)[2]=(v)[2]*(s))
 #define	VectorMA(v, s, b, o)	((o)[0]=(v)[0]+(b)[0]*(s),(o)[1]=(v)[1]+(b)[1]*(s),(o)[2]=(v)[2]+(b)[2]*(s))
+#define VectorRotateX(v, q, o)  ((o)[1]=(v)[1]*cos(q)-(v)[2]*sin(q),(o)[2]=(v)[1]*sin(q)+(v)[2]*cos(q),(o)[0]=(v)[0])
+#define VectorRotateY(v, q, o)  ((o)[2]=(v)[2]*cos(q)-(v)[0]*sin(q),(o)[0]=(v)[2]*sin(q)+(v)[0]*cos(q),(o)[1]=(v)[1])
+#define VectorRotateZ(v, q, o)  ((o)[0]=(v)[0]*cos(q)-(v)[1]*sin(q),(o)[1]=(v)[0]*sin(q)+(v)[1]*cos(q),(o)[2]=(v)[2])
 
 #else
 

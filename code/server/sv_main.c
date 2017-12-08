@@ -84,6 +84,8 @@ cvar_t  *sv_skeetpoints;
 cvar_t  *sv_skeetpointsnotify;
 cvar_t  *sv_skeetprotect;
 cvar_t  *sv_skeetspeed;
+cvar_t  *sv_skeetrotate;
+cvar_t  *sv_skeetfansize;
 #endif
 
 /*
