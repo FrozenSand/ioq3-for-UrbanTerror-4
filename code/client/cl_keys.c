@@ -1240,6 +1240,32 @@ void CL_ParseBinding( int key, qboolean down, unsigned time )
 
 /*
 ===================
+CL_UIPaste
+
+Paste the clipboard contents as a series of UI_KEY_EVENT
+===================
+*/
+static void CL_UIPaste(void) {
+	char	*cbd;
+	int		i;
+
+	cbd = Sys_GetClipboardData();
+
+	if ( !cbd ) {
+		return;
+	}
+
+	// send as if typed, so insert / overstrike works properly
+	for ( i = 0 ; i < strlen(cbd) ; i++ ) {
+		if (Q_isprint(cbd[i])) {
+			VM_Call( uivm, UI_KEY_EVENT, cbd[i] | K_CHAR_FLAG, qtrue );
+		}
+	}
+	Z_Free( cbd );
+}
+
+/*
+===================
 CL_KeyDownEvent
 
 Called by CL_KeyEvent to handle a keypress
@@ -1330,8 +1356,13 @@ void CL_KeyDownEvent( int key, unsigned time )
 		Console_Key( key );
 	} else if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
 		if ( uivm ) {
-			VM_Call( uivm, UI_KEY_EVENT, key, qtrue );
-		} 
+			// shift-insert is paste
+			if ( ( ( key == K_INS ) || ( key == K_KP_INS ) ) && keys[K_SHIFT].down ) {
+				CL_UIPaste();
+			} else {
+				VM_Call( uivm, UI_KEY_EVENT, key, qtrue );
+			}
+		}
 	} else if ( Key_GetCatcher( ) & KEYCATCH_CGAME ) {
 		if ( cgvm ) {
 			VM_Call( cgvm, CG_KEY_EVENT, key, qtrue );
@@ -1414,7 +1445,11 @@ void CL_CharEvent( int key ) {
 	}
 	else if ( Key_GetCatcher( ) & KEYCATCH_UI )
 	{
-		VM_Call( uivm, UI_KEY_EVENT, key | K_CHAR_FLAG, qtrue );
+		if ( key == 'v' - 'a' + 1 ) { // ctrl-v is paste
+			CL_UIPaste();
+		} else {
+			VM_Call( uivm, UI_KEY_EVENT, key | K_CHAR_FLAG, qtrue );
+		}
 	}
 	else if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) 
 	{
