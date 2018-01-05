@@ -1243,6 +1243,12 @@ static qboolean GLW_LoadOpenGL( const char *drivername )
 	char buffer[1024];
 	qboolean cdsFullscreen;
 
+	if ( COM_CompareExtension( drivername, ".pk3" ) )
+	{
+		Com_Printf( S_COLOR_RED "Rejecting r_glDriver named \"%s\"\n", drivername );
+		return qfalse;
+	}
+
 	Q_strncpyz( buffer, drivername, sizeof(buffer) );
 	Q_strlwr(buffer);
 

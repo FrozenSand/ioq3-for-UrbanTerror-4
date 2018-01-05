@@ -122,8 +122,14 @@ qboolean CL_cURL_Init()
 	if(cURLLib)
 		return qtrue;
 
-
 	Com_Printf("Loading \"%s\"...", cl_cURLLib->string);
+
+	if ( COM_CompareExtension( cl_cURLLib->string, ".pk3" ) )
+	{
+		Com_Printf( S_COLOR_RED "Rejecting cl_cURLLib named \"%s\"\n", cl_cURLLib->string );
+		return qfalse;
+	}
+
 	if( (cURLLib = OBJLOAD(cl_cURLLib->string)) == 0 )
 	{
 #ifdef _WIN32
@@ -344,7 +350,7 @@ void CL_cURL_PerformDownload(void)
 	}
 	FS_FCloseFile(clc.download);
 	if(msg->msg == CURLMSG_DONE && msg->data.result == CURLE_OK) {
-		FS_SV_Rename(clc.downloadTempName, clc.downloadName);
+		FS_SV_Rename(clc.downloadTempName, clc.downloadName, qfalse);
 		clc.downloadRestart = qtrue;
 	}
 	else {

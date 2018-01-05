@@ -1065,6 +1065,12 @@ static qboolean GLW_LoadOpenGL( const char *name )
 {
   qboolean fullscreen;
 
+  if ( COM_CompareExtension( name, ".pk3" ) )
+  {
+    Com_Printf( S_COLOR_RED "Rejecting r_glDriver named \"%s\"\n", name );
+    return qfalse;
+  }
+
   ri.Printf( PRINT_ALL, "...loading %s:\n", name );
 
   // disable the 3Dfx splash screen and set gamma

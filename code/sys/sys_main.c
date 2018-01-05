@@ -384,6 +384,13 @@ static void* Sys_TryLibraryLoad(const char* base, const char* gamedir, const cha
 	void* libHandle;
 	char* fn;
 
+	// Don't load any DLLs that end with the pk3 extension
+	if (COM_CompareExtension(name, ".pk3"))
+	{
+		Com_Printf(S_COLOR_RED "Rejecting DLL named \"%s\"\n", name);
+		return NULL;
+	}
+
 	*fqpath = 0;
 
 	fn = FS_BuildOSPath( base, gamedir, fname );
