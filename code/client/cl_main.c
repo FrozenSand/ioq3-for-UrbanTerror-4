@@ -2186,6 +2186,14 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		if ( cls.state != CA_CONNECTING ) {
 			Com_Printf( "Unwanted challenge response received.  Ignored.\n" );
 		} else {
+
+			if(!NET_CompareAdr(from, clc.serverAddress))
+			{
+				// This challenge response is not coming from the expected address.
+				Com_DPrintf("Challenge response received from unexpected source. Ignored.\n");
+				return;
+			}
+
 			// start sending challenge repsonse instead of challenge request packets
 			clc.challenge = atoi(Cmd_Argv(1));
 			cls.state = CA_CHALLENGING;
