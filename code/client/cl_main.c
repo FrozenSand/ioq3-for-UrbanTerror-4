@@ -2016,13 +2016,8 @@ void CL_MotdPacket( netadr_t from ) {
 CL_InitServerInfo
 ===================
 */
-void CL_InitServerInfo( serverInfo_t *server, serverAddress_t *address ) {
-	server->adr.type  = NA_IP;
-	server->adr.ip[0] = address->ip[0];
-	server->adr.ip[1] = address->ip[1];
-	server->adr.ip[2] = address->ip[2];
-	server->adr.ip[3] = address->ip[3];
-	server->adr.port  = address->port;
+void CL_InitServerInfo( serverInfo_t *server, netadr_t *address ) {
+	server->adr = *address;
 	server->clients = 0;
 	server->hostName[0] = '\0';
 	server->mapName[0] = '\0';
@@ -2046,8 +2041,8 @@ CL_ServersResponsePacket
 ===================
 */
 void CL_ServersResponsePacket( netadr_t from, msg_t *msg ) {
-	int				i, count, max, total;
-	serverAddress_t addresses[MAX_SERVERSPERPACKET];
+	int				i, j, count, max, total;
+	netadr_t 		addresses[MAX_SERVERSPERPACKET];
 	int				numservers;
 	byte*			buffptr;
 	byte*			buffend;
@@ -2091,6 +2086,8 @@ void CL_ServersResponsePacket( netadr_t from, msg_t *msg ) {
 		addresses[numservers].port += *buffptr++;
 		addresses[numservers].port = BigShort( addresses[numservers].port );
 
+		addresses[numservers].type = NA_IP;
+		
 		// syntax check
 		if (*buffptr != '\\') {
 			break;
@@ -2126,6 +2123,18 @@ void CL_ServersResponsePacket( netadr_t from, msg_t *msg ) {
 		// build net address
 		serverInfo_t *server = (cls.masterNum == 0) ? &cls.globalServers[count] : &cls.mplayerServers[count];
 
+		// Tequila: It's possible to have sent many master server requests. Then
+		// we may receive many times the same addresses from the master server.
+		// We just avoid to add a server if it is still in the global servers list.
+		for (j = 0; j < count; j++)
+		{
+			if (NET_CompareAdr(cls.globalServers[j].adr, addresses[i]))
+				break;
+		}
+
+		if (j < count)
+			continue;
+
 		CL_InitServerInfo( server, &addresses[i] );
 		// advance to next slot
 		count++;
@@ -2136,14 +2145,8 @@ void CL_ServersResponsePacket( netadr_t from, msg_t *msg ) {
 		if ( cls.numGlobalServerAddresses < MAX_GLOBAL_SERVERS ) {
 			// if we couldn't store the servers in the main list anymore
 			for (; i < numservers && count >= max; i++) {
-				serverAddress_t *addr;
 				// just store the addresses in an additional list
-				addr = &cls.globalServerAddresses[cls.numGlobalServerAddresses++];
-				addr->ip[0] = addresses[i].ip[0];
-				addr->ip[1] = addresses[i].ip[1];
-				addr->ip[2] = addresses[i].ip[2];
-				addr->ip[3] = addresses[i].ip[3];
-				addr->port  = addresses[i].port;
+				cls.globalServerAddresses[cls.numGlobalServerAddresses++] = addresses[i];
 			}
 		}
 	}
@@ -2186,6 +2189,14 @@ void CL_ConnectionlessPacket( netadr_t from, msg_t *msg ) {
 		if ( cls.state != CA_CONNECTING ) {
 			Com_Printf( "Unwanted challenge response received.  Ignored.\n" );
 		} else {
+
+			if(!NET_CompareAdr(from, clc.serverAddress))
+			{
+				// This challenge response is not coming from the expected address.
+				Com_DPrintf("Challenge response received from unexpected source. Ignored.\n");
+				return;
+			}
+
 			// start sending challenge repsonse instead of challenge request packets
 			clc.challenge = atoi(Cmd_Argv(1));
 			cls.state = CA_CHALLENGING;
