@@ -259,7 +259,7 @@ void SV_DirectConnect( netadr_t from ) {
 	if ( NET_IsLocalAddress (from) )
 		ip = "localhost";
 	else
-		ip = (char *)NET_AdrToString( from );
+		ip = (char *)NET_AdrToStringwPort( from );
 	if( ( strlen( ip ) + strlen( userinfo ) + 4 ) >= MAX_INFO_STRING ) {
 		NET_OutOfBandPrint( NS_SERVER, from,
 			"print\nUserinfo string length exceeded.  "
@@ -1116,7 +1116,7 @@ void SV_UserinfoChanged( client_t *cl ) {
 	if( NET_IsLocalAddress(cl->netchan.remoteAddress) )
 		ip = "localhost";
 	else
-		ip = (char*)NET_AdrToString( cl->netchan.remoteAddress );
+		ip = (char*)NET_AdrToStringwPort( cl->netchan.remoteAddress );
 
 	val = Info_ValueForKey( cl->userinfo, "ip" );
 	if( val[0] )
