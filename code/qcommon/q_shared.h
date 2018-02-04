@@ -820,6 +820,8 @@ char *Q_CleanStr( char *string );
 // Count the number of char tocount encountered in string
 int Q_CountChar(const char *string, char tocount);
 
+char *Q_SizeFormat(float number, float factor);
+
 //=============================================
 
 // 64-bit integers for global rankings interface

@@ -990,6 +990,18 @@ int Q_CountChar(const char *string, char tocount)
 	return count;
 }
 
+char *Q_SizeFormat(float number, float factor) {
+	if (number > (factor * factor * factor * factor))
+		return va("%.02f T", number / (factor * factor * factor * factor));
+	if (number > (factor * factor * factor))
+		return va("%.02f G", number / (factor * factor * factor));
+	if (number > (factor * factor))
+		return va("%.02f M", number / (factor * factor));
+	if (number > factor)
+		return va("%i K", (int)(number / factor));
+	return va("%i ", (int)number);
+}
+
 int QDECL Com_sprintf(char *dest, int size, const char *fmt, ...)
 {
 	int		len;
