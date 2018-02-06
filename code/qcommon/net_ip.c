@@ -562,7 +562,7 @@ qboolean NET_GetPacket(netadr_t *net_from, msg_t *net_message, fd_set *fdr)
 			}
 		
 			if( ret >= net_message->maxsize ) {
-				Com_Printf( "Oversize packet from %s\n", NET_AdrToString (*net_from) );
+				Com_Printf( "Oversize packet from %s\n", NET_AdrToStringwPort (*net_from) );
 				return qfalse;
 			}
 			
@@ -590,7 +590,7 @@ qboolean NET_GetPacket(netadr_t *net_from, msg_t *net_message, fd_set *fdr)
 		
 			if(ret >= net_message->maxsize)
 			{
-				Com_Printf( "Oversize packet from %s\n", NET_AdrToString (*net_from) );
+				Com_Printf( "Oversize packet from %s\n", NET_AdrToStringwPort (*net_from) );
 				return qfalse;
 			}
 			
@@ -618,7 +618,7 @@ qboolean NET_GetPacket(netadr_t *net_from, msg_t *net_message, fd_set *fdr)
 		
 			if(ret >= net_message->maxsize)
 			{
-				Com_Printf( "Oversize packet from %s\n", NET_AdrToString (*net_from) );
+				Com_Printf( "Oversize packet from %s\n", NET_AdrToStringwPort (*net_from) );
 				return qfalse;
 			}
 			

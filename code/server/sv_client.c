@@ -248,7 +248,7 @@ void SV_DirectConnect( netadr_t from ) {
 			|| from.port == cl->netchan.remoteAddress.port ) ) {
 			if (( svs.time - cl->lastConnectTime) 
 				< (sv_reconnectlimit->integer * 1000)) {
-				Com_DPrintf ("%s:reconnect rejected : too soon\n", NET_AdrToString (from));
+				Com_DPrintf ("%s:reconnect rejected : too soon\n", NET_AdrToStringwPort (from));
 				return;
 			}
 			break;
@@ -347,7 +347,7 @@ void SV_DirectConnect( netadr_t from ) {
 		if ( NET_CompareBaseAdr( from, cl->netchan.remoteAddress )
 			&& ( cl->netchan.qport == qport 
 			|| from.port == cl->netchan.remoteAddress.port ) ) {
-			Com_Printf ("%s:reconnect\n", NET_AdrToString (from));
+			Com_Printf ("%s:reconnect\n", NET_AdrToStringwPort (from));
 			newcl = cl;
 
 			// this doesn't work because it nukes the players userinfo
@@ -1279,7 +1279,7 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 			}
 			if (exploitDetected) {
 				Com_Printf("Buffer overflow exploit radio/say, possible attempt from %s\n",
-					NET_AdrToString(cl->netchan.remoteAddress));
+					NET_AdrToStringwPort(cl->netchan.remoteAddress));
 				SV_SendServerCommand(cl, "print \"Chat dropped due to message length constraints.\n\"");
 				return;
 			}

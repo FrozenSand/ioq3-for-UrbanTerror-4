@@ -41,7 +41,7 @@ static void GetClientState( uiClientState_t *state ) {
 	Q_strncpyz( state->messageString, clc.serverMessage, sizeof( state->messageString ) );
 	state->clientNum = cl.snap.ps.clientNum;
 #ifdef USE_AUTH
-	Q_strncpyz( state->serverAddress, NET_AdrToString(clc.serverAddress), sizeof( state->serverAddress ) );
+	Q_strncpyz( state->serverAddress, NET_AdrToStringwPort(clc.serverAddress), sizeof( state->serverAddress ) );
 #endif
 }
 
