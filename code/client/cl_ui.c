@@ -53,7 +53,8 @@ ConvertServersInfo
 */
 static void ConvertServersInfo(serverInfo_t *dst, int *dstCount, const legacyServerInfo_t *src, int srcCount)
 {
-	for (int i = 0; i < srcCount; i++) {
+	int i = 0;
+	for (i = 0; i < srcCount; i++) {
 		serverInfo_t *dinfo = &dst[*dstCount];
 		const legacyServerInfo_t *sinfo = &src[i];
 
