@@ -309,6 +309,31 @@ typedef struct {
 	int			g_needpass;
 } serverInfo_t;
 
+typedef	struct {
+	struct {
+		netadrtype_t	type;
+		byte			ip[4];
+		unsigned short	port;
+	} adr;
+
+	char		hostName[MAX_NAME_LENGTH];
+	char		mapName[MAX_NAME_LENGTH];
+	char		game[MAX_NAME_LENGTH];
+	int			netType;
+	int			gameType;
+	int			clients;
+	int			bots;
+	int			maxClients;
+	int			minPing;
+	int			maxPing;
+	int			ping;
+	qboolean	visible;
+	int			punkbuster;
+	int			auth; //@Barbatos: auth system
+	int			password; //@Barbatos: passworded server?
+	char		modversion[MAX_NAME_LENGTH]; //@Barbatos - g_modversion
+} legacyServerInfo_t;
+
 typedef struct {
 	qboolean	cddialog;			// bring up the cd needed dialog next frame
 

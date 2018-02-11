@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
+#include <stddef.h>
 #include "client.h"
 
 #include "../botlib/botlib.h"
@@ -47,15 +48,68 @@ static void GetClientState( uiClientState_t *state ) {
 
 /*
 ====================
-LAN_LoadCachedServers
+ConvertServersInfo
 ====================
 */
-void LAN_LoadCachedServers( void ) {
-	int size;
+static void ConvertServersInfo(serverInfo_t *dst, int *dstCount, const legacyServerInfo_t *src, int srcCount)
+{
+	for (int i = 0; i < srcCount; i++) {
+		serverInfo_t *dinfo = &dst[*dstCount];
+		const legacyServerInfo_t *sinfo = &src[i];
+
+		if (sinfo->adr.type != NA_IP)
+			continue;
+
+		dinfo->adr.type = NA_IP;
+		memcpy(dinfo->adr.ip, sinfo->adr.ip, sizeof(dinfo->adr.ip));
+		dinfo->adr.port = sinfo->adr.port;
+		// copy every field from the hostName up to g_needpass
+		memcpy(dinfo->hostName, sinfo->hostName, sizeof(legacyServerInfo_t) - offsetof(legacyServerInfo_t, hostName));
+
+		dinfo->g_needpass = sinfo->password;
+		dinfo->g_humanplayers = sinfo->clients - sinfo->bots;
+
+		(*dstCount)++;
+	}
+}
+
+/*
+====================
+LoadCachedServersFile
+====================
+*/
+static qboolean LoadCachedServersFile (char *file)
+{
 	fileHandle_t fileIn;
-	cls.numglobalservers = cls.numfavoriteservers = 0;
-	cls.numGlobalServerAddresses = 0;
-	if (FS_SV_FOpenFileRead("servercache.dat", &fileIn)) {
+	int fileSize = FS_SV_FOpenFileRead(file, &fileIn);
+	int size;
+	qboolean ret = qtrue;
+
+	int nummplayerservers, numglobalservers, numfavoriteservers;
+	static legacyServerInfo_t globalServers[MAX_GLOBAL_SERVERS],
+	                          favoriteServers[MAX_OTHER_SERVERS],
+	                          mplayerServers[MAX_OTHER_SERVERS];
+
+	if (fileSize <= 0)
+		return qfalse;
+
+	if (fileSize == 4 * sizeof(int) + sizeof(globalServers) + sizeof(favoriteServers) + sizeof(mplayerServers)) {
+		FS_Read(&numglobalservers, sizeof(int), fileIn);
+		FS_Read(&nummplayerservers, sizeof(int), fileIn);
+		FS_Read(&numfavoriteservers, sizeof(int), fileIn);
+		FS_Read(&size, sizeof(int), fileIn);
+		if (size == fileSize - 4*sizeof(int)) {
+			Com_Printf("Importing old servercache.dat\n");
+			FS_Read(&globalServers, sizeof(globalServers), fileIn);
+			FS_Read(&mplayerServers, sizeof(mplayerServers), fileIn);
+			FS_Read(&favoriteServers, sizeof(favoriteServers), fileIn);
+
+			ConvertServersInfo(cls.globalServers, &cls.numglobalservers, globalServers, numglobalservers);
+			ConvertServersInfo(cls.favoriteServers, &cls.numfavoriteservers, favoriteServers, numfavoriteservers);
+		} else {
+			ret = qfalse;
+		}
+	} else {
 		FS_Read(&cls.numglobalservers, sizeof(int), fileIn);
 		FS_Read(&cls.numfavoriteservers, sizeof(int), fileIn);
 		FS_Read(&size, sizeof(int), fileIn);
@@ -63,10 +117,25 @@ void LAN_LoadCachedServers( void ) {
 			FS_Read(&cls.globalServers, sizeof(cls.globalServers), fileIn);
 			FS_Read(&cls.favoriteServers, sizeof(cls.favoriteServers), fileIn);
 		} else {
-			cls.numglobalservers = cls.numfavoriteservers = 0;
-			cls.numGlobalServerAddresses = 0;
+			ret = qfalse;
 		}
-		FS_FCloseFile(fileIn);
+	}
+	FS_FCloseFile(fileIn);
+
+	return ret;
+}
+
+/*
+====================
+LAN_LoadCachedServers
+====================
+*/
+void LAN_LoadCachedServers( void ) {
+	cls.numglobalservers = cls.numfavoriteservers = 0;
+	cls.numGlobalServerAddresses = 0;
+
+	if (!LoadCachedServersFile("servercachev2.dat")) {
+		LoadCachedServersFile("servercache.dat");
 	}
 }
 
@@ -77,7 +146,7 @@ LAN_SaveServersToCache
 */
 void LAN_SaveServersToCache( void ) {
 	int size;
-	fileHandle_t fileOut = FS_SV_FOpenFileWrite("servercache.dat");
+	fileHandle_t fileOut = FS_SV_FOpenFileWrite("servercachev2.dat");
 	FS_Write(&cls.numglobalservers, sizeof(int), fileOut);
 	FS_Write(&cls.numfavoriteservers, sizeof(int), fileOut);
 	size = sizeof(cls.globalServers) + sizeof(cls.favoriteServers);
