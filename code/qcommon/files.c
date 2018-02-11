@@ -1117,7 +1117,7 @@ long FS_FOpenFileReadDir(const char *filename, searchpath_t *search, fileHandle_
 	char		*netpath;
 	FILE		*filep;
 	int			len;
-	qboolean isLocalConfig, isQVM;
+	qboolean isLocalConfig, isQVM, isMenu;
 
 
 	if(filename == NULL)
@@ -1154,10 +1154,11 @@ long FS_FOpenFileReadDir(const char *filename, searchpath_t *search, fileHandle_
 	{
 		isLocalConfig = !strcmp(filename, "autoexec.cfg") || !strcmp(filename, Q3CONFIG_CFG);
 		isQVM = COM_CompareExtension(filename, ".qvm");
+		isMenu = COM_CompareExtension(filename, ".menu");
 
 		// autoexec.cfg and q3config.cfg can only be loaded outside of pk3 files.
 		// QVMs can't be loaded from pk3 in the download directory
-		if (isLocalConfig || (isQVM && search->pack->downloaded)) {
+		if (isLocalConfig || ((isQVM || isMenu) && search->pack->downloaded)) {
 			if (file == NULL)
 				return 0;
 			*file = 0;
