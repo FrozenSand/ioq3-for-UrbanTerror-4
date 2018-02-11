@@ -1195,7 +1195,7 @@ void CL_ParseBinding( int key, qboolean down, unsigned time )
 	char buf[ MAX_STRING_CHARS ], *p = buf, *end;
 	qboolean allCommands, allowUpCmds;
 
-	if( clc.state == CA_DISCONNECTED && Key_GetCatcher( ) == 0 )
+	if( (clc.state == CA_DISCONNECTED || *clc.downloadName) && Key_GetCatcher( ) == 0 )
 		return;
 	if( !keys[key].binding || !keys[key].binding[0] )
 		return;
