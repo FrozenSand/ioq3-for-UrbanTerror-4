@@ -137,7 +137,7 @@ void SV_GetChallenge(netadr_t from)
 	}
 
 	// always generate a new challenge number, so the client cannot circumvent sv_maxping
-	challenge->challenge = ( (rand() << 16) ^ rand() ) ^ svs.time;
+	challenge->challenge = ( ((unsigned int)rand() << 16) ^ (unsigned int)rand() ) ^ svs.time;
 	challenge->wasrefused = qfalse;
 	challenge->time = svs.time;
 	challenge->pingTime = svs.time;
@@ -526,7 +526,6 @@ or crashing -- SV_FinalMessage() will handle that
 =====================
 */
 void SV_DropClient( client_t *drop, const char *reason ) {
-
 	int		i;
 	challenge_t	*challenge;
 	const qboolean isBot = drop->netchan.remoteAddress.type == NA_BOT;
