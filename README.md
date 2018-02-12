@@ -71,6 +71,10 @@ disabling usage of, for instance, funstuff. This can be solved by setting the
 `sv_extraPaks` cvar to a space-separated list of pk3 names that you don't want
 to exclude from the search path
 
+**Warning:** Setting this has an undesirable side-effect for clients.
+The voting UI for map changes will not display custom maps (unless they're
+whitelisted in `sv_extraPaks`).
+
 ### `fs_lowPriorityDownloads`
 When set to 1 (the default), this puts the maps in the `download` folder at a
 lower priority than anything else.
