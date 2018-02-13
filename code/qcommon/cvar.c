@@ -871,6 +871,12 @@ void Cvar_Set_f( void ) {
 	if( !v ) {
 		return;
 	}
+
+	// Don't change flags on read only vars
+	if (v->flags & (CVAR_ROM | CVAR_INIT)) {
+		return;
+	}
+
 	switch( cmd[3] ) {
 		case 'a':
 			if( !( v->flags & CVAR_ARCHIVE ) ) {
