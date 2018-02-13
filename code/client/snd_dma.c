@@ -562,6 +562,9 @@ static void S_Base_StartSoundEx( vec3_t origin, int entityNum, int entchannel, s
 	// pick a channel to play on
 
 	allowed = 16;
+	if (entityNum == listener_number) {
+		allowed = 32;
+	}
 
 	fullVolume = qfalse;
 	if (localSound || S_Base_HearingThroughEntity(entityNum, origin)) {
@@ -572,15 +575,15 @@ static void S_Base_StartSoundEx( vec3_t origin, int entityNum, int entchannel, s
 	inplay = 0;
 	for ( i = 0; i < MAX_CHANNELS ; i++, ch++ ) {		
 		if (ch->entnum == entityNum && ch->thesfx == sfx) {
-			if (time - ch->allocTime < 20) {
-				Com_DPrintf(S_COLOR_YELLOW "S_StartSound: Double start (%d ms < 20 ms) for %s\n", time - ch->allocTime, sfx->soundName);
+			if (time - ch->allocTime < 30) {
+				Com_DPrintf(S_COLOR_YELLOW "S_StartSound: Double start (%d ms < 30 ms) for %s\n", time - ch->allocTime, sfx->soundName);
 				return;
 			}
 			inplay++;
 		}
 	}
 
-	if (inplay>allowed) {
+	if (inplay > allowed) {
 		Com_DPrintf(S_COLOR_YELLOW "S_StartSound: %s hit the concurrent channels limit (%d)\n", sfx->soundName, allowed);
 		return;
 	}
