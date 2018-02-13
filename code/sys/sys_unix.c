@@ -854,11 +854,14 @@ void Sys_PlatformInit( void )
 {
 	const char* term = getenv( "TERM" );
 
-	signal( SIGHUP, Sys_SigHandler );
+	// Let debug builds crash instead of handling the error ourselves.
+#ifdef NDEBUG
 	signal( SIGQUIT, Sys_SigHandler );
 	signal( SIGTRAP, Sys_SigHandler );
 	signal( SIGABRT, Sys_SigHandler );
 	signal( SIGBUS, Sys_SigHandler );
+#endif
+	signal( SIGHUP, Sys_SigHandler );
 
 	Sys_SetFloatEnv();
 

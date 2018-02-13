@@ -750,9 +750,12 @@ int main( int argc, char **argv )
 	Com_Init( commandLine );
 	NET_Init( );
 
+	// Let debug builds crash instead of handling the error ourselves.
+#ifdef NDEBUG
 	signal( SIGILL, Sys_SigHandler );
 	signal( SIGFPE, Sys_SigHandler );
 	signal( SIGSEGV, Sys_SigHandler );
+#endif
 	signal( SIGTERM, Sys_SigHandler );
 	signal( SIGINT, Sys_SigHandler );
 
