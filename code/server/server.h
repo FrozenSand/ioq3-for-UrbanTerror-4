@@ -345,8 +345,8 @@ extern	cvar_t	*sv_voip;
 extern	cvar_t	*sv_voipProtocol;
 #endif
 extern	cvar_t	*sv_demonotice;
-
 extern  cvar_t  *sv_demofolder;
+extern  cvar_t  *sv_autoRecordDemo;
 extern  cvar_t  *sv_sayprefix;
 extern  cvar_t  *sv_tellprefix;
 
@@ -481,6 +481,7 @@ int SV_SendQueuedMessages(void);
 //
 void SV_Heartbeat_f( void );
 void SVD_WriteDemoFile(const client_t*, const msg_t*);
+void SV_StartRecordOne(client_t *client, char *filename);
 
 //
 // sv_snapshot.c

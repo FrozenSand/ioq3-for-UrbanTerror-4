@@ -174,6 +174,9 @@ exec server.cfg // Start server with the specified config file
 
 - Ctrl-V and Shift-Insert can now be used to paste into UI text fields (not just the console).
 
+- Added `sv_autoRecordDemo`cvar to automatically create a server demo of every
+  player that connects.
+
 ## Security fixes
 
 - QVMs, `q3config.cfg` and `autoexec.cfg` can't be loaded from downloaded pk3s

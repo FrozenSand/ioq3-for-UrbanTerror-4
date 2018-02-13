@@ -1660,7 +1660,7 @@ static void SV_NameServerDemo(char *filename, int length, const client_t *client
     }
 }
 
-static void SV_StartRecordOne(client_t *client, char *filename) {
+void SV_StartRecordOne(client_t *client, char *filename) {
 
     char path[MAX_OSPATH];
 

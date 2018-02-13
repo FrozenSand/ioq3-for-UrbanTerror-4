@@ -64,10 +64,9 @@ cvar_t	*sv_clientsPerIp;
 
 serverBan_t serverBans[SERVER_MAXBANS];
 int serverBansCount = 0;
-cvar_t	*sv_demonotice;				// notice to print to a client being recorded server-side
-cvar_t 	*sv_demofolder;				//@Barbatos - the name of the folder that contains server-side demos
-
-cvar_t	*sv_demonotice;		// notice to print to a client being recorded server-side
+cvar_t	*sv_demonotice;			// notice to print to a client being recorded server-side
+cvar_t	*sv_demofolder;			//@Barbatos - the name of the folder that contains server-side demos
+cvar_t	*sv_autoRecordDemo;
 cvar_t  *sv_tellprefix;
 cvar_t  *sv_sayprefix;
 
