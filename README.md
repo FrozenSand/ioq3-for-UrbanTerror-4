@@ -160,6 +160,8 @@ exec server.cfg // Start server with the specified config file
 - Non-ascii keys can now be mapped on all platforms
   (using the `WORLD_n` key names)
 
+- Ctrl-V and Shift-Insert can be used to paste text on all platforms.
+
 ## Other changes
 
 - Download UI is improved a bit
@@ -171,8 +173,6 @@ exec server.cfg // Start server with the specified config file
 
 - `/map` will now accept to load maps that are not in a pure pak
   (when connected to a pure server)
-
-- Ctrl-V and Shift-Insert can now be used to paste into UI text fields (not just the console).
 
 - Added `sv_autoRecordDemo`cvar to automatically create a server demo of every
   player that connects.
