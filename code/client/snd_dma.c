@@ -561,10 +561,7 @@ static void S_Base_StartSoundEx( vec3_t origin, int entityNum, int entchannel, s
 //	Com_Printf("playing %s\n", sfx->soundName);
 	// pick a channel to play on
 
-	allowed = 4;
-	if (entityNum == listener_number) {
-		allowed = 8;
-	}
+	allowed = 16;
 
 	fullVolume = qfalse;
 	if (localSound || S_Base_HearingThroughEntity(entityNum, origin)) {
@@ -575,10 +572,8 @@ static void S_Base_StartSoundEx( vec3_t origin, int entityNum, int entchannel, s
 	inplay = 0;
 	for ( i = 0; i < MAX_CHANNELS ; i++, ch++ ) {		
 		if (ch->entnum == entityNum && ch->thesfx == sfx) {
-			if (time - ch->allocTime < 50) {
-//				if (Cvar_VariableValue( "cg_showmiss" )) {
-//					Com_Printf("double sound start\n");
-//				}
+			if (time - ch->allocTime < 20) {
+				Com_DPrintf(S_COLOR_YELLOW "S_StartSound: Double start (%d ms < 20 ms) for %s\n", time - ch->allocTime, sfx->soundName);
 				return;
 			}
 			inplay++;
@@ -586,6 +581,7 @@ static void S_Base_StartSoundEx( vec3_t origin, int entityNum, int entchannel, s
 	}
 
 	if (inplay>allowed) {
+		Com_DPrintf(S_COLOR_YELLOW "S_StartSound: %s hit the concurrent channels limit (%d)\n", sfx->soundName, allowed);
 		return;
 	}
 
@@ -622,13 +618,14 @@ static void S_Base_StartSoundEx( vec3_t origin, int entityNum, int entchannel, s
 					}
 				}
 				if (chosen == -1) {
-					Com_Printf("dropping sound\n");
+					Com_DPrintf(S_COLOR_YELLOW "S_StartSound: No more channels free for %s\n", sfx->soundName);
 					return;
 				}
 			}
 		}
 		ch = &s_channels[chosen];
 		ch->allocTime = sfx->lastTimeUsed;
+		Com_DPrintf(S_COLOR_YELLOW "S_StartSound: No more channels free for %s, dropping earliest sound: %s\n", sfx->soundName, ch->thesfx->soundName);
 	}
 
 	if (origin) {
