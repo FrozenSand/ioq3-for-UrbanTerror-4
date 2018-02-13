@@ -1303,7 +1303,7 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 		} 
 	} else if ( cls.keyCatchers & KEYCATCH_MESSAGE ) {
 		Message_Key( key );
-	} else if ( cls.state == CA_DISCONNECTED ) {
+	} else if ( cls.state == CA_DISCONNECTED || cls.state == CA_CONNECTED || *clc.downloadName) {
 		Console_Key( key );
 	} else {
 		// send the bound action
