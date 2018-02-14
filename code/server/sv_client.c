@@ -1287,6 +1287,14 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 				return;
 			}
 
+			if ( !Q_stricmp( "stats", Cmd_Argv(0) ) ) {
+				if ( cl - svs.clients != SV_GameClientNum( cl - svs.clients )->clientNum ) {
+					Com_Printf( "Stats command exploit attempt from %s\n", NET_AdrToString( cl->netchan.remoteAddress ) );
+					SV_SendServerCommand( cl, "print \"^7Stats command exploit attempt detected. This has been ^1reported^7.\n\"" );
+					return;
+				}
+			}
+
 			VM_Call( gvm, GAME_CLIENT_COMMAND, cl - svs.clients );
 		}
 	}

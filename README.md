@@ -188,6 +188,8 @@ exec server.cfg // Start server with the specified config file
 
 - CURL protocols (for map downloads) are limited to HTTP(S) and FTP(S).
 
+- Fixed `stats` command exploit
+
 # Feature parity status with original ioUrbanTerror
 
 ## Common
