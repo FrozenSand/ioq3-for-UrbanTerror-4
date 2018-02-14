@@ -190,6 +190,8 @@ exec server.cfg // Start server with the specified config file
 
 - Fixed `stats` command exploit
 
+- Fixed that `save` could create new directories on jump servers with persistent positions enabled
+
 # Feature parity status with original ioUrbanTerror
 
 ## Common

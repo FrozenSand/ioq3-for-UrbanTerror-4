@@ -1132,6 +1132,16 @@ void SV_UserinfoChanged( client_t *cl ) {
 	else
 		Info_SetValueForKey( cl->userinfo, "ip", ip );
 
+
+	val = Info_ValueForKey( cl->userinfo, "cl_guid" );
+
+	for ( i = 0; i < strlen( val ); i++ ) {
+		if ( !isalnum( val[i] ) ) {
+			Info_SetValueForKey( cl->userinfo, "cl_guid", "" );
+			Com_Printf( "Cleared malformed cl_guid from %s.\n", NET_AdrToString( cl->netchan.remoteAddress ) );
+			break;
+		}
+	}
 }
 
 
