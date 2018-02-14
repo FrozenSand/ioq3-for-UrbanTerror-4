@@ -1202,7 +1202,7 @@ void CL_ParseBinding( int key, qboolean down, unsigned time )
 	Q_strncpyz( buf, keys[key].binding, sizeof( buf ) );
 
 	// run all bind commands if console, ui, etc aren't reading keys
-	allCommands = ( Key_GetCatcher( ) == 0 );
+	allCommands = ( (Key_GetCatcher( ) & ~KEYCATCH_RADIO) == 0 );
 
 	// allow button up commands if in game even if key catcher is set
 	allowUpCmds = ( clc.state != CA_DISCONNECTED );
@@ -1334,6 +1334,12 @@ void CL_KeyDownEvent( int key, unsigned time )
 			return;
 		}
 
+		// escape closes radio menu
+		if (Key_GetCatcher( ) & KEYCATCH_RADIO) {
+			Key_SetCatcher (Key_GetCatcher( ) & ~KEYCATCH_RADIO);
+			return;
+		}
+
 		if ( !( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
 			if ( clc.state == CA_ACTIVE && !clc.demoplaying ) {
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_INGAME );
@@ -1348,6 +1354,14 @@ void CL_KeyDownEvent( int key, unsigned time )
 
 		VM_Call( uivm, UI_KEY_EVENT, key, qtrue );
 		return;
+	}
+
+	// don't parse bindings for 0..9 keys when radio menu is open
+	// those will be handled by the char event
+	if ((Key_GetCatcher( ) & KEYCATCH_RADIO) && !(Key_GetCatcher( ) & KEYCATCH_CONSOLE)) {
+		if (key >= '0' && key <= '9') {
+			return;
+		}
 	}
 
 	// send the bound action
@@ -1503,7 +1517,9 @@ Key_SetCatcher
 */
 void Key_SetCatcher( int catcher ) {
 	// If the catcher state is changing, clear all key states
-	if( catcher != keyCatchers )
+	// unless only KEYCATCH_RADIO was toggled
+
+	if( (catcher & ~KEYCATCH_RADIO) != (keyCatchers & ~KEYCATCH_RADIO) )
 		Key_ClearStates( );
 
 	keyCatchers = catcher;
