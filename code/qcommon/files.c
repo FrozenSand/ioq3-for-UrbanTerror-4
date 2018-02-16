@@ -997,7 +997,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 	FILE			*temp;
 	int				l;
 	char demoExt[16];
-	qboolean isLocalConfig, isQVM;
+	qboolean isLocalConfig, isQVM, isMenu;
 
 	hash = 0;
 
@@ -1007,6 +1007,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 
 	isLocalConfig = !Q_stricmp(filename, "autoexec.cfg") || !Q_stricmp(filename, "q3config.cfg");
 	isQVM = COM_CompareExtension(filename, ".qvm");
+	isMenu = COM_CompareExtension(filename, ".menu");
 
 	if ( file == NULL ) {
 		// just wants to see if file is there
@@ -1016,8 +1017,8 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 				if (isLocalConfig)
 					continue;
 
-				// QVMs can't be loaded from pk3 in the "download" directory
-				if (isQVM && !Q_stricmp(search->pack->pakGamename, "download"))
+				// QVMs and menu files can't be loaded from pk3 in the "download" directory
+				if ((isQVM || isMenu) && !Q_stricmp(search->pack->pakGamename, "download"))
 					continue;
 
 				hash = FS_HashFileName(filename, search->pack->hashSize);
@@ -1093,8 +1094,8 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 			if (isLocalConfig)
 				continue;
 
-			// QVMs can't be loaded from pk3 in the "download" directory
-			if (isQVM && !Q_stricmp(search->pack->pakGamename, "download"))
+			// QVMs and menu files can't be loaded from pk3 in the "download" directory
+			if ((isQVM || isMenu) && !Q_stricmp(search->pack->pakGamename, "download"))
 				continue;
 
 			hash = FS_HashFileName(filename, search->pack->hashSize);
