@@ -192,6 +192,8 @@ exec server.cfg // Start server with the specified config file
 
 - Fixed that `save` could create new directories on jump servers with persistent positions enabled
 
+- Fix a buffer overflow when a funstuff is bigger than 13 characters
+
 # Feature parity status with original ioUrbanTerror
 
 ## Common

@@ -1033,6 +1033,44 @@ static void SV_ResetPureClient_f( client_t *cl ) {
 }
 
 /*
+==================
+SV_CheckFunstuffExploit
+==================
+Makes sure each comma-separated token of the specified userinfo key
+is at most 13 characters to protect the game against buffer overflow.
+*/
+
+static qboolean SV_CheckFunstuffExploit( char *userinfo, char *key )
+{
+	char *token = Info_ValueForKey( userinfo, key );
+
+	if ( !token )
+		return qfalse;
+
+	while (token && *token)
+	{
+		int len;
+		char *next = strchr(token, ',');
+
+		if (next == NULL) {
+			len = strlen(token);
+			token = NULL;
+		} else {
+			len = next - token;
+			token = next + 1;
+		}
+
+		if (len > 13) {
+			Info_SetValueForKey( userinfo, key, "" );
+			return qtrue;
+		}
+	}
+
+	return qfalse;
+}
+
+
+/*
 =================
 SV_UserinfoChanged
 
@@ -1141,6 +1179,13 @@ void SV_UserinfoChanged( client_t *cl ) {
 			Com_Printf( "Cleared malformed cl_guid from %s.\n", NET_AdrToString( cl->netchan.remoteAddress ) );
 			break;
 		}
+	}
+
+	if ( SV_CheckFunstuffExploit( cl->userinfo, "funfree" ) ||
+		 SV_CheckFunstuffExploit( cl->userinfo, "funred" ) ||
+		 SV_CheckFunstuffExploit( cl->userinfo, "funblue" ) )
+	{
+		Com_Printf( "funstuff exploit attempt from %s\n", NET_AdrToString( cl->netchan.remoteAddress ) );
 	}
 }
 
