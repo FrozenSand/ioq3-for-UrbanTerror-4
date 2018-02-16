@@ -136,14 +136,12 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 	} else if ( client->netchan.outgoingSequence - client->deltaMessage 
 		>= (PACKET_BACKUP - 3) ) {
 		// client hasn't gotten a good message through in a long time
-		Com_DPrintf ("%s: Delta request from out of date packet.\n", client->name);
 		oldframe = NULL;
 		lastframe = 0;
 	} else if (client->demo_recording && client->demo_deltas <= 0) {
 		// if we're recording this client, force full frames every now and then
 		oldframe = NULL;
 		lastframe = 0;
-		Com_DPrintf("Forced a full frame for %s\n", client->name);
 		// once we reach 1 full frame for every 1024 delta frames we stay there
 		// TODO: these numbers need to be tweaked properly, the current values
 		// just seem to work "fine" for all the tests we ran...
@@ -154,7 +152,6 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 	} else {
 		// count down delta frames to know when we need to send the next full frame
 		if (client->demo_recording) {
-			Com_DPrintf("Counted a delta frame for %s\n", client->name);
 			client->demo_deltas--;
 		}
 		
@@ -164,7 +161,6 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 
 		// the snapshot's entities may still have rolled off the buffer, though
 		if ( oldframe->first_entity <= svs.nextSnapshotEntities - svs.numSnapshotEntities ) {
-			Com_DPrintf ("%s: Delta request from out of date entities.\n", client->name);
 			oldframe = NULL;
 			lastframe = 0;
 		}
@@ -173,7 +169,6 @@ static void SV_WriteSnapshotToClient( client_t *client, msg_t *msg ) {
 	// start recording only once there's a non-delta frame to start with
 	if (!oldframe && client->demo_recording && client->demo_waiting) {
 		client->demo_waiting = qfalse;
-		Com_DPrintf("Got non-delta frame, recording %s now\n", client->name);
 	}
 	
 	MSG_WriteByte (msg, svc_snapshot);
@@ -599,7 +594,6 @@ void SV_SendMessageToClient(msg_t *msg, client_t *client)
 {
 	if (client->demo_recording && !client->demo_waiting) {
 		SVD_WriteDemoFile(client, msg);
-		Com_DPrintf("Wrote a frame for %s\n", client->name);
 	}
 	
 	// record information about the message
