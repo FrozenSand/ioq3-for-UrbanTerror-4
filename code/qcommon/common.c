@@ -455,18 +455,20 @@ void Com_ParseCommandLine( char *commandLine ) {
     }
 }
 
-void Com_ParseCommandFile( char *dir )
+void Com_ParseCommandFile( int slot, char *dir )
 {
-    char commandLine[MAX_STRING_CHARS] = {0};
+    static char commandLine[3][MAX_STRING_CHARS] = {0};
+    FILE *fp;
 
-    FILE *fp = Sys_FOpen(va("%s%c%s", dir, PATH_SEP, COMMAND_FILE_NAME), "rb");
+    assert( slot < sizeof(commandLine) / sizeof(*commandLine) );
 
+    fp = Sys_FOpen(va("%s%c%s", dir, PATH_SEP, COMMAND_FILE_NAME), "rb");
     if (!fp) {
         return;
     }
 
-    if (fread(commandLine, 1, sizeof(commandLine) - 1, fp) > 0) {
-        Com_ParseCommandLine(commandLine);
+    if (fread(commandLine[slot], 1, sizeof(*commandLine) - 1, fp) > 0) {
+        Com_ParseCommandLine(commandLine[slot]);
     }
 
     fclose(fp);
@@ -2584,11 +2586,11 @@ void Com_Init( char *commandLine ) {
 	// cvar and command buffer management
 	com_numConsoleLines = 0;
 
-	Com_ParseCommandFile( Sys_BinaryPath() );
+	Com_ParseCommandFile( 0, Sys_BinaryPath() );
 #ifdef DEFAULT_BASEDIR
-	Com_ParseCommandFile( Sys_DefaultInstallPath() );
+	Com_ParseCommandFile( 1, Sys_DefaultInstallPath() );
 #endif
-	Com_ParseCommandFile( Sys_Cwd() );
+	Com_ParseCommandFile( 2, Sys_Cwd() );
 
 	Com_ParseCommandLine( commandLine );
 
