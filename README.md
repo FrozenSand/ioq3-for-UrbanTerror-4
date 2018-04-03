@@ -1,7 +1,7 @@
 # ioquake 3 for UrbanTerror
 
 [![Build Status](https://travis-ci.org/mickael9/ioq3.svg?branch=urt)](https://travis-ci.org/mickael9/ioq3)
-[Download prebuilt binaries for Linux/macOS/Windows](http://ioq3urt.mickael9.tk/urt/)
+[Download prebuilt binaries for Linux/macOS/Windows](http://builds.iourtm9.tk/urt/)
 
 This project is an initiative to backport the relevant ioUrbanTerror-specific
 features to an up-to-date ioquake3.

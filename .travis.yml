@@ -63,7 +63,7 @@ deploy:
     access_key_id: GOOGCLGNLWAEBU5YLYK5
     secret_access_key:
       secure: "OmuACtWXvmKR4hIlNDwfOh+ZuoMUuivuskyV2n9zD01hpfwfXNQhQrNyLjOMaw2sGHQk2ZKRpmWoMjenfsjDf875Vj1SbytQgBQiLjw77KGHC+cJV9I0uL/BcS8YS+PeZOFmVbUeL7cSfbkBO/z/nJpvnJGPYX1Xj31skCemvzS9QAo3B6RgNGHqI7N4BvBzhcpsyOPzsi9HyOkXo1L6IkpBu+uU8qsfQhA0KexKnIYvM2q1llcU/Ux8hYTpRWJ3TVQb/uNnpijG4E2rKBEZs1bCj2U5Pb5zMsNG8zo6lwbB+tIq3quhXyob9oCn2Sqvj4seDTJzcQZ51Sfa2SsKNsMC7rPlkIKXtpo63U5eijms+F3vU9Y7msJmWc2vVYM5TI0oF18oNJ6oaAyhNsKerSBW3rUHkPE3p9GCn/db3nyVbc3wnm+GY5m2v3QQXtnMXubPLK85gFPRWQoupugdPttqL0DeOlHma+Kepr08Cz9HpFTvIepa9LcotvH9LxnvoYDBVVAb2qQMETemlPFOoAg7ZnMj1SERXst1lYT0LpxbhQ208wikJcJmtQaUfDZWPFOlnm395i3fwfXH73K1pHdeIb9Z3m55qFftALg9boNqTagHzxlfptvePzJVuj3vQIlvnHR3rrp+ozdACQMNR7z5pQ+FNgb7dsmxvjecau4="
-    bucket: ioq3urt.mickael9.tk
+    bucket: builds.iourtm9.tk
     skip-cleanup: true
     local-dir: build
     upload-dir: ${TRAVIS_BRANCH}/build-${TRAVIS_BUILD_NUMBER}
