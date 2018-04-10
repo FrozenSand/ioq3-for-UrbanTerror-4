@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define PRODUCT_NAME				"ioQuake3-UrT"
+#define PRODUCT_NAME				"ioq3-UrT"
 #define BASEGAME					"q3ut4"
 #define CLIENT_WINDOW_TITLE		"UrbanTerror"
 #define CLIENT_WINDOW_MIN_TITLE	"UrbanTerror"
@@ -474,7 +474,7 @@ int Q_isnan(float x);
 #endif
 /*
 // if your system does not have lrintf() and round() you can try this block. Please also open a bug report at bugzilla.icculus.org
-// or write a mail to the ioq3 mailing list.
+// or write a mail to the 3 mailing list.
 #else
   #define Q_ftol(v) ((long) (v))
   #define Q_round(v) do { if((v) < 0) (v) -= 0.5f; else (v) += 0.5f; (v) = Q_ftol((v)); } while(0)

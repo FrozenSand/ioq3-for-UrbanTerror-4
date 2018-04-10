@@ -89,7 +89,7 @@ endif
 export CROSS_COMPILING
 
 ifndef VERSION
-VERSION=ioq3urt-mickael9
+VERSION=m9
 endif
 
 ifndef CLIENTBIN
@@ -288,9 +288,9 @@ endif
 # Add git version info
 USE_GIT=
 ifeq ($(wildcard .git),.git)
-  GIT_REV=$(shell git show -s --pretty=format:%h-%ad --date=short)
+  GIT_REV=$(shell git describe --always)
   ifneq ($(GIT_REV),)
-    VERSION:=$(VERSION)_GIT_$(GIT_REV)
+    VERSION:=$(VERSION)-$(GIT_REV)
     USE_GIT=1
   endif
 endif
