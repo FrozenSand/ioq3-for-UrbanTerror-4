@@ -474,7 +474,7 @@ int Q_isnan(float x);
 #endif
 /*
 // if your system does not have lrintf() and round() you can try this block. Please also open a bug report at bugzilla.icculus.org
-// or write a mail to the 3 mailing list.
+// or write a mail to the ioq3 mailing list.
 #else
   #define Q_ftol(v) ((long) (v))
   #define Q_round(v) do { if((v) < 0) (v) -= 0.5f; else (v) += 0.5f; (v) = Q_ftol((v)); } while(0)
