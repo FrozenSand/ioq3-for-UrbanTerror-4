@@ -2236,11 +2236,11 @@ static void CL_PromptDownload(void)
 
 			S_COLOR_RED "The cURL library could not be loaded. Autodownload is not possible.\n\n" S_COLOR_WHITE
 
-			"Fix your cURL installation or try to get the map at http://urbanterror.info\n" , clc.mapname);
+			"Fix your cURL installation or try to get the map at https://urbanterror.info\n" , clc.mapname);
 
 		return;
 	} else 	if (!*clc.sv_dlURL) {
-		Q_strncpyz(clc.sv_dlURL, "http://urbanterror.info", sizeof(clc.sv_dlURL));
+		Q_strncpyz(clc.sv_dlURL, "https://urbanterror.info", sizeof(clc.sv_dlURL));
 
 		errorMessage = va(
 			"To play on this server, you need the map:\n\n"
