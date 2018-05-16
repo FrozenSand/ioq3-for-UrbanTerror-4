@@ -3447,12 +3447,8 @@ static void FS_Startup( const char *gameName )
 	}
 
 	fs_homepath = Cvar_Get ("fs_homepath", homePath, CVAR_INIT|CVAR_PROTECTED );
-#ifdef USE_AUTH
+
 	fs_gamedirvar = Cvar_Get ("fs_game", BASEGAME, CVAR_INIT|CVAR_SYSTEMINFO );
-	// mickael9: AUTH system requires fs_game to be set
-#else
-	fs_gamedirvar = Cvar_Get ("fs_game", "", CVAR_INIT|CVAR_SYSTEMINFO );
-#endif
 
 	if (!gameName[0]) {
 		Cvar_ForceReset( "com_basegame" );
