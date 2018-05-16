@@ -1034,44 +1034,6 @@ static void SV_ResetPureClient_f( client_t *cl ) {
 }
 
 /*
-==================
-SV_CheckFunstuffExploit
-==================
-Makes sure each comma-separated token of the specified userinfo key
-is at most 13 characters to protect the game against buffer overflow.
-*/
-
-static qboolean SV_CheckFunstuffExploit( char *userinfo, char *key )
-{
-	char *token = Info_ValueForKey( userinfo, key );
-
-	if ( !token )
-		return qfalse;
-
-	while (token && *token)
-	{
-		int len;
-		char *next = strchr(token, ',');
-
-		if (next == NULL) {
-			len = strlen(token);
-			token = NULL;
-		} else {
-			len = next - token;
-			token = next + 1;
-		}
-
-		if (len > 13) {
-			Info_SetValueForKey( userinfo, key, "" );
-			return qtrue;
-		}
-	}
-
-	return qfalse;
-}
-
-
-/*
 =================
 SV_UserinfoChanged
 
@@ -1170,24 +1132,6 @@ void SV_UserinfoChanged( client_t *cl ) {
 		SV_DropClient( cl, "userinfo string length exceeded" );
 	else
 		Info_SetValueForKey( cl->userinfo, "ip", ip );
-
-
-	val = Info_ValueForKey( cl->userinfo, "cl_guid" );
-
-	for ( i = 0; i < strlen( val ); i++ ) {
-		if ( !isalnum( val[i] ) ) {
-			Info_SetValueForKey( cl->userinfo, "cl_guid", "" );
-			Com_Printf( "Cleared malformed cl_guid from %s.\n", NET_AdrToString( cl->netchan.remoteAddress ) );
-			break;
-		}
-	}
-
-	if ( SV_CheckFunstuffExploit( cl->userinfo, "funfree" ) ||
-		 SV_CheckFunstuffExploit( cl->userinfo, "funred" ) ||
-		 SV_CheckFunstuffExploit( cl->userinfo, "funblue" ) )
-	{
-		Com_Printf( "funstuff exploit attempt from %s\n", NET_AdrToString( cl->netchan.remoteAddress ) );
-	}
 }
 
 
@@ -1350,14 +1294,6 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 					NET_AdrToStringwPort(cl->netchan.remoteAddress));
 				SV_SendServerCommand(cl, "print \"Chat dropped due to message length constraints.\n\"");
 				return;
-			}
-
-			if ( !Q_stricmp( "stats", Cmd_Argv(0) ) ) {
-				if ( cl - svs.clients != SV_GameClientNum( cl - svs.clients )->clientNum ) {
-					Com_Printf( "Stats command exploit attempt from %s\n", NET_AdrToString( cl->netchan.remoteAddress ) );
-					SV_SendServerCommand( cl, "print \"^7Stats command exploit attempt detected. This has been ^1reported^7.\n\"" );
-					return;
-				}
 			}
 
 			VM_Call( gvm, GAME_CLIENT_COMMAND, cl - svs.clients );
