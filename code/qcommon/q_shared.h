@@ -26,10 +26,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define PRODUCT_NAME				"ioq3-UrT"
+#define PRODUCT_NAME				"ioq3"
 #define BASEGAME					"q3ut4"
-#define CLIENT_WINDOW_TITLE		"UrbanTerror"
-#define CLIENT_WINDOW_MIN_TITLE	"UrbanTerror"
+#define CLIENT_WINDOW_TITLE		"Urban Terror"
+#define CLIENT_WINDOW_MIN_TITLE	"Urban Terror"
 #define HOMEPATH_NAME_UNIX		".q3a"
 #define HOMEPATH_NAME_WIN			"Quake3"
 #define HOMEPATH_NAME_MACOSX		HOMEPATH_NAME_WIN
@@ -53,11 +53,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
   #define PRODUCT_VERSION "1.36"
 #endif
 
+#define MOD_VERSION "4.3.4"
+
 #ifndef PRODUCT_DATE
 #  define PRODUCT_DATE __DATE__
 #endif
 
-#define Q3_VERSION PRODUCT_NAME " " PRODUCT_VERSION
+#define Q3_VERSION PRODUCT_NAME " " PRODUCT_VERSION " urt " MOD_VERSION
 
 #define MAX_TEAMNAME		32
 #define MAX_MASTER_SERVERS      5	// number of supported master servers
@@ -1083,7 +1085,7 @@ typedef enum {
 // per-level limits
 //
 #define	MAX_CLIENTS			64		// absolute limit
-#define MAX_LOCATIONS		64
+#define MAX_LOCATIONS		360   // UrT - previously 64
 
 #define	GENTITYNUM_BITS		10		// don't need to send any more
 #define	MAX_GENTITIES		(1<<GENTITYNUM_BITS)
