@@ -700,3 +700,25 @@ void SV_SendClientMessages(void)
 		c->rateDelayed = qfalse;
 	}
 }
+
+void SV_CheckClientUserinfoTimer( void ) {
+	int			i;
+	client_t	*cl;
+	char 		bigbuffer[MAX_INFO_STRING * 2];
+
+	for (i = 0, cl = svs.clients; i < sv_maxclients->integer; i++, cl++) {
+		if (!cl->state) {
+			continue; // not connected
+		}
+
+		if ( (sv_floodProtect->integer) && (svs.time >= cl->nextReliableUserTime) && (cl->state >= CS_ACTIVE) && (cl->userinfobuffer[0] != 0) ) 
+		{
+			// We have something in the buffer
+			// and its time to process it
+			sprintf(bigbuffer, "userinfo \"%s\"", cl->userinfobuffer);
+			
+			Cmd_TokenizeString(bigbuffer);
+			SV_UpdateUserinfo_f(cl);
+		}
+	}
+}

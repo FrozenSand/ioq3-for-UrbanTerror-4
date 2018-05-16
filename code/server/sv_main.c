@@ -1201,6 +1201,9 @@ void SV_Frame( int msec ) {
 	// check timeouts
 	SV_CheckTimeouts();
 
+	// check user info buffer thingy
+	SV_CheckClientUserinfoTimer();
+	
 	// send messages back to the clients
 	SV_SendClientMessages();
 
