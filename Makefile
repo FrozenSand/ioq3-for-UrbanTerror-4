@@ -290,7 +290,7 @@ USE_GIT=
 ifeq ($(wildcard .git),.git)
   GIT_REV=$(shell git describe --always)
   ifneq ($(GIT_REV),)
-    VERSION:=$(VERSION)-$(GIT_REV)
+    VERSION:=$(GIT_REV)
     USE_GIT=1
   endif
 endif
@@ -1071,7 +1071,6 @@ ifeq ("$(CC)", $(findstring "$(CC)", "clang" "clang++"))
   BASE_CFLAGS += -Qunused-arguments
 endif
 
-#Barbatos
 ifeq ($(USE_AUTH),1)
   BASE_CFLAGS += -DUSE_AUTH=1
 endif
@@ -1080,7 +1079,6 @@ ifeq ($(USE_SKEETMOD),1)
   BASE_CFLAGS += -DUSE_SKEETMOD=1
 endif
 
-#Barbatos
 ifeq ($(USE_DEMO_FORMAT_42),1)
   BASE_CFLAGS += -DUSE_DEMO_FORMAT_42=1
 endif
@@ -1114,7 +1112,7 @@ ifdef SOURCE_DATE_EPOCH
   BASE_CFLAGS += -DPRODUCT_DATE=\\\"$(shell date --date="@$$SOURCE_DATE_EPOCH" "+%b %_d %Y" | sed -e 's/ /\\\ /'g)\\\"
 endif
 
-BASE_CFLAGS += -DPRODUCT_VERSION=\\\"$(VERSION)\\\"
+BASE_CFLAGS += -DGIT_REV=\\\"$(VERSION)\\\"
 BASE_CFLAGS += -Wformat=2 -Wno-format-zero-length -Wformat-security -Wno-format-nonliteral
 BASE_CFLAGS += -Wstrict-aliasing=2 -Wmissing-format-attribute
 BASE_CFLAGS += -Wdisabled-optimization
