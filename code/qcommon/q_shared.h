@@ -182,6 +182,8 @@ typedef int intptr_t;
 
 #include "q_platform.h"
 
+#define FULL_VERSION Q3_VERSION " " PLATFORM_STRING
+  
 //=============================================================
 
 typedef unsigned char 		byte;
