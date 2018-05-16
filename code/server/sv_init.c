@@ -837,10 +837,6 @@ void SV_SpawnServer( char *server, qboolean killBots ) {
 	// to all clients
 	sv.state = SS_GAME;
 
-#ifdef USE_SKEETMOD
-	SV_SkeetInit();
-#endif
-
 	// send a heartbeat now so the master will get up to date info
 	SV_Heartbeat_f();
 
@@ -938,18 +934,6 @@ void SV_Init (void)
 #ifdef USE_AUTH
 	sv_authServerIP = Cvar_Get("sv_authServerIP", "", CVAR_TEMP | CVAR_ROM);
 	sv_auth_engine = Cvar_Get("sv_auth_engine", "1", CVAR_ROM);
-#endif
-
-#ifdef USE_SKEETMOD
-	sv_skeetshoot = Cvar_Get("sv_skeetshoot", "0", CVAR_ARCHIVE);
-	sv_skeethitreport = Cvar_Get("sv_skeethitreport", "0", CVAR_ARCHIVE);
-	sv_skeethitsound = Cvar_Get("sv_skeethitsound", "sound/skeetshoot/skeethitsound.wav", CVAR_ARCHIVE);
-	sv_skeetpoints = Cvar_Get("sv_skeetpoints", "0", CVAR_ARCHIVE);
-	sv_skeetpointsnotify = Cvar_Get("sv_skeetpointsnotify", "0", CVAR_ARCHIVE);
-	sv_skeetprotect = Cvar_Get("sv_skeetprotect", "1", CVAR_ARCHIVE);
-	sv_skeetspeed = Cvar_Get("sv_skeetspeed", "2800", CVAR_ARCHIVE);
-	sv_skeetrotate = Cvar_Get("sv_skeetrotate", "0", CVAR_ARCHIVE);
-	sv_skeetfansize = Cvar_Get("sv_skeetfansize", "144", CVAR_ARCHIVE);
 #endif
 
 	// initialize bot cvars so they are listed and can be set before loading the botlib

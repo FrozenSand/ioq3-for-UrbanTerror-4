@@ -225,10 +225,6 @@ ifndef USE_ALTGAMMA
   USE_ALTGAMMA=1
 endif
 
-ifndef USE_SKEETMOD
-  USE_SKEETMOD=0
-endif
-
 #############################################################################
 
 BD=$(BUILD_DIR)/debug-$(PLATFORM)-$(ARCH)
@@ -1075,10 +1071,6 @@ ifeq ($(USE_AUTH),1)
   BASE_CFLAGS += -DUSE_AUTH=1
 endif
 
-ifeq ($(USE_SKEETMOD),1)
-  BASE_CFLAGS += -DUSE_SKEETMOD=1
-endif
-
 ifeq ($(USE_DEMO_FORMAT_42),1)
   BASE_CFLAGS += -DUSE_DEMO_FORMAT_42=1
 endif
@@ -1376,7 +1368,6 @@ Q3OBJ = \
   $(B)/client/sv_init.o \
   $(B)/client/sv_main.o \
   $(B)/client/sv_net_chan.o \
-  $(B)/client/sv_skeetshoot.o \
   $(B)/client/sv_snapshot.o \
   $(B)/client/sv_utils.o \
   $(B)/client/sv_world.o \
@@ -1900,7 +1891,6 @@ Q3DOBJ = \
   $(B)/ded/sv_init.o \
   $(B)/ded/sv_main.o \
   $(B)/ded/sv_net_chan.o \
-  $(B)/ded/sv_skeetshoot.o \
   $(B)/ded/sv_snapshot.o \
   $(B)/ded/sv_utils.o \
   $(B)/ded/sv_world.o \

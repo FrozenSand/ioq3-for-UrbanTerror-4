@@ -48,17 +48,6 @@ typedef struct voipServerPacket_s
 } voipServerPacket_t;
 #endif
 
-#ifdef USE_SKEETMOD
-#define MAX_SKEETS      128     // Max amount of skeets that will be animated in skeed mode
-
-typedef struct skeetInfo_s {
-	qboolean 	valid;        	// qtrue if this entity is a skeet
-	vec3_t      origin;         // coordinates of the skeet spawn point
-	int         shootTime;      // time when the skeet has been shot
-	qboolean    moving;         // whether the skeet is movingin the air or not
-} skeetInfo_t;
-#endif
-
 typedef struct svEntity_s {
 	struct worldSector_s *worldSector;
 	struct svEntity_s *nextEntityInWorldSector;
@@ -69,9 +58,6 @@ typedef struct svEntity_s {
 	int			lastCluster;		// if all the clusters don't fit in clusternums
 	int			areanum, areanum2;
 	int			snapshotCounter;	// used to prevent double adding from portal views
-#ifdef USE_SKEETMOD
-	skeetInfo_t skeetInfo;
-#endif
 } svEntity_t;
 
 typedef enum {
@@ -94,10 +80,6 @@ typedef struct {
 	int				nextFrameTime;		// when time > nextFrameTime, process world
 	char			*configstrings[MAX_CONFIGSTRINGS];
 	svEntity_t		svEntities[MAX_GENTITIES];
-
-#ifdef USE_SKEETMOD
-	svEntity_t      *skeets[MAX_SKEETS];
-#endif
 
 	char			*entityParsePoint;	// used during game VM init
 
@@ -217,11 +199,6 @@ typedef struct client_s {
 
 #ifdef USE_AUTH
 	char auth[MAX_NAME_LENGTH];
-#endif
-
-#ifdef USE_SKEETMOD
-	int lastEventSequence;
-	int powerups[MAX_POWERUPS];
 #endif
 
 } client_t;
@@ -359,18 +336,6 @@ extern	cvar_t	*sv_authServerIP;
 extern	cvar_t	*sv_auth_engine;
 #endif
 
-#ifdef USE_SKEETMOD
-extern  cvar_t  *sv_skeetshoot;         // enable/disable skeetshooting mod
-extern  cvar_t  *sv_skeethitreport;     // report every skeet hit as server message
-extern  cvar_t  *sv_skeethitsound;      // sound to play upon skeet hit
-extern  cvar_t  *sv_skeetpoints;        // how many points for each skeet hit: if 0 will use a distance based point system
-extern  cvar_t  *sv_skeetpointsnotify;  // notify each point scored to the client who performed the shot
-extern  cvar_t  *sv_skeetprotect;       // protect hit/kill of non-skeet entities (i.e. players)
-extern  cvar_t  *sv_skeetspeed;			// speed of each skeet
-extern  cvar_t  *sv_skeetrotate;		// ROLL angle rotation (defaults to 0, range between -360 and +360)
-extern  cvar_t  *sv_skeetfansize;		// spread of the skeet launcher (defaults to 144, range 0-360)
-#endif
-
 //===========================================================
 
 //
@@ -421,25 +386,6 @@ int   SV_UnitsToMeters(float distance);
 int   SV_XORShiftRand(void);
 float SV_XORShiftRandRange(float min, float max);
 void  SV_XORShiftRandSeed(unsigned int seed);
-
-
-//
-// sv_skeetshoot.c
-//
-#ifdef USE_SKEETMOD
-void     SV_SkeetInit(void);
-void     SV_SkeetThink(void);
-void     SV_SkeetLaunch(svEntity_t *sEnt, sharedEntity_t *gEnt);
-void     SV_SkeetReset(svEntity_t *sEnt, sharedEntity_t *gEnt);
-void     SV_SkeetRespawn(svEntity_t *sEnt, sharedEntity_t *gEnt);
-void     SV_SkeetParseGameRconCommand(const char *text);
-void     SV_SkeetParseGameServerCommand(int clientNum, const char *text);
-void     SV_SkeetBackupPowerups(client_t *cl);
-void     SV_SkeetRestorePowerups(client_t *cl);
-void     SV_SkeetScore(client_t *cl, playerState_t *ps, trace_t *tr);
-void     SV_SkeetClientEvents(client_t *cl);
-qboolean SV_SkeetShoot(client_t *cl, playerState_t *ps);
-#endif
 
 //
 // sv_init.c
