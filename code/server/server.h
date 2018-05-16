@@ -182,6 +182,8 @@ typedef struct client_s {
 	int				pureAuthentic;
 	qboolean  gotCP; // TTimo - additional flag to distinguish between a bad pure checksum, and no cp command at all
 	netchan_t		netchan;
+	int 			numcmds;			// number of client commands so far (in this time period), for sv_floodprotect
+	
 	// TTimo
 	// queuing outgoing fragmented messages to send them properly, without udp packet bursts
 	// in case large fragmented messages are stacking up

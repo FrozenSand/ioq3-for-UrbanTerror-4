@@ -472,6 +472,7 @@ gotnewcl:
 	newcl->lastSnapshotTime = 0;
 	newcl->lastPacketTime = svs.time;
 	newcl->lastConnectTime = svs.time;
+	newcl->numcmds = 0;
 	
 	// when we receive the first packet from the client, we will
 	// notice that it is from a different serverid and that the
@@ -1392,13 +1393,16 @@ static qboolean SV_ClientCommand( client_t *cl, msg_t *msg ) {
 	// but not other people
 	// We don't do this when the client hasn't been active yet since it's
 	// normal to spam a lot of commands when downloading
-	if ( !com_cl_running->integer && 
-		cl->state >= CS_ACTIVE &&
-		sv_floodProtect->integer && 
-		svs.time < cl->nextReliableTime ) {
-		// ignore any other text messages from this client but let them keep playing
-		// TTimo - moved the ignored verbose to the actual processing in SV_ExecuteClientCommand, only printing if the core doesn't intercept
-		clientOk = qfalse;
+	if ( !com_cl_running->integer && cl->state >= CS_ACTIVE && sv_floodProtect->integer ) {
+		if (svs.time < cl->nextReliableTime ) {
+			if (++(cl->numcmds) > sv_floodProtect->integer ) {
+				// ignore any other text messages from this client but let them keep playing
+				// TTimo - moved the ignored verbose to the actual processing in SV_ExecuteClientCommand, only printing if the core doesn't intercept
+				clientOk = qfalse;
+			}
+		} else {
+			cl->numcmds = 1;
+		}
 	} 
 
 	// don't allow another command for one second
@@ -1409,7 +1413,7 @@ static qboolean SV_ClientCommand( client_t *cl, msg_t *msg ) {
 	cl->lastClientCommand = seq;
 	Com_sprintf(cl->lastClientCommandString, sizeof(cl->lastClientCommandString), "%s", s);
 
-	return qtrue;		// continue procesing
+	return qtrue;		// continue processing
 }
 
 
