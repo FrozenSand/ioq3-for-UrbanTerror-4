@@ -89,9 +89,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define QCALL __stdcall
 
 #if defined( _MSC_VER )
-#define OS_STRING "win_msvc64"
+#define OS_STRING "msvc"
 #elif defined __MINGW64__
-#define OS_STRING "win_mingw64"
+#define OS_STRING "mingw"
 #endif
 
 #define ID_INLINE __inline
@@ -116,9 +116,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define QCALL __stdcall
 
 #if defined( _MSC_VER )
-#define OS_STRING "win_msvc"
+#define OS_STRING "msvc"
 #elif defined __MINGW32__
-#define OS_STRING "win_mingw"
+#define OS_STRING "mingw"
 #endif
 
 #define ID_INLINE __inline
@@ -141,7 +141,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if defined(__APPLE__) || defined(__APPLE_CC__)
 
-#define OS_STRING "macosx"
+#define OS_STRING "osx"
 #define ID_INLINE inline
 #define PATH_SEP '/'
 
