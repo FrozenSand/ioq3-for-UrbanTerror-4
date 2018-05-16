@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=UrbanTerror (mickael9 build)
-Exec=urbanterror-m9
+Name=Urban Terror
+Exec=Quake3-UrT
 Icon=urbanterror
 Type=Application
 Terminal=false

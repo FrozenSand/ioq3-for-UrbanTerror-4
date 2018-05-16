@@ -89,15 +89,15 @@ endif
 export CROSS_COMPILING
 
 ifndef VERSION
-VERSION=m9
+VERSION=""
 endif
 
 ifndef CLIENTBIN
-CLIENTBIN=urbanterror-m9
+CLIENTBIN=Quake3-UrT
 endif
 
 ifndef SERVERBIN
-SERVERBIN=urbanterror-server-m9
+SERVERBIN=Quake3-UrT-Ded
 endif
 
 ifndef COPYDIR
@@ -923,7 +923,7 @@ endif
 TARGETS =
 
 ifndef FULLBINEXT
-  FULLBINEXT=.$(ARCH)$(BINEXT)
+  FULLBINEXT=$(BINEXT)
 endif
 
 ifndef SHLIBNAME

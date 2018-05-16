@@ -1,9 +1,9 @@
 [Unit]
-Description=UrbanTerror server
+Description=Urban Terror server
 
 [Service]
 User=urbanterror
-ExecStart=/opt/urbanterror/urbanterror-server-m9
+ExecStart=/opt/urbanterror/Quake3-UrT-Ded
 Restart=on-abort
 
 [Install]

@@ -54,7 +54,7 @@ after_success:
       bname=${bname/linux-/linux}
       bname=${bname/x86_64/64}
       bname=${bname/x86/32}
-      mv "$file" "ioq3urt-m9-${bname}-${version}.zip"
+      mv "$file" "Quake3-UrT-${bname}-${version}.zip"
     done
     cd ..
 
