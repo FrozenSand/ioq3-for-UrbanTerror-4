@@ -969,7 +969,7 @@ void GLimp_Init( qboolean coreContext)
 	}
 
 	// Nothing worked, give up
-	ri.Error( ERR_FATAL, "GLimp_Init() - could not load OpenGL subsystem" );
+	ri.Error( ERR_FATAL, "GLimp_Init() - could not load OpenGL subsystem - get help on the official website: https://www.urbanterror.info/support/manual/faq/\n" );
 
 success:
 	// These values force the UI to disable driver selection

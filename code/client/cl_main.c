@@ -2572,6 +2572,7 @@ void CL_InitServerInfo( serverInfo_t *server, netadr_t *address ) {
 	server->punkbuster = 0;
 	server->g_humanplayers = 0;
 	server->g_needpass = 0;
+	server->bots = 0;
 }
 
 #define MAX_SERVERSPERPACKET	256
