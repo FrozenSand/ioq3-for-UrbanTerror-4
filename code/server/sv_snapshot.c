@@ -714,7 +714,7 @@ void SV_CheckClientUserinfoTimer( void ) {
 		if ( (sv_floodProtect->integer) && (svs.time >= cl->nextReliableUserTime) && (cl->state >= CS_ACTIVE) && (cl->userinfobuffer[0] != 0) ) 
 		{
 			// We have something in the buffer
-			// and its time to process it
+			// and it's time to process it
 			sprintf(bigbuffer, "userinfo \"%s\"", cl->userinfobuffer);
 			
 			Cmd_TokenizeString(bigbuffer);
