@@ -2994,7 +2994,7 @@ source_t *LoadSourceFile(const char *filename)
 	source = (source_t *) GetMemory(sizeof(source_t));
 	Com_Memset(source, 0, sizeof(source_t));
 
-	strncpy(source->filename, filename, MAX_PATH);
+	Q_strncpyz(source->filename, filename, sizeof(source->filename));
 	source->scriptstack = script;
 	source->tokens = NULL;
 	source->defines = NULL;
@@ -3027,7 +3027,7 @@ source_t *LoadSourceMemory(char *ptr, int length, char *name)
 	source = (source_t *) GetMemory(sizeof(source_t));
 	Com_Memset(source, 0, sizeof(source_t));
 
-	strncpy(source->filename, name, MAX_PATH);
+	Q_strncpyz(source->filename, name, sizeof(source->filename));
 	source->scriptstack = script;
 	source->tokens = NULL;
 	source->defines = NULL;
