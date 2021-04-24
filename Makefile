@@ -34,6 +34,7 @@ BUILD_GAME_SO    =0
 BUILD_GAME_QVM   =0
 OPTIMIZE         =1
 USE_SDL          =1
+USE_SDL_SOUND    =0
 USE_OPENAL       =0
 USE_CURL         =1
 USE_CODEC_VORBIS =0
@@ -529,6 +530,10 @@ ifeq ($(PLATFORM),freebsd)
      SDL_LIBS=$(shell pkg-config --libs sdl)
      VORBIS_CFLAGS=$(shell pkg-config --silence-errors --cflags vorbis vorbisfile)
      VORBIS_LIBS=$(shell pkg-config --silence-errors --libs vorbis vorbisfile)
+   endif
+
+   ifeq ($(USE_SDL_SOUND), 1)
+     SDL_CFLAGS += -DUSE_SDL_SOUND
    endif
 
    USE_SDL = 1
