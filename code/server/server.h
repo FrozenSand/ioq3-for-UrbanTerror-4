@@ -326,6 +326,7 @@ void SV_RemoveOperatorCommands (void);
 
 void SV_MasterHeartbeat (void);
 void SV_MasterShutdown (void);
+int SV_RateMsec(client_t *client);
 
 
 
@@ -368,6 +369,8 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK );
 void SV_ClientThink (client_t *cl, usercmd_t *cmd);
 
 void SV_WriteDownloadToClient( client_t *cl , msg_t *msg );
+int SV_SendDownloadMessages(void);
+int SV_SendQueuedMessages(void);
 
 //
 // sv_ccmds.c
@@ -474,6 +477,6 @@ void SV_ClipToEntity( trace_t *trace, const vec3_t start, const vec3_t mins, con
 // sv_net_chan.c
 //
 void SV_Netchan_Transmit( client_t *client, msg_t *msg);
-void SV_Netchan_TransmitNextFragment( client_t *client );
+int SV_Netchan_TransmitNextFragment( client_t *client );
 qboolean SV_Netchan_Process( client_t *client, msg_t *msg );
 
