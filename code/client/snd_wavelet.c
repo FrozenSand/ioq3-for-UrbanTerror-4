@@ -22,39 +22,36 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "snd_local.h"
 
-long myftol( float f );
-
 #define C0 0.4829629131445341
-#define C1 0.8365163037378079
+#define C1 0.8365163037378077
 #define C2 0.2241438680420134
-#define C3 -0.1294095225512604
+#define C3 -0.1294095225512603
 
-void daub4(float b[], unsigned long n, int isign)
+void daub4(float a[], unsigned long n, int isign)
 {
-	float wksp[4097];
-	float	*a=b-1;						// numerical recipies so a[1] = b[0]
+	float wksp[SND_CHUNK_SIZE*4];
 
-	unsigned long nh,nh1,i,j;
+	unsigned long nh,i,j;
 
 	if (n < 4) return;
 
-	nh1=(nh=n >> 1)+1;
+	nh = n >> 1;
 	if (isign >= 0) {
-		for (i=1,j=1;j<=n-3;j+=2,i++) {
-			wksp[i]	   = C0*a[j]+C1*a[j+1]+C2*a[j+2]+C3*a[j+3];
+		for (i=0,j=0;j<n-3;j+=2,i++) {
+			wksp[i]    = C0*a[j]+C1*a[j+1]+C2*a[j+2]+C3*a[j+3];
 			wksp[i+nh] = C3*a[j]-C2*a[j+1]+C1*a[j+2]-C0*a[j+3];
 		}
-		wksp[i   ] = C0*a[n-1]+C1*a[n]+C2*a[1]+C3*a[2];
-		wksp[i+nh] = C3*a[n-1]-C2*a[n]+C1*a[1]-C0*a[2];
+		wksp[i]    = C0*a[n-2]+C1*a[n-1]+C2*a[0]+C3*a[1];
+		wksp[i+nh] = C3*a[n-2]-C2*a[n-1]+C1*a[0]-C0*a[1];
 	} else {
-		wksp[1] = C2*a[nh]+C1*a[n]+C0*a[1]+C3*a[nh1];
-		wksp[2] = C3*a[nh]-C0*a[n]+C1*a[1]-C2*a[nh1];
-		for (i=1,j=3;i<nh;i++) {
-			wksp[j++] = C2*a[i]+C1*a[i+nh]+C0*a[i+1]+C3*a[i+nh1];
-			wksp[j++] = C3*a[i]-C0*a[i+nh]+C1*a[i+1]-C2*a[i+nh1];
+		wksp[0] = C2*a[nh-1]+C1*a[n-1]+C0*a[0]+C3*a[nh];
+		wksp[1] = C3*a[nh-1]-C0*a[n-1]+C1*a[0]-C2*a[nh];
+		for (i=0,j=2;i<nh-1;i++) {
+			wksp[j++] = C2*a[i]+C1*a[i+nh]+C0*a[i+1]+C3*a[i+nh+1];
+			wksp[j++] = C3*a[i]-C0*a[i+nh]+C1*a[i+1]-C2*a[i+nh+1];
 		}
 	}
-	for (i=1;i<=n;i++) {
+	for (i=0;i<n;i++) {
 		a[i]=wksp[i];
 	}
 }
@@ -62,12 +59,11 @@ void daub4(float b[], unsigned long n, int isign)
 void wt1(float a[], unsigned long n, int isign)
 {
 	unsigned long nn;
-	int inverseStartLength = n/4;
-	if (n < inverseStartLength) return;
+	if (n < 4) return;
 	if (isign >= 0) {
-		for (nn=n;nn>=inverseStartLength;nn>>=1) daub4(a,nn,isign);
+		for (nn=n;nn>=4;nn>>=1) daub4(a,nn,isign);
 	} else {
-		for (nn=inverseStartLength;nn<=n;nn<<=1) daub4(a,nn,isign);
+		for (nn=4;nn<=n;nn<<=1) daub4(a,nn,isign);
 	}
 }
 
@@ -121,7 +117,7 @@ void NXPutc(NXStream *stream, char out) {
 
 
 void encodeWavelet( sfx_t *sfx, short *packets) {
-	float	wksp[4097], temp;
+	float	wksp[SND_CHUNK_SIZE*4], temp;
 	int		i, samples, size;
 	sndBuffer		*newchunk, *chunk;
 	byte			*out;
@@ -171,7 +167,7 @@ void encodeWavelet( sfx_t *sfx, short *packets) {
 }
 
 void decodeWavelet(sndBuffer *chunk, short *to) {
-	float			wksp[4097];
+	float			wksp[SND_CHUNK_SIZE*4];
 	int				i;
 	byte			*out;
 
