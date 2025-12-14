@@ -48,4 +48,5 @@
     <release date="2016-10-06" version="4.3.1" />
     <release date="2016-10-01" version="4.3.0" />
   </releases>
+  <launchable type="desktop-id">urbanterror.desktop</launchable>
 </component>
