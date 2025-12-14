@@ -3,7 +3,9 @@
   <id>urbanterror.desktop</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0+ AND LicenseRef-proprietary=https://www.urbanterror.info/support/202-quake-3-sdk/</project_license>
-  <developer_name>Frozensand Games Limited</developer_name>
+  <developer id="com.frozensand">
+    <name>Frozensand Games Limited</name>
+  </developer>
   <name>Urban Terror</name>
   <summary>Tactical first person shooter with action movie elements</summary>
   <description>
