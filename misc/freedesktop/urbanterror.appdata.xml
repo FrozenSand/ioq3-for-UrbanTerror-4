@@ -19,11 +19,21 @@
   </description>
   <url type="homepage">https://www.urbanterror.info/</url>
   <screenshots>
-    <screenshot>https://www.urbanterror.info/files/static/images/pics/presentation/shot0001.jpg</screenshot>
-    <screenshot>https://www.urbanterror.info/files/static/images/pics/presentation/shot0007.jpg</screenshot>
-    <screenshot type="default">https://www.urbanterror.info/files/static/images/pics/presentation/shot0016.jpg</screenshot>
-    <screenshot>https://www.urbanterror.info/files/static/images/pics/presentation/shot0017.jpg</screenshot>
-    <screenshot>https://www.urbanterror.info/files/static/images/pics/presentation/shot0018.jpg</screenshot>
+    <screenshot>
+      <image>https://www.urbanterror.info/files/static/images/pics/presentation/shot0001.jpg</image>
+    </screenshot>
+    <screenshot>
+      <image>https://www.urbanterror.info/files/static/images/pics/presentation/shot0007.jpg</image>
+    </screenshot>
+    <screenshot type="default">
+      <image>https://www.urbanterror.info/files/static/images/pics/presentation/shot0016.jpg</image>
+    </screenshot>
+    <screenshot>
+      <image>https://www.urbanterror.info/files/static/images/pics/presentation/shot0017.jpg</image>
+    </screenshot>
+    <screenshot>
+      <image>https://www.urbanterror.info/files/static/images/pics/presentation/shot0018.jpg</image>
+    </screenshot>
   </screenshots>
   <content_rating type="oars-1.1">
     <content_attribute id="violence-realistic">intense</content_attribute>
